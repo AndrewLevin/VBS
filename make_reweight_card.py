@@ -1,12 +1,9 @@
 import sys
 
-if len(sys.argv) != 2:
+if len(sys.argv) != 1:
      print "Usage:"
-     print "python2.6 make_reweight_card.py model"
-     print "possible models: SM_LT012_UFO, SM_LM0123_UFO, or SM_LS0_LS1_UFO"
+     print "python2.6 make_reweight_card.py"
      sys.exit(0)
-
-model=sys.argv[1]
 
 print "#******************************************************************"
 print "#                       Reweight Module                           *"
@@ -32,35 +29,55 @@ print "# All modification will start from the ORIGINAL card not from the"
 print "# last define one."
 print "#* You can have as many weight as you want."
 
-if model == "SM_LS0_LS1_UFO":
-    for i in range(-5,6):
-        for j in range(-5,6):
-            if i == 0 and j == 0:
-                continue
-            print ""
-            print "launch"
-            print "        set anoinputs 1 " +str(i/2.) + "00000e-10"
-            print "        set anoinputs 2 " + str(j/2.)+ "00000e-9"
-elif model=="SM_LT012_UFO":
-    for param_num1 in range(11,14):
-        for param_num2 in range (param_num1+1,14):
-            for i in range(-5,6):
-                for j in range(-5,6):
-                    if i == 0 and j == 0:
-                        continue
-                    print ""
-                    print "launch"
-                    print "        set anoinputs "+str(param_num1)+" " +str(i*2.) + "00000e-11"
-                    print "        set anoinputs "+str(param_num2)+" "+str(j*2.)+ "00000e-11"
-if model == "SM_LM0123_UFO":
-    for i in range(-5,6):
-        for j in range(-7,8):
-            if i == 0 and j == 0:
-                continue
-            print ""
-            print "launch"
-            print "        set anoinputs 3 " +str(i/2.) + "00000e-10"
-            print "        set anoinputs 4 " + str(j/2.)+ "00000e-10"
-else:                    
-    print "unknown model, exiting"
-    
+#FS0
+for i in range(-5,6):
+     print "launch"
+     print "        set anoinputs 12 0.000000e+00"
+     print "        set anoinputs 1 " +str(i*0.4) + "00000e-10"
+
+#FS1
+for i in range(-5,6):
+     print "launch"
+     print "        set anoinputs 12 0.000000e+00"
+     print "        set anoinputs 2 " +str(i/2.) + "00000e-10"
+
+#FM0
+for i in range(-5,6):
+     print "launch"
+     print "        set anoinputs 12 0.000000e+00"
+     print "        set anoinputs 3 " +str(i/2.) + "00000e-10"
+
+#FM1
+for i in range(-5,6):
+     print "launch"
+     print "        set anoinputs 12 0.000000e+00"
+     print "        set anoinputs 4 " +str(i/2.) + "00000e-10"
+
+#FM6
+for i in range(-5,6):
+     print "launch"
+     print "        set anoinputs 12 0.000000e+00"
+     print "        set anoinputs 9 " +str(i*1.) + "00000e-10"
+
+#FM7
+for i in range(-5,6):
+     print "launch"
+     print "        set anoinputs 12 0.000000e+00"
+     print "        set anoinputs 10 " +str(i*1.) + "00000e-10"     
+
+#FT0
+for i in range(-5,6):
+     print "launch"
+     print "        set anoinputs 12 0.000000e+00"
+     print "        set anoinputs 11 " +str(i*0.5) + "00000e-11"
+
+#FT1
+for i in range(-5,6):
+     print "launch"
+     print "        set anoinputs 12 " +str(i*0.2) + "00000e-11"          
+
+#FT2
+for i in range(-5,6):
+     print "launch"
+     print "        set anoinputs 12 0.000000e+00"
+     print "        set anoinputs 13 " +str(i*0.5) + "00000e-11"
