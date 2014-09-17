@@ -22,7 +22,7 @@ def fillHistograms(t,hist):
         else:
             assert(0)
 
-        if channel != "em":
+        if options.channel != channel and options.channel!="all":
             continue
 
         if t.lep1q != t.lep2q:
@@ -68,16 +68,23 @@ def fillHistograms(t,hist):
 
 parser = optparse.OptionParser()
 
+parser.add_option('-i', '--input_filename', help='filename of the input ntuple', dest='ifname', default='mjj')
 parser.add_option('-v', '--variable', help='which variable to plot', dest='variable', default='mjj')
-parser.add_option('-c', '--datacard', help='the name of the file to write the datacard to', dest='datacard', default='datacard.txt')
+parser.add_option('-c', '--channel', help='which channel to use', dest='channel', default='all')
+parser.add_option('-d', '--datacard', help='the name of the file to write the datacard to', dest='datacard', default='datacard.txt')
 parser.add_option('-l', '--lumi', help='the amount of integrated luminosity to weight the events with', dest='lumi', default='19.4')
 parser.add_option('-o', '--output_dir', help='the directory to write the output plots', dest='output_dir', default='/afs/cern.ch/user/a/anlevin/www/tmp/')
 
 (options,args) = parser.parse_args()
 
+signal_fname=options.ifname
+background_fname=options.ifname
 
-signal_fname="delete_this_2.root"
-background_fname="delete_this_2.root"
+#signal_fname="qed_4_qcd_0_8_tev.root"
+#background_fname="qed_4_qcd_0_8_tev.root"
+
+#signal_fname="delete_this_2.root"
+#background_fname="delete_this_2.root"
 
 #signal_fname="/afs/cern.ch/work/a/anlevin/crab/CMSSW_7_0_6_patch3/src/output_tree.root"
 #background_fname="/afs/cern.ch/work/a/anlevin/crab/CMSSW_7_0_6_patch3/src/output_tree.root"
