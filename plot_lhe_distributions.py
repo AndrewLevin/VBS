@@ -27,6 +27,7 @@ xlabel=sys.argv[10]
 label1=sys.argv[11]
 label2=sys.argv[12]
 outputfilename=sys.argv[13]
+logscale=bool(int(sys.argv[14]))
 
 lumi=19.365
 
@@ -68,6 +69,9 @@ hist_2.GetXaxis().SetTitleOffset(0.7);
 hist_1.GetXaxis().CenterTitle()
 hist_2.GetXaxis().CenterTitle()
 
+hist_1.SetMaximum(1.35 * hist_1.GetMaximum());
+hist_2.SetMaximum(1.35 * hist_1.GetMaximum());
+
 hist_1.SetStats(0)
 hist_2.SetStats(0)
 
@@ -77,6 +81,11 @@ leg=TLegend(.50,.65,.75,.85)
 leg.AddEntry(hist_1,label1,"l")
 leg.AddEntry(hist_2,label2,"l")
 leg.SetFillColor(0)
+
+c1 = TCanvas()
+
+if logscale:
+    c1.SetLogy()
 
 hist_2.Draw()
 hist_1.Draw("SAME")
