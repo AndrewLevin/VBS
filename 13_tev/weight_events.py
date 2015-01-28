@@ -15,7 +15,9 @@ xs = float(options.xs)
 
 fin=TFile(options.infname,"read")
 fout=TFile(options.outfname,"recreate")
+fin.cd()
 told=fin.Get("demo/events")
+gROOT.cd() #in order to prevent the original tree from being added to the output file
 tnew=told.CloneTree()
 
 w=array('f',[0])
@@ -27,6 +29,5 @@ for entry in range(tnew.GetEntries()):
     tnew.GetEntry(entry)
     w[0] = 1000*xs/n_events_run_over_hist.GetEntries()
     br.Fill()
-
 fout.cd()
 tnew.Write()
