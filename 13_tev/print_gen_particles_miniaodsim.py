@@ -13,7 +13,10 @@ def isAncestor(a,p) :
 
 
 
-events = Events (['root://cms-xrd-global.cern.ch//store/mc/Phys14DR/QCD_HT-100To250_13TeV-madgraph/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/00000/10C40CA1-7987-E411-8C57-E0CB4E19F98A.root'])
+#events = Events('file:/afs/cern.ch/work/a/anlevin/VBS/13_tev/Merged.root')
+events = Events('file:/afs/cern.ch/work/a/anlevin/tmp/MySkim_1.electrons.root')
+
+#events = Events (['root://cms-xrd-global.cern.ch//store/mc/Phys14DR/QCD_HT-100To250_13TeV-madgraph/MINIAODSIM/PU20bx25_PHYS14_25_V1-v1/00000/10C40CA1-7987-E411-8C57-E0CB4E19F98A.root'])
 
 
 muons, muonLabel = Handle("std::vector<pat::Muon>"), "slimmedMuons"
@@ -26,11 +29,11 @@ labelPacked = ("packedGenParticles")
 count= 0
 for event in events:
 
-    if event.eventAuxiliary().luminosityBlock() != 48598:
-        continue
+    #if event.eventAuxiliary().luminosityBlock() != 48598:
+        #continue
 
-    if event.eventAuxiliary().event() != 4814521:
-        continue
+    #if event.eventAuxiliary().event() != 33570833:
+    #    continue
 
     print "run %6d, lumi %4d, event %12d" % (event.eventAuxiliary().run(), event.eventAuxiliary().luminosityBlock(),event.eventAuxiliary().event())
     
@@ -46,5 +49,14 @@ for event in events:
     packed = handlePacked.product()
     pruned = handlePruned.product()
     
-    for p in pruned :
-	print "PdgId : %s   pt : %s  eta : %s   phi : %s" %(p.pdgId(),p.pt(),p.eta(),p.phi())    
+#    for p in pruned :
+#	if p.mother() and p.mother().pdgId():
+#	    print "PdgId : %s   pt : %s  eta : %s   phi : %s  mother_pdg_id : %s" %(p.pdgId(),p.pt(),p.eta(),p.phi(),p.mother().pdgId())    
+#        else:
+#	    print "PdgId : %s   pt : %s  eta : %s   phi : %s" %(p.pdgId(),p.pt(),p.eta(),p.phi())    	    	
+
+    for p in packed :
+	if p.mother(0) and p.mother(0).pdgId():
+	    print "PdgId : %s   pt : %s  eta : %s   phi : %s  mother_pdg_id : %s" %(p.pdgId(),p.pt(),p.eta(),p.phi(),p.mother(0).pdgId())    
+        else:
+	    print "PdgId : %s   pt : %s  eta : %s   phi : %s" %(p.pdgId(),p.pt(),p.eta(),p.phi())    	    	
