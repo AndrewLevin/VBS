@@ -22,7 +22,7 @@ from array import array
 
 gStyle.SetOptStat(0)
 
-#gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/crab/CMSSW_7_2_0/src/ntuple_maker/ntuple_maker/interface/enum_definition.h"')
+gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_7_2_0/src/ntuple_maker/ntuple_maker/interface/fr_enum_definition.h"')
 
 finname=options.finname
 foutname=options.foutname
@@ -55,6 +55,9 @@ for entry in range(muon_tree.GetEntries()):
     #if muon_tree.nearestparton_pdgid != 5:
     #    continue    
 
+    if not (muon_tree.flags & LepLooseSelectionV1):
+        continue
+
     if abs(muon_tree.muon_4mom.Eta()) > 2.4:
         continue
 
@@ -64,7 +67,7 @@ for entry in range(muon_tree.GetEntries()):
         loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),muon_tree.muon_4mom.Pt(),muon_tree.xsWeight)
     #loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),muon_tree.muon_4mom.Pt())
 
-    if muon_tree.pass_full_muon_id:
+    if (muon_tree.flags & LepTightSelectionV3):
         if muon_tree.muon_4mom.Pt() > tight_muon_th2d.GetYaxis().GetBinUpEdge(tight_muon_th2d.GetYaxis().GetNbins()):
             tight_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),tight_muon_th2d.GetYaxis().GetBinCenter(tight_muon_th2d.GetYaxis().GetNbins()),muon_tree.xsWeight)
         else:
@@ -100,6 +103,9 @@ for entry in range(electron_tree.GetEntries()):
     #if electron_tree.nearestparton_pdgid != 5:
     #    continue    
 
+    if not (electron_tree.flags & LepLooseSelectionV1):
+        continue
+
     if abs(electron_tree.electron_4mom.Eta()) > 2.5:
         continue
 
@@ -109,7 +115,7 @@ for entry in range(electron_tree.GetEntries()):
         loose_electron_th2d.Fill(abs(electron_tree.electron_4mom.Eta()),electron_tree.electron_4mom.Pt(),electron_tree.xsWeight)
 #    loose_electron_th2d.Fill(electron_tree.electron_4mom.Eta(),electron_tree.electron_4mom.Pt())
 
-    if electron_tree.pass_full_electron_id:
+    if (electron_tree.flags & LepTightSelectionV1):
         if electron_tree.electron_4mom.Pt() > tight_electron_th2d.GetYaxis().GetBinUpEdge(tight_electron_th2d.GetYaxis().GetNbins()):
             tight_electron_th2d.Fill(abs(electron_tree.electron_4mom.Eta()),tight_electron_th2d.GetYaxis().GetBinCenter(tight_electron_th2d.GetYaxis().GetNbins()),electron_tree.xsWeight)
         else:    

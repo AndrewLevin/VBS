@@ -26,13 +26,13 @@ from array import array
 
 gStyle.SetOptStat(0)
 
-gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/crab/CMSSW_7_2_0/src/ntuple_maker/ntuple_maker/interface/enum_definition.h"')
+gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_7_2_0/src/ntuple_maker/ntuple_maker/interface/enum_definition.h"')
 
 fr_file=TFile(options.frfname)
 muon_fr_hist=fr_file.Get("muon_frs")
 electron_fr_hist=fr_file.Get("electron_frs")
 
-def muonfakerate(eta,pt):
+def muonfakerate(eta,pt,syst):
     myeta  = min(abs(eta),2.4999)
     mypt   = min(pt,34.999)
 
@@ -41,9 +41,17 @@ def muonfakerate(eta,pt):
 
     prob = muon_fr_hist.GetBinContent(ptbin,etabin)
 
+    if syst == "up":
+        prob+=muon_fr_hist.GetBinError(ptbin,etabin)
+    elif syst == "down":
+        prob-=muon_fr_hist.GetBinError(ptbin,etabin)
+    else:
+        if syst != "nominal":
+            sys.exit(0)
+
     return prob/(1-prob)
 
-def electronfakerate(eta,pt):
+def electronfakerate(eta,pt,syst):
     myeta  = min(abs(eta),2.4999)
     mypt   = min(pt,34.999)
 
@@ -52,9 +60,17 @@ def electronfakerate(eta,pt):
 
     prob = electron_fr_hist.GetBinContent(ptbin,etabin)
 
+    if syst == "up":
+        prob+=electron_fr_hist.GetBinError(ptbin,etabin)
+    elif syst == "down":
+        prob-=electron_fr_hist.GetBinError(ptbin,etabin)
+    else:
+        if syst != "nominal":
+            sys.exit(0)
+
     return prob/(1-prob)
 
-def fillHistograms(t,hist,use_fake_rate_method):
+def fillHistograms(t,hist,use_fake_rate_method,fake_rate_syst):
     
     print "t.GetEntries() = " + str(t.GetEntries())
     
@@ -76,6 +92,12 @@ def fillHistograms(t,hist,use_fake_rate_method):
         if options.channel != channel and options.channel!="all":
             continue
 
+        if t.lep1.pt() < 20:
+            continue
+
+        if t.lep2.pt() < 20:
+            continue
+
         if t.lep1q != t.lep2q:
             continue
 
@@ -91,21 +113,21 @@ def fillHistograms(t,hist,use_fake_rate_method):
             if (not lep1passfullid) and lep2passfullid:
                 w=t.xsWeight*float(options.lumi)
                 if abs(t.lep1id) == 13:
-                    w = w * muonfakerate(t.lep1.Eta(), t.lep1.Pt())
+                    w = w * muonfakerate(t.lep1.Eta(), t.lep1.Pt(),fake_rate_syst)
                 elif abs(t.lep1id) == 11:
-                    w = w * electronfakerate(t.lep1.Eta(), t.lep1.Pt())
+                    w = w * electronfakerate(t.lep1.Eta(), t.lep1.Pt(),fake_rate_syst)
                 else:
-                    print "lepton is not an electron or muon"
-                    sys.exit(1)                    
+                    print "unknown lepton flavor"
+                    sys.exit(0)
             elif lep1passfullid and (not lep2passfullid):
                 w=t.xsWeight*float(options.lumi)
                 if abs(t.lep2id) == 13:
-                    w = w * muonfakerate(t.lep2.Eta(), t.lep2.Pt())
+                    w = w * muonfakerate(t.lep2.Eta(), t.lep2.Pt(),fake_rate_syst)
                 elif abs(t.lep2id) == 11:
-                    w = w * electronfakerate(t.lep2.Eta(), t.lep2.Pt())
+                    w = w * electronfakerate(t.lep2.Eta(), t.lep2.Pt(),fake_rate_syst)
                 else:
-                    print "lepton is not an electron or muon"
-                    sys.exit(1)
+                    print "unknown lepton flavor"
+                    sys.exit(0)
             else:
                 continue
             
@@ -170,28 +192,54 @@ else:
 #error = sqrt(sum weight^2)
 hist.Sumw2()
 
+hist.GetXaxis().CenterTitle()
+
+hist.SetLineWidth(3)
+
+hist.GetXaxis().SetTitleSize(0.045000000149)
+#hist.GetXaxis().SetTitleOffset(1.70)
+
+#hist.GetYaxis().SetLabelSize(0.07)
+#hist.GetYaxis().SetTitleSize(0.08)
+#hist.GetYaxis().SetTitleOffset(0.76)
+
+hist.SetTitle("")
+hist.GetXaxis().SetTitle("m_{jj} (GeV)")
+
 hist_fr=hist.Clone()
+hist_fr_up=hist.Clone()
+hist_fr_down=hist.Clone()
 
-hist.GetXaxis().SetTitleSize(0.00)
-hist.GetYaxis().SetLabelSize(0.07)
-hist.GetYaxis().SetTitleSize(0.08)
-hist.GetYaxis().SetTitleOffset(0.76)
 
-hist_fr.GetXaxis().SetTitleSize(0.00)
-hist_fr.GetYaxis().SetLabelSize(0.07)
-hist_fr.GetYaxis().SetTitleSize(0.08)
-hist_fr.GetYaxis().SetTitleOffset(0.76)
 
-fillHistograms(tree,hist,false)
-fillHistograms(tree,hist_fr,true)
+#hist_fr.GetXaxis().SetTitleSize(0.00)
+#hist_fr.GetYaxis().SetLabelSize(0.07)
+#hist_fr.GetYaxis().SetTitleSize(0.08)
+#hist_fr.GetYaxis().SetTitleOffset(0.76)
+
+fillHistograms(tree,hist,false,"")
+fillHistograms(tree,hist_fr,true,"nominal")
+fillHistograms(tree,hist_fr_up,true,"up")
+#fillHistograms(tree,hist_fr_down,true,"down")
+
+for bin in range(0,hist_fr.GetNbinsX()+2):
+    hist_fr.SetBinError(bin,sqrt(hist_fr.GetBinError(bin)*hist_fr.GetBinError(bin)+ abs(hist_fr_up.GetBinContent(bin) - hist_fr.GetBinContent(bin))*abs(hist_fr_up.GetBinContent(bin) - hist_fr.GetBinContent(bin))))
+
+#change the bin errors for the nominal histogram
 
 #hist_signal.Scale(1/hist_signal.Integral())
 #hist_background.Scale(1/hist_background.Integral())
 
+
 leg=TLegend(.60,.65,.85,.85)
+leg.SetLineWidth(3)
 leg.AddEntry(hist,"correct","l")
 leg.AddEntry(hist_fr,"fake rate","l")
 leg.SetFillColor(0)
+leg.SetLineWidth(3)
+
+#leg.SetBorderSize(1.1)
+
 
 hist.SetLineColor(kRed)
 hist_fr.SetLineColor(kBlue)

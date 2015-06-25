@@ -14,23 +14,14 @@ hist=f.Get(hist_name)
 
 c1=TCanvas("c1")
 
-gPad.SetPhi( -50 )
-gPad.SetTheta( 50 )
-
 hist.SetTitle("")
 
-#hist.Draw("colz")
-hist.Draw("lego")
+hist.Draw("colz")
 
-#v= TGLViewer  (gPad.GetViewer3D())
+#gPad.SetPhi( -50 )
+#gPad.SetTheta( 50 )
+#hist.Draw("lego")
 
-#fov=30
-#dollyStep=2.5
-#hRotateStep = 0.015
-#vRotateStep = 0.025;
-#center=0.5
-
-#v.SetPerspectiveCamera(TGLViewer.ECameraType(), fov, dollyStep, center, hRotateStep,vRotateStep);
 
 c1.SaveAs(output_file_name)
 
