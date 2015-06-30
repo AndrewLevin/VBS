@@ -49,6 +49,8 @@ def passSelection(t):
     if abs(t.jet1.Eta() - t.jet2.Eta()) < 2.5:
         p=False
 
+    #if t.maxbtagevent > 0.814:
+    #    p=False
 
     lep1passfullid = bool(t.flags & Lep1TightSelectionV1)
     lep2passfullid = bool(t.flags & Lep2TightSelectionV1)
@@ -769,14 +771,14 @@ if cfg["mode"] == "sm":
     outfile.cd()
 
     hist_stack_background = THStack()
-    hist_sum_background = hist.Clone()
+    hist_sum_background = hist.Clone("background_sum")
 
-    for background in backgrounds:
-        background["hist_central"].Write()
-        hist_stack_background.Add(background["hist_central"])
-        hist_sum_background.Add(background["hist_central"])
+    for i in range(0,len(backgrounds)):
+        backgrounds[i]["hist_central"].Clone(backgrounds_info[i][1]).Write()
+        hist_stack_background.Add(backgrounds[i]["hist_central"])
+        hist_sum_background.Add(backgrounds[i]["hist_central"])
 
-    signal["hist_central"].Write()
+    signal["hist_central"].Clone("wpwpjjewk").Write()
 
     hist_stack_background.Write()
 

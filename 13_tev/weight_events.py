@@ -23,7 +23,12 @@ sample=options.sample
 
 def make_new_tree(told):
 
-    gROOT.cd() #in order to prevent the original tree from being added to the output file
+    #prevents root from wring a lot of stuff into memory
+    #tmpfile=TFile("weight_events_tmpfile.root","recreate")
+    
+    fout.cd()
+    
+    #gROOT.cd() #in order to prevent the original tree from being added to the output file
     tnew=told.CloneTree()
 
     w=array('f',[0])
@@ -53,15 +58,41 @@ def make_new_tree(told):
 
     tnew.Write()
 
+    #overwrite this file, which can be very large, with a new file, so that it becomes small
+    #tmpfile=TFile("weight_events_tmpfile.root","recreate")    
+
 #will weight every tree in the file
 #if the file has directories, this will descend one level into the directory structure to look for the trees
+
+#get the maximum cycle number
+
+maxcycle=0
+
 for key in fin.GetListOfKeys():
 
     object=key.ReadObj()
     if type(object) == TDirectoryFile:
         for key in object.GetListOfKeys():
             told=key.ReadObj()
+            if key.GetCycle() > maxcycle:
+                maxcycle=key.GetCycle()
+    elif type(object)==TTree:
+        if key.GetCycle() > maxcycle:
+            maxcycle = key.GetCycle()
+
+print "maxcycle = "+str(maxcycle)
+
+for key in fin.GetListOfKeys():
+
+    object=key.ReadObj()
+    if type(object) == TDirectoryFile:
+        for key in object.GetListOfKeys():
+            told=key.ReadObj()
+            if key.GetCycle() != maxcycle:
+                continue
             if type(told)==TTree:
                 make_new_tree(told)
     elif type(object)==TTree:
+        if key.GetCycle() != maxcycle:
+            continue
         make_new_tree(object)
