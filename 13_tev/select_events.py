@@ -49,8 +49,8 @@ def passSelection(t):
     if abs(t.jet1.Eta() - t.jet2.Eta()) < 2.5:
         p=False
 
-    #if t.maxbtagevent > 0.814:
-    #    p=False
+    if t.maxbtagevent > 0.89:
+        p=False
 
     lep1passfullid = bool(t.flags & Lep1TightSelectionV1)
     lep2passfullid = bool(t.flags & Lep2TightSelectionV1)
@@ -92,6 +92,8 @@ def getVariable(t):
         return t.lep1.pt()
     elif cfg["variable"] == "lep2pt":
         return t.lep2.pt()
+    elif cfg["variable"] == "zeppenfeld":
+        return max(abs(t.lep1.Eta() - (t.jet1.Eta() + t.jet2.Eta())/2.0),abs(t.lep2.Eta() - (t.jet1.Eta() + t.jet2.Eta())/2.0))
     else:
         assert(0)    
 
@@ -106,6 +108,15 @@ def fillHistogram(t,hist,use_lhe_weight = False):
         if entry % 100000 == 0:
             print "entry = " + str(entry)
 
+        if cfg["charge"] == "+":
+            if t.lep1id > 0:
+                continue
+        elif cfg["charge"] == "-":
+            if t.lep1id < 0:
+                continue
+        else:
+            assert(cfg["charge"] == "both")
+            
         if (abs(t.lep1id) == 13 and abs(t.lep2id) == 11) or (abs(t.lep1id) == 11 and abs(t.lep2id) == 13) :
             channel="em"
         elif abs(t.lep1id) == 13 and abs(t.lep2id) == 13:
@@ -444,7 +455,9 @@ elif cfg["variable"] == "nvtx":
 elif cfg["variable"] == "lep1pt":
     hist = TH1F('lep1pt', 'lep1pt', 35, 0., 100 )
 elif cfg["variable"] == "lep2pt":
-    hist = TH1F('lep2pt', 'lep2pt', 35, 0., 100 )        
+    hist = TH1F('lep2pt', 'lep2pt', 35, 0., 100 )
+elif cfg["variable"] == "zeppenfeld":
+    hist = TH1F('zeppenfeld','zeppenfeld',35,0,5)
 else:
     assert(0)
 

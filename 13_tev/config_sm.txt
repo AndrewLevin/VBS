@@ -1,0 +1,19 @@
+mode=sm
+
+#background_file=filename,process name,qcd uncertainty mode, pdf uncertainty mode
+background_file=/data/blue/anlevin/ntuples/wpwpjj_qcd_v10.root,wpwpjjqcd,syscalc
+background_file=/data/blue/anlevin/ntuples/ttbar_v10.root,ttbar,none
+
+signal_file=/data/blue/anlevin/ntuples/wpwpjj_ewk_v10.root
+
+lumi=10
+
+variable=mjj
+
+outfile=histograms.root
+
+datacard_base=datacard
+
+channel=all
+
+charge=both
