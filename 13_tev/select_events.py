@@ -4,6 +4,8 @@ from ConfigurationParser import *
 #source /afs/cern.ch/sw/lcg/external/gcc/4.7.2/x86_64-slc5-gcc47-opt/setup.sh
 #source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.34.20/x86_64-slc5-gcc47-opt/root/bin/thisroot.sh
 
+import selection
+
 import parse_reweight_info
 
 import optparse
@@ -29,39 +31,6 @@ from array import array
 
 #gStyle.SetOptStat(0)
 gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_7_2_0/src/ntuple_maker/ntuple_maker/interface/enum_definition.h"')
-
-def passSelection(t):
-
-    p=True
-
-    if t.lep1.pt() < 20:
-        p=False
-
-    if t.lep2.pt() < 20:
-        p=False
-
-    if t.lep1q != t.lep2q:
-        p=False
-
-    if (t.jet1+t.jet2).M() < 500:
-        p=False
-
-    if abs(t.jet1.Eta() - t.jet2.Eta()) < 2.5:
-        p=False
-
-    if t.maxbtagevent > 0.89:
-        p=False
-
-    lep1passfullid = bool(t.flags & Lep1TightSelectionV1)
-    lep2passfullid = bool(t.flags & Lep2TightSelectionV1)
-
-    if not lep1passfullid:
-        p=False
-
-    if not lep2passfullid:
-        p=False
-
-    return p
 
 #put the overflow in the last bin
 #if (t.jet1+t.jet2).M() > hist.GetBinLowEdge(hist.GetNbinsX()):
@@ -129,7 +98,7 @@ def fillHistogram(t,hist,use_lhe_weight = False):
         if cfg["channel"] != channel and cfg["channel"] !="all":
             continue
 
-        if not passSelection(t):
+        if not selection.passSelection(t):
             continue
 
         w=t.xsWeight*float(cfg["lumi"])
@@ -169,7 +138,7 @@ def fillHistogramsWithReweight(t,histos):
         if cfg["channel"] != channel and cfg["channel"] !="all":
             continue
 
-        if not passSelection(t):
+        if not selection.passSelection(t):
             continue
 
         w=t.xsWeight*float(options.lumi)
@@ -214,7 +183,7 @@ def fillHistogramsSyscalc(t,hist):
         if cfg["channel"] != channel and cfg["channel"] !="all":
             continue
 
-        if not passSelection(t):
+        if not selection.passSelection(t):
             continue
 
         w=t.xsWeight*float(cfg["lumi"])
@@ -290,7 +259,7 @@ def fillHistogramWithQCDWeights(t,histo,qcd_up_histo,qcd_down_histo):
         if options.channel != channel and options.channel!="all":
             continue
 
-        if not passSelection(t):
+        if not selection.passSelection(t):
             continue
 
         w=t.xsWeight*float(options.lumi)
