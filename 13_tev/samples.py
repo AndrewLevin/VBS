@@ -18,5 +18,7 @@ samples = {
     "wpwmjj" :
     1 << 9,
     "gm" :
+    1 << 10,
+    "wjwj-dps" :
     1 << 10,        
 } 
