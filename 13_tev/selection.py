@@ -1,6 +1,6 @@
 from ROOT import *
 
-gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_7_2_0/src/ntuple_maker/ntuple_maker/interface/enum_definition.h"')
+gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_7_4_1_patch1/src/ntuple_maker/ntuple_maker/interface/enum_definition.h"')
 
 def passSelection(t):
 

@@ -44,7 +44,7 @@ def make_new_tree(told):
     #br2=tnew.Branch('sample',samples[sample],'sample/i')
     br2=tnew.Branch('sample',sample_id,'sample/i')
 
-    n_events_run_over_hist=fin.Get("demo/n_events_run_over")
+    n_events_run_over_hist=fin.Get("n_events_run_over")
 
     for entry in range(tnew.GetEntries()):
         tnew.GetEntry(entry)
@@ -69,30 +69,30 @@ def make_new_tree(told):
 maxcycle=0
 
 for key in fin.GetListOfKeys():
-
+    if key.GetName() == "slha_header" or key.GetName() == "initrwgt_header":
+        continue
     object=key.ReadObj()
-    if type(object) == TDirectoryFile:
-        for key in object.GetListOfKeys():
-            told=key.ReadObj()
-            if key.GetCycle() > maxcycle:
-                maxcycle=key.GetCycle()
-    elif type(object)==TTree:
+    if object.GetName() == "events":
         if key.GetCycle() > maxcycle:
             maxcycle = key.GetCycle()
 
 print "maxcycle = "+str(maxcycle)
 
 for key in fin.GetListOfKeys():
-
+    if key.GetName() == "slha_header" or key.GetName() == "initrwgt_header":
+        continue
     object=key.ReadObj()
-    if type(object) == TDirectoryFile:
-        for key in object.GetListOfKeys():
-            told=key.ReadObj()
-            if key.GetCycle() != maxcycle:
-                continue
-            if type(told)==TTree:
-                make_new_tree(told)
-    elif type(object)==TTree:
+    if object.GetName() == "events":
         if key.GetCycle() != maxcycle:
             continue
         make_new_tree(object)
+
+slha_header_vector = std.vector('string')()
+initrwgt_header_vector = std.vector('string')()
+
+fin.GetObject("slha_header",slha_header_vector)
+
+fin.GetObject("initrwgt_header",initrwgt_header_vector)
+
+fout.WriteObject(slha_header_vector,"slha_header")
+fout.WriteObject(initrwgt_header_vector,"initrwgt_header")

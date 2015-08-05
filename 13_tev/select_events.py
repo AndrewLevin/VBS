@@ -141,7 +141,7 @@ def fillHistogramsWithReweight(t,histos):
         if not selection.passSelection(t):
             continue
 
-        w=t.xsWeight*float(options.lumi)
+        w=t.xsWeight*float(cfg["lumi"])
 
         var=getVariable(t)
 
@@ -281,7 +281,7 @@ def fillHistogramWithQCDWeights(t,histo,qcd_up_histo,qcd_down_histo):
         else:
             histo.Fill(var,w)
 
-if cfg["mode"] != "dim8" and cfg["mode"] != "sm" and cfg["mode"] != "non-sm" and cfg["mode"] != "sm-pdf" and cfg["mode"] != "sm-qcd" and cfg["mode"] != "gm":
+if cfg["mode"] != "dim8" and cfg["mode"] != "sm" and cfg["mode"] != "non-sm" and cfg["mode"] != "sm-pdf" and cfg["mode"] != "sm-qcd" and cfg["mode"] != "gm" and cfg["mode"] != "hel":
     print "unrecognized mode, exiting"
     sys.exit(1)
 
@@ -318,9 +318,6 @@ if cfg["mode"] == "sm":
     if "dim8_output_fname" in cfg:
         print "dim8_output_fname should only be used in dim8 mode, exiting"
         sys.exit(1)
-    if "dim8_lhe_file" in cfg:
-        print "dim8_lhe_file should only be used in dim8 mode, exiting"
-        sys.exit(1)
         
 
 if cfg["mode"] == "dim8":
@@ -333,9 +330,6 @@ if cfg["mode"] == "dim8":
     if "dim8_param" not in cfg:
         print "dim8 mode requires that --dim8_param be used, exiting"
         sys.exit(1)
-    if "dim8_lhe_file" not in cfg:
-        print "dim8 mode requires that --dim8_lhe_file be used, exiting"
-        sys.exit(1)        
     if "dim8_datacard_base" not in cfg:
         print "dim8 mode requires that dim8_datacard_base be used, exiting"
         sys.exit(1)
@@ -361,6 +355,25 @@ if cfg["mode"] == "dim8":
         print "unrecognized dimension 8 parameter, exiting"
         sys.exit(1)
 
+if cfg["mode"] == "hel":
+    if "datacard" in cfg:
+        print "datacard should not be used in hel mode, exiting"
+        sys.exit(1)
+    if "hel_output_fname" not in cfg:
+        print "hel mode requires that hel_output_fname be used, exiting"
+        sys.exit(1)
+    if "hel_param" not in cfg:
+        print "hel mode requires that --hel_param be used, exiting"
+        sys.exit(1)
+    if "datacard_base" not in cfg:
+        print "hel mode requires that datacard_base be used, exiting"
+        sys.exit(1)
+    if cfg["hel_param"] == "CWW":
+        hel_param_number = 7
+    else:
+        print "unrecognized hel parameter, exiting"
+        sys.exit(1)        
+
 if cfg["mode"] == "gm":
     if "datacard_base" not in cfg:
         print "gm mode requires that datacard_base be used, exiting"
@@ -372,6 +385,31 @@ if cfg["mode"] == "gm":
         print "gm mode requires that outfile be used, exiting"
         sys.exit(1)
 
+if cfg["mode"] == "hel":
+
+    f_hel=TFile(cfg["hel_file"])
+
+    slha_header_vector = std.vector('string')()
+    initrwgt_header_vector = std.vector('string')()
+
+    f_hel.GetObject("initrwgt_header",initrwgt_header_vector)
+
+    f_hel.GetObject("slha_header",slha_header_vector)
+
+    reweight_info=parse_reweight_info.parse_reweight_info(param_num=hel_param_number, initrwgt_header=initrwgt_header_vector, slha_header=slha_header_vector)
+
+    oneD_grid_points=reweight_info["oneD_grid_points"]
+    histo_grid=reweight_info["histo_grid"]
+    lhe_weight_index=reweight_info["lhe_weight_index"]
+
+    #scale each of the parameter values so that they are in units of TeV^-4
+    for i in range(0,len(oneD_grid_points)):
+        oneD_grid_points[i] = oneD_grid_points[i]*pow(10,12)
+
+    for i in range(0,len(oneD_grid_points)):
+        if oneD_grid_points[i] == 0:
+            sm_lhe_weight = i
+            break
 
 if cfg["mode"] == "dim8":
     reweight_info=parse_reweight_info.parse_reweight_info(dim8_param_number=dim8_param_number,fname=options.dim8_lhe_file)
@@ -389,16 +427,7 @@ if cfg["mode"] == "dim8":
             sm_lhe_weight = i
             break
 
-signal_fname=cfg["signal_file"]
-backgrounds_info=cfg["background_file"]
-
-c=TCanvas("c", "c",0,0,600,500)
-c.Range(0,0,1,1)
-
-f_signal=TFile(signal_fname)
-
-tree_signal=f_signal.Get("events")
-
+gROOT.cd()
 if cfg["variable"] == "mjj":
     binning=array('f',[500,700,1100,1600,2000])
     hist = TH1F('mjj', 'mjj',4, binning )
@@ -429,8 +458,10 @@ elif cfg["variable"] == "zeppenfeld":
     hist = TH1F('zeppenfeld','zeppenfeld',35,0,5)
 else:
     assert(0)
-
-if cfg["mode"] == "dim8":
+    
+gROOT.cd()
+if cfg["mode"] == "dim8" or cfg["mode"] == "hel":
+    print hist
     aqgc_histos = [ hist.Clone("clone"+str(i)) for i in range(0,len(oneD_grid_points))]
 
 #error = sqrt(sum weight^2)
@@ -468,7 +499,37 @@ for i in range(0,100):
 if cfg["mode"] == "dim8":
     fillHistogramsWithReweight(tree_signal,aqgc_histos)
     fillHistogram(tree_background,hist_background)
+elif cfg["mode"] == "hel":
+    f_hel=TFile(cfg["hel_file"])
+    tree_hel=f_hel.Get("events")
+    backgrounds_info=cfg["background_file"]
+    for background_info in backgrounds_info:
+        f_background=TFile(background_info[0])
+        gROOT.cd() #without this, hist_background gets written into a file that goes out of scope
+        tree_background=f_background.Get("events")
+        hist_background=hist.Clone()
+
+        if background_info[2] == "syscalc":
+            return_hists = fillHistogramsSyscalc(tree_background,hist_background)
+            backgrounds.append(return_hists)
+        else:
+            assert(background_info[2] == "none")
+            return_hists = fillHistogram(tree_background,hist_background)
+            backgrounds.append(return_hists)        
+
+    fillHistogramsWithReweight(tree_hel,aqgc_histos)
+    #hel=fillHistogram(tree_hel,hist)
 elif cfg["mode"] == "sm":
+    signal_fname=cfg["signal_file"]
+    backgrounds_info=cfg["background_file"]
+
+    c=TCanvas("c", "c",0,0,600,500)
+    c.Range(0,0,1,1)
+
+    f_signal=TFile(signal_fname)
+
+    tree_signal=f_signal.Get("events")
+
     signal=fillHistogram(tree_signal,hist_signal)
     for background_info in backgrounds_info:
         f_background=TFile(background_info[0])
@@ -514,17 +575,6 @@ else:
 
 #hist_signal.Scale(1/hist_signal.Integral())
 #hist_background.Scale(1/hist_background.Integral())
-
-hist_signal.SetLineWidth(3)
-hist_background.SetLineWidth(3)
-
-hist_signal.SetLineColor(kRed)
-hist_background.SetLineColor(kBlue)
-
-hist_signal.SetMinimum(0)
-hist_background.SetMinimum(0)
-#hist_signal.SetMaximum(14)
-#hist_background.SetMaximum(14)
 
 if cfg["mode"] == "sm-qcd":
     hist_signal.Draw()
@@ -623,6 +673,109 @@ if cfg["mode"] == "dim8":
         bkg_yield=max(hist_background.GetBinContent(i),0.001)
         print >> dcard, "rate "+str(aqgc_histos[sm_lhe_weight].GetBinContent(i))+" "+str(bkg_yield)
         print >> dcard, "lumi_8tev lnN 2.4 2.4"
+
+if cfg["mode"] == "hel":
+
+
+    hist_sum_background = hist.Clone()
+
+    for background in backgrounds:
+        #background["hist_central"].Write()
+        hist_sum_background.Add(background["hist_central"])
+
+    for i in range(0,len(oneD_grid_points)):
+        if i == 0:
+            grid_min = oneD_grid_points[i]
+            grid_max = oneD_grid_points[i]
+        
+        if oneD_grid_points[i] > grid_max:
+            grid_max = oneD_grid_points[i]
+        
+        if oneD_grid_points[i] < grid_min:
+            grid_min = oneD_grid_points[i]
+
+    histo_max = grid_max + (grid_max - grid_min)/(len(oneD_grid_points)-1)/2
+    histo_min = grid_min - (grid_max - grid_min)/(len(oneD_grid_points)-1)/2
+
+    aqgc_outfile = TFile(cfg["hel_output_fname"],'recreate')
+
+    for i in range(1,hist.GetNbinsX()+1):
+        aqgc_scaling_hist=TH1D("aqgc_scaling_bin_"+str(i),"aqgc_scaling_bin_"+str(i),len(oneD_grid_points),histo_min,histo_max);
+
+        for j in range(0,len(oneD_grid_points)):
+            aqgc_scaling_hist.SetBinContent(aqgc_scaling_hist.GetXaxis().FindFixBin(oneD_grid_points[j]), aqgc_histos[j].GetBinContent(i)/aqgc_histos[sm_lhe_weight].GetBinContent(i))
+        
+        aqgc_outfile.cd()
+        aqgc_scaling_hist.Write()    
+
+    for i in range(1,aqgc_histos[sm_lhe_weight].GetNbinsX()+1):
+
+        dcard = open(cfg["datacard_base"] +"_" + cfg["hel_param"] + "_bin"+str(i)+".txt",'w')
+
+        print >> dcard, "imax 1 number of channels"
+        print >> dcard, "jmax * number of background"
+        print >> dcard, "kmax * number of nuisance parameters"
+        print >> dcard, "Observation 0"
+        dcard.write("bin")
+        dcard.write(" bin1")
+        
+        for background in backgrounds:
+            dcard.write(" bin1")
+        dcard.write('\n')    
+        
+        dcard.write("process")
+        dcard.write(" WWjj")
+        
+        for background_info in backgrounds_info:
+            dcard.write(" " + background_info[1])
+        dcard.write('\n')    
+        dcard.write("process")
+        dcard.write(" 0")
+        
+        for j in range(1,len(backgrounds)+1):
+            dcard.write(" " + str(j))
+        dcard.write('\n')    
+        dcard.write('rate')
+        dcard.write(' '+str(aqgc_histos[sm_lhe_weight].GetBinContent(i)))
+        for background in backgrounds:
+            dcard.write(" "+ str(background["hist_central"].GetBinContent(i)))
+        dcard.write('\n')    
+
+        
+        #print >> dcard, "process WWjj background"
+        #print >> dcard, "process 0 1"
+        bkg_yield=max(hist_sum_background.GetBinContent(i),0.001)
+        #print >> dcard, "rate "+str(hel["hist_central"].GetBinContent(i))+" "+str(bkg_yield)
+
+        dcard.write("lumi_13tev lnN")
+
+        dcard.write(" 1.024")
+
+        for background in backgrounds:
+            dcard.write(" 1.024")
+
+        dcard.write('\n')    
+
+        if aqgc_histos[sm_lhe_weight].GetBinContent(i) > 0:
+            dcard.write("mcstat_gm lnN "+str(1+aqgc_histos[sm_lhe_weight].GetBinError(i)/aqgc_histos[sm_lhe_weight].GetBinContent(i)))
+            for j in range(0,len(backgrounds)):
+                dcard.write(" -")
+            dcard.write("\n")    
+            
+        
+        for j in range(0,len(backgrounds)):
+            if backgrounds[j]["hist_central"].GetBinContent(i) > 0:
+                dcard.write("mcstat_"+backgrounds_info[j][1]+" lnN -")
+                for k in range(0,len(backgrounds)):
+                    if j != k:
+                        dcard.write(" -")
+                    else:    
+                        dcard.write(" " + str(1+backgrounds[j]["hist_central"].GetBinError(i)/backgrounds[j]["hist_central"].GetBinContent(i)))
+                dcard.write('\n')        
+
+            dcard.write('\n')        
+
+        #print >> dcard, "lumi_8tev lnN 1.024 1.024"    
 
 #raw_input()
 
@@ -747,6 +900,17 @@ if cfg["mode"] == "gm":
 
 
 if cfg["mode"] == "sm":
+
+    hist_signal.SetLineWidth(3)
+    hist_background.SetLineWidth(3)
+
+    hist_signal.SetLineColor(kRed)
+    hist_background.SetLineColor(kBlue)
+
+    hist_signal.SetMinimum(0)
+    hist_background.SetMinimum(0)
+    #hist_signal.SetMaximum(14)
+    #hist_background.SetMaximum(14)
 
     outfile=TFile(cfg["outfile"],"recreate")
 

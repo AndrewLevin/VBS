@@ -1,15 +1,15 @@
 import copy
 import sys
 
-def parse_reweight_info(dim8_param_number,fname):
+def parse_reweight_info(param_num,initrwgt_header,slha_header):
 
     #fname="/afs/cern.ch/work/a/anlevin/data/lhe/13_tev/wpwmjj_qed_4_qcd_0.lhe"
 
-    f=file(fname,'r')
+    #f=file(fname,'r')
 
-    line=f.readline()
+    #line=f.readline()
 
-    f=open(fname)
+    #f=open(fname)
 
     param_values=[]
     param_values.append(-1); #in order to make the indexing consistent with the dimension 8 parameter numbers
@@ -25,61 +25,72 @@ def parse_reweight_info(dim8_param_number,fname):
     histo_grid = []
     lhe_weight_index = []
 
-    while line != '':
+    i=0
 
-        line=f.readline()
+    while i < len(slha_header):
 
-        if line == "Block anoinputs \n":
-            line=f.readline()
+        line=str(slha_header[i])
+
+        if line == "Block newcoup \n":
+            
+            i=i+1
+            line=slha_header[i]
             while line != "\n":
                 line_inside_block_anoinputs=line_inside_block_anoinputs+1
                 param_values.append(float(line.lstrip(' ').split(' ')[1]))
-                line=f.readline()
+                i=i+1
+                line=slha_header[i]
 
-        if line == "<initrwgt>\n":
-            line=f.readline()
-            print line
-            assert(line=="<weightgroup type='mg_reweighting'>\n");
+        i=i+1        
 
-            line=f.readline()
-            i=0
-            while line != "</initrwgt>\n":
 
-                param_values_copy=copy.deepcopy(param_values)
+    i=0
+    while i < len(initrwgt_header):
 
-                if line == "</weight>\n":
-                    line = f.readline()
-                    continue
-                if line == "</weightgroup>\n":
-                    line = f.readline()
-                    continue
-
-                while "set param_card anoinputs" in line:
-                    param_number=int(line.split('>')[len(line.split('>')) - 1].split(' ')[3])
-                    param_value=float(line.split('>')[len(line.split('>')) - 1].split(' ')[4])
-                    param_values_copy[param_number]=param_value
-                
-                    line=f.readline()
-
-                all_others_0 = True
-
-                for j in range(1,21):
-                    if j != dim8_param_number and param_values_copy[j] != 0.0:
-                        all_others_0 = False
-
-                found_duplicate = False
-
-                for j in range(0,len(oneD_grid_points)):
-                    if oneD_grid_points[j] == param_values_copy[dim8_param_number]:
-                        found_duplicate=True
-
-                if all_others_0 and not found_duplicate:
-                    oneD_grid_points.append(param_values_copy[dim8_param_number])
-                    histo_grid.append(i)
-                    lhe_weight_index.append(i)
-
-                i=i+1    
-
-                line=f.readline()
+        line = str(initrwgt_header[i])
         
+        param_values_copy=copy.deepcopy(param_values)
+            
+        if line == "</weight>\n":
+            i=i+1
+            continue
+        if line == "</weightgroup>\n":
+            i=i+1
+            continue
+        if line == "<weightgroup type=\"mg_reweighting\">\n":
+            i=i+1
+            continue
+
+        assert("weight id" in line)
+
+        end_of_line=line.split("<weight id=\"mg_reweight_")[len(line.split("<weight id=\"mg_reweight_")) - 1]
+
+        weight_id=int(end_of_line.split('\">')[0])
+
+        while "set param_card newcoup" in line:
+            param_number=int(line.split('>')[len(line.split('>')) - 1].split(' ')[3])
+            param_value=float(line.split('>')[len(line.split('>')) - 1].split(' ')[4])
+            param_values_copy[param_number]=param_value
+            i=i+1
+            line = str(initrwgt_header[i])
+
+        all_others_0 = True
+
+        for j in range(1,len(param_values)):
+            if j != param_num and param_values_copy[j] != 0.0:
+                all_others_0 = False
+                
+        found_duplicate = False
+
+        for j in range(0,len(oneD_grid_points)):
+            if oneD_grid_points[j] == param_values_copy[param_num]:
+                found_duplicate=True
+
+        if all_others_0 and not found_duplicate:
+            oneD_grid_points.append(param_values_copy[param_num])
+            histo_grid.append(weight_id-1)
+            lhe_weight_index.append(weight_id-1)
+
+        i=i+1    
+
     return {"oneD_grid_points": oneD_grid_points, "histo_grid" : histo_grid, "lhe_weight_index" : lhe_weight_index}

@@ -1,0 +1,24 @@
+mode=hel
+
+#background_file=filename,process name,qcd uncertainty mode, pdf uncertainty mode
+#background_file=/data/blue/anlevin/ntuples/wpwpjj_qcd_v10.root,wpwpjjqcd,syscalc
+background_file=/data/blue/anlevin/ntuples/ttbar_v10.root,ttbar,none
+#background_file=/data/blue/anlevin/ntuples/wjwj-dps_v1.root,wjwjdps,none
+
+hel_file=/data/blue/anlevin/ntuples/wpwpjj_ewk_hel_v1.root
+
+hel_output_fname=hel_scaling.root
+
+lumi=10
+
+variable=mll
+
+hel_param=CWW
+
+outfile=histograms.root
+
+datacard_base=datacard
+
+channel=all
+
+charge=both
