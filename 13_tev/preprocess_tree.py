@@ -19,6 +19,8 @@ fin=TFile(options.infname,"read")
 fout=TFile(options.outfname,"recreate")
 fin.cd()
 
+
+
 #if the tree does not exist this is false
 if type(fin.Get("demo/slha_header")) == TTree:
     slha_header_tree=fin.Get("demo/slha_header")
@@ -29,6 +31,10 @@ if type(fin.Get("demo/slha_header")) == TTree:
 
     for entry in range(slha_header_tree.GetEntries()):
         slha_header_tree.GetEntry(entry)
+        
+        #the headers will be merged together, so only include the first one
+        if slha_header_tree.slha_header_line == "END_SLHA_HEADER\n":
+            break
 
         slha_header.push_back(slha_header_tree.slha_header_line)
 
@@ -43,6 +49,10 @@ if type(fin.Get("demo/initrwgt_header")) == TTree:
 
     for entry in range(initrwgt_header_tree.GetEntries()):
         initrwgt_header_tree.GetEntry(entry)
+
+        #the headers will be merged together, so only include the first one
+        if initrwgt_header_tree.initrwgt_header_line == "END_INITRWGT_HEADER\n":
+            break
 
         initrwgt_header.push_back(initrwgt_header_tree.initrwgt_header_line)
 
