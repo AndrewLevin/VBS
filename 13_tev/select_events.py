@@ -281,7 +281,7 @@ def fillHistogramWithQCDWeights(t,histo,qcd_up_histo,qcd_down_histo):
         else:
             histo.Fill(var,w)
 
-if cfg["mode"] != "dim8" and cfg["mode"] != "sm" and cfg["mode"] != "non-sm" and cfg["mode"] != "sm-pdf" and cfg["mode"] != "sm-qcd" and cfg["mode"] != "gm" and cfg["mode"] != "hel":
+if  cfg["mode"] != "sm" and cfg["mode"] != "non-sm" and cfg["mode"] != "sm-pdf" and cfg["mode"] != "sm-qcd" and cfg["mode"] != "gm" and cfg["mode"] != "reweighted":
     print "unrecognized mode, exiting"
     sys.exit(1)
 
@@ -292,86 +292,77 @@ if cfg["mode"] == "non-sm":
     if "datacard"  in cfg:
         print "datacard should not be used in non-sm mode, exiting"
         sys.exit(1)        
-    if "dim8_param" in cfg:
-        print "dim8_param should not be used in non-sm mode, exiting"
+    if "param_name" in cfg:
+        print "param_name should not be used in non-sm mode, exiting"
         sys.exit(1)
-    if "dim8_datacard_base" in cfg:
-        print "dim8_datacard_base should not be used in non-sm mode, exiting"
+    if "reweighted_datacard_base" in cfg:
+        print "reweighted_datacard_base should not be used in non-sm mode, exiting"
         sys.exit(1)
-    if "dim8_output_fname" in cfg:
-        print "dim8_output_fname should not be used in non-sm mode, exiting"
+    if "reweighted_output_fname" in cfg:
+        print "reweighted_output_fname should not be used in non-sm mode, exiting"
         sys.exit(1)
-    if "dim8_lhe_file" in cfg:
-        print "dim8_lhe_file should not be used in non-sm mode, exiting"
+    if "reweighted_lhe_file" in cfg:
+        print "reweighted_lhe_file should not be used in non-sm mode, exiting"
         sys.exit(1)
         
 if cfg["mode"] == "sm":
     if "datacard_base" not in cfg:
         print "sm mode requires that datacard be used, exiting"
         sys.exit(1)        
-    if "dim8_param" in cfg:
-        print "dim8_param should only be used in dim8 mode, exiting"
+    if "param_name" in cfg:
+        print "param_name should only be used in reweighted mode, exiting"
         sys.exit(1)
-    if "dim8_datacard_base" in cfg:
-        print "dim8_datacard_base should only be used in dim8 mode, exiting"
+    if "reweighted_datacard_base" in cfg:
+        print "reweighted_datacard_base should only be used in reweighted mode, exiting"
         sys.exit(1)
-    if "dim8_output_fname" in cfg:
-        print "dim8_output_fname should only be used in dim8 mode, exiting"
+    if "reweighted_output_fname" in cfg:
+        print "reweighted_output_fname should only be used in reweighted mode, exiting"
         sys.exit(1)
         
 
-if cfg["mode"] == "dim8":
+if cfg["mode"] == "reweighted":
     if "datacard" in cfg:
-        print "datacard should not be used in dim8 mode, exiting"
+        print "datacard should not be used in reweighted mode, exiting"
         sys.exit(1)
-    if "dim8_output_fname" not in cfg:
-        print "dim8 mode requires that dim8_output_fname be used, exiting"
+    if "reweighted_output_fname" not in cfg:
+        print "reweighted mode requires that reweighted_output_fname be used, exiting"
         sys.exit(1)
-    if "dim8_param" not in cfg:
-        print "dim8 mode requires that --dim8_param be used, exiting"
-        sys.exit(1)
-    if "dim8_datacard_base" not in cfg:
-        print "dim8 mode requires that dim8_datacard_base be used, exiting"
-        sys.exit(1)
-    elif cfg["dim8_param"] == "FS0":
-        dim8_param_number = 1
-    elif cfg["dim8_param"] == "FS1":
-        dim8_param_number = 2
-    elif cfg["dim8_param"] == "FM0":
-        dim8_param_number = 3
-    elif cfg["dim8_param"] == "FM1":
-        dim8_param_number = 4
-    elif cfg["dim8_param"] == "FM6":
-        dim8_param_number = 9
-    elif cfg["dim8_param"] == "FM7":
-        dim8_param_number = 10
-    elif cfg["dim8_param"] == "FT0":
-        dim8_param_number = 11
-    elif cfg["dim8_param"] == "FT1":
-        dim8_param_number = 12                       
-    elif cfg["dim8_param"] == "FT2":
-        dim8_param_number = 13
-    else:
-        print "unrecognized dimension 8 parameter, exiting"
-        sys.exit(1)
-
-if cfg["mode"] == "hel":
-    if "datacard" in cfg:
-        print "datacard should not be used in hel mode, exiting"
-        sys.exit(1)
-    if "hel_output_fname" not in cfg:
-        print "hel mode requires that hel_output_fname be used, exiting"
-        sys.exit(1)
-    if "hel_param" not in cfg:
-        print "hel mode requires that --hel_param be used, exiting"
+    if "param_name" not in cfg:
+        print "reweighted mode requires that param_name be used, exiting"
         sys.exit(1)
     if "datacard_base" not in cfg:
-        print "hel mode requires that datacard_base be used, exiting"
+        print "reweighted mode requires that datacard_base be used, exiting"
         sys.exit(1)
-    if cfg["hel_param"] == "CWW":
-        hel_param_number = 7
+    if "block_name" not in cfg:
+        print "reweighted mode requires that block_name be used, exiting"
+        sys.exit(1)
+    if "units_conversion_exponent" not in cfg:
+        print "reweighted mode requires that units_conversion_exponent be used, exiting"
+        sys.exit(1)        
+    if cfg["param_name"] == "cWW":
+        param_number = 7
+    elif cfg["param_name"] == "cHW":
+        param_number = 9
+    elif cfg["param_name"] == "FS0":
+        param_number = 1
+    elif cfg["param_name"] == "FS1":
+        param_number = 2
+    elif cfg["param_name"] == "FM0":
+        param_number = 3
+    elif cfg["param_name"] == "FM1":
+        param_number = 4
+    elif cfg["param_name"] == "FM6":
+        param_number = 9
+    elif cfg["param_name"] == "FM7":
+        param_number = 10
+    elif cfg["param_name"] == "FT0":
+        param_number = 11
+    elif cfg["param_name"] == "FT1":
+        param_number = 12                       
+    elif cfg["param_name"] == "FT2":
+        param_number = 13
     else:
-        print "unrecognized hel parameter, exiting"
+        print "unrecognized parameter name, exiting"
         sys.exit(1)        
 
 if cfg["mode"] == "gm":
@@ -385,43 +376,30 @@ if cfg["mode"] == "gm":
         print "gm mode requires that outfile be used, exiting"
         sys.exit(1)
 
-if cfg["mode"] == "hel":
+if cfg["mode"] == "reweighted":
 
-    f_hel=TFile(cfg["hel_file"])
+    f_reweighted=TFile(cfg["reweighted_file"])
 
     slha_header_vector = std.vector('string')()
     initrwgt_header_vector = std.vector('string')()
 
-    f_hel.GetObject("initrwgt_header",initrwgt_header_vector)
+    f_reweighted.GetObject("initrwgt_header",initrwgt_header_vector)
 
-    f_hel.GetObject("slha_header",slha_header_vector)
+    f_reweighted.GetObject("slha_header",slha_header_vector)
 
-    reweight_info=parse_reweight_info.parse_reweight_info(param_num=hel_param_number, initrwgt_header=initrwgt_header_vector, slha_header=slha_header_vector)
-
-    oneD_grid_points=reweight_info["oneD_grid_points"]
-    histo_grid=reweight_info["histo_grid"]
-    lhe_weight_index=reweight_info["lhe_weight_index"]
-
-    #scale each of the parameter values so that they are in units of TeV^-4
-    for i in range(0,len(oneD_grid_points)):
-        oneD_grid_points[i] = oneD_grid_points[i]*pow(10,12)
-
-    for i in range(0,len(oneD_grid_points)):
-        if oneD_grid_points[i] == 0:
-            sm_lhe_weight = i
-            break
-
-if cfg["mode"] == "dim8":
-    reweight_info=parse_reweight_info.parse_reweight_info(dim8_param_number=dim8_param_number,fname=options.dim8_lhe_file)
+    reweight_info=parse_reweight_info.parse_reweight_info(param_num=param_number, initrwgt_header=initrwgt_header_vector, slha_header=slha_header_vector,block_name=cfg["block_name"])
 
     oneD_grid_points=reweight_info["oneD_grid_points"]
     histo_grid=reweight_info["histo_grid"]
     lhe_weight_index=reweight_info["lhe_weight_index"]
 
+    #print histo_grid
+    #print oneD_grid_points
+
     #scale each of the parameter values so that they are in units of TeV^-4
     for i in range(0,len(oneD_grid_points)):
-        oneD_grid_points[i] = oneD_grid_points[i]*pow(10,12)
-
+        oneD_grid_points[i] = oneD_grid_points[i]*pow(10,int(cfg["units_conversion_exponent"]))
+        
     for i in range(0,len(oneD_grid_points)):
         if oneD_grid_points[i] == 0:
             sm_lhe_weight = i
@@ -460,7 +438,7 @@ else:
     assert(0)
     
 gROOT.cd()
-if cfg["mode"] == "dim8" or cfg["mode"] == "hel":
+if cfg["mode"] == "reweighted":
     print hist
     aqgc_histos = [ hist.Clone("clone"+str(i)) for i in range(0,len(oneD_grid_points))]
 
@@ -496,12 +474,9 @@ for i in range(0,100):
 #hist_background.GetXaxis().SetLabelSize(0.0)
 
 
-if cfg["mode"] == "dim8":
-    fillHistogramsWithReweight(tree_signal,aqgc_histos)
-    fillHistogram(tree_background,hist_background)
-elif cfg["mode"] == "hel":
-    f_hel=TFile(cfg["hel_file"])
-    tree_hel=f_hel.Get("events")
+if cfg["mode"] == "reweighted":
+    f_reweighted=TFile(cfg["reweighted_file"])
+    tree_reweighted=f_reweighted.Get("events")
     backgrounds_info=cfg["background_file"]
     for background_info in backgrounds_info:
         f_background=TFile(background_info[0])
@@ -517,8 +492,7 @@ elif cfg["mode"] == "hel":
             return_hists = fillHistogram(tree_background,hist_background)
             backgrounds.append(return_hists)        
 
-    fillHistogramsWithReweight(tree_hel,aqgc_histos)
-    #hel=fillHistogram(tree_hel,hist)
+    fillHistogramsWithReweight(tree_reweighted,aqgc_histos)
 elif cfg["mode"] == "sm":
     signal_fname=cfg["signal_file"]
     backgrounds_info=cfg["background_file"]
@@ -632,50 +606,7 @@ if cfg["mode"] == "sm-pdf" or cfg["mode"] == "sm-qcd":
     print >> dcard, "rate "+str(hist_signal.Integral())+" 0.1"
     print >> dcard, "lumi_8tev lnN 2.4 2.4"
     
-if cfg["mode"] == "dim8":
-
-    for i in range(0,len(oneD_grid_points)):
-        if i == 0:
-            grid_min = oneD_grid_points[i]
-            grid_max = oneD_grid_points[i]
-        
-        if oneD_grid_points[i] > grid_max:
-            grid_max = oneD_grid_points[i]
-        
-        if oneD_grid_points[i] < grid_min:
-            grid_min = oneD_grid_points[i]
-
-    histo_max = grid_max + (grid_max - grid_min)/(len(oneD_grid_points)-1)/2
-    histo_min = grid_min - (grid_max - grid_min)/(len(oneD_grid_points)-1)/2
-
-    aqgc_outfile = TFile(options.dim8_output_fname,'recreate')
-
-    for i in range(1,hist.GetNbinsX()+1):
-        aqgc_scaling_hist=TH1D("aqgc_scaling_bin_"+str(i),"aqgc_scaling_bin_"+str(i),len(oneD_grid_points),histo_min,histo_max);
-
-        for j in range(0,len(oneD_grid_points)):
-            aqgc_scaling_hist.SetBinContent(aqgc_scaling_hist.GetXaxis().FindFixBin(oneD_grid_points[j]), aqgc_histos[j].GetBinContent(i)/aqgc_histos[sm_lhe_weight].GetBinContent(i))
-        
-        aqgc_outfile.cd()
-        aqgc_scaling_hist.Write()    
-
-    for i in range(1,hist_signal.GetNbinsX()+1):
-
-        dcard = open(options.dim8_datacard_base + "_" + options.dim8_param  + "_bin"+str(i)+".txt",'w')
-
-        print >> dcard, "imax 1 number of channels"
-        print >> dcard, "jmax * number of background"
-        print >> dcard, "kmax * number of nuisance parameters"
-        print >> dcard, "Observation 0"
-        print >> dcard, "bin bin1 bin1"
-        print >> dcard, "process WWjj background"
-        print >> dcard, "process 0 1"
-        bkg_yield=max(hist_background.GetBinContent(i),0.001)
-        print >> dcard, "rate "+str(aqgc_histos[sm_lhe_weight].GetBinContent(i))+" "+str(bkg_yield)
-        print >> dcard, "lumi_8tev lnN 2.4 2.4"
-
-if cfg["mode"] == "hel":
-
+if cfg["mode"] == "reweighted":
 
     hist_sum_background = hist.Clone()
 
@@ -697,7 +628,7 @@ if cfg["mode"] == "hel":
     histo_max = grid_max + (grid_max - grid_min)/(len(oneD_grid_points)-1)/2
     histo_min = grid_min - (grid_max - grid_min)/(len(oneD_grid_points)-1)/2
 
-    aqgc_outfile = TFile(cfg["hel_output_fname"],'recreate')
+    aqgc_outfile = TFile(cfg["reweighted_output_fname"],'recreate')
 
     for i in range(1,hist.GetNbinsX()+1):
         aqgc_scaling_hist=TH1D("aqgc_scaling_bin_"+str(i),"aqgc_scaling_bin_"+str(i),len(oneD_grid_points),histo_min,histo_max);
@@ -710,7 +641,7 @@ if cfg["mode"] == "hel":
 
     for i in range(1,aqgc_histos[sm_lhe_weight].GetNbinsX()+1):
 
-        dcard = open(cfg["datacard_base"] +"_" + cfg["hel_param"] + "_bin"+str(i)+".txt",'w')
+        dcard = open(cfg["datacard_base"] + "_bin"+str(i)+".txt",'w')
 
         print >> dcard, "imax 1 number of channels"
         print >> dcard, "jmax * number of background"
@@ -745,7 +676,7 @@ if cfg["mode"] == "hel":
         #print >> dcard, "process WWjj background"
         #print >> dcard, "process 0 1"
         bkg_yield=max(hist_sum_background.GetBinContent(i),0.001)
-        #print >> dcard, "rate "+str(hel["hist_central"].GetBinContent(i))+" "+str(bkg_yield)
+        #print >> dcard, "rate "+str(reweighted["hist_central"].GetBinContent(i))+" "+str(bkg_yield)
 
         dcard.write("lumi_13tev lnN")
 

@@ -1,7 +1,7 @@
 import copy
 import sys
 
-def parse_reweight_info(param_num,initrwgt_header,slha_header):
+def parse_reweight_info(param_num,initrwgt_header,slha_header,block_name):
 
     #fname="/afs/cern.ch/work/a/anlevin/data/lhe/13_tev/wpwmjj_qed_4_qcd_0.lhe"
 
@@ -31,7 +31,7 @@ def parse_reweight_info(param_num,initrwgt_header,slha_header):
 
         line=str(slha_header[i])
 
-        if line == "Block newcoup \n":
+        if line == "Block "+block_name+" \n":
             
             i=i+1
             line=slha_header[i]
@@ -48,9 +48,9 @@ def parse_reweight_info(param_num,initrwgt_header,slha_header):
     while i < len(initrwgt_header):
 
         line = str(initrwgt_header[i])
-        
+
         param_values_copy=copy.deepcopy(param_values)
-            
+
         if line == "</weight>\n":
             i=i+1
             continue
@@ -67,7 +67,7 @@ def parse_reweight_info(param_num,initrwgt_header,slha_header):
 
         weight_id=int(end_of_line.split('\">')[0])
 
-        while "set param_card newcoup" in line:
+        while "set param_card "+block_name in line:
             param_number=int(line.split('>')[len(line.split('>')) - 1].split(' ')[3])
             param_value=float(line.split('>')[len(line.split('>')) - 1].split(' ')[4])
             param_values_copy[param_number]=param_value
