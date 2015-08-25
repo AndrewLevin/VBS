@@ -66,7 +66,7 @@ def getVariable(t):
     else:
         assert(0)    
 
-def fillHistogram(t,hist,use_lhe_weight = False):
+def fillHistogram(t,hist,use_lhe_weight = False,is_data=False):
     print "t.GetEntries() = " + str(t.GetEntries())
 
     return_hist = hist.Clone()
@@ -457,6 +457,7 @@ pdf_signal_hists=[]
 hist_signal=hist.Clone()
 hist_signal_qcd_up=hist.Clone()
 hist_signal_qcd_down=hist.Clone()
+hist_data=hist.Clone()
 
 for i in range(0,100):
     pdf_signal_hists.append(hist.Clone())
@@ -494,6 +495,7 @@ if cfg["mode"] == "reweighted":
 
     fillHistogramsWithReweight(tree_reweighted,aqgc_histos)
 elif cfg["mode"] == "sm":
+    data_fname=cfg["data_file"]
     signal_fname=cfg["signal_file"]
     backgrounds_info=cfg["background_file"]
 
@@ -504,7 +506,12 @@ elif cfg["mode"] == "sm":
 
     tree_signal=f_signal.Get("events")
 
+    f_data = TFile(data_fname)
+
+    tree_data = f_data.Get("events")
+
     signal=fillHistogram(tree_signal,hist_signal)
+    data=fillHistogram(tree_data,hist_data,is_data=True)
     for background_info in backgrounds_info:
         f_background=TFile(background_info[0])
         gROOT.cd() #without this, hist_background gets written into a file that goes out of scope
@@ -856,6 +863,8 @@ if cfg["mode"] == "sm":
         hist_sum_background.Add(backgrounds[i]["hist_central"])
 
     signal["hist_central"].Clone("wpwpjjewk").Write()
+
+    data["hist_central"].Clone("data").Write()
 
     hist_stack_background.Write()
 
