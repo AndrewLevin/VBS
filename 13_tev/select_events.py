@@ -66,6 +66,22 @@ def getVariable(t):
     else:
         assert(0)    
 
+import json
+
+def pass_json(run,lumi):
+
+    f_json=open("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-254349_13TeV_PromptReco_Collisions15_JSON.txt")
+    good_run_lumis=json.loads(f_json.read())
+
+    if str(run) not in good_run_lumis.keys():
+        return False
+
+    for lumi_pair in good_run_lumis[str(run)]:
+        if lumi < lumi_pair[1] and lumi > lumi_pair[0]:
+            return True
+
+    return False    
+
 def fillHistogram(t,hist,use_lhe_weight = False,is_data=False):
     print "t.GetEntries() = " + str(t.GetEntries())
 
@@ -73,6 +89,9 @@ def fillHistogram(t,hist,use_lhe_weight = False,is_data=False):
     
     for entry in range(t.GetEntries()):
         t.GetEntry(entry)
+
+        if not pass_json(t.run,t.lumi):
+            continue
 
         if entry % 100000 == 0:
             print "entry = " + str(entry)
