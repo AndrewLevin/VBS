@@ -2,6 +2,8 @@
 #source /afs/cern.ch/sw/lcg/external/gcc/4.7.2/x86_64-slc5-gcc47-opt/setup.sh
 #source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.34.20/x86_64-slc5-gcc47-opt/root/bin/thisroot.sh
 
+import json
+
 import optparse
 
 parser = optparse.OptionParser()
@@ -43,6 +45,20 @@ tight_muon_th2d=TH2F("tight muons","tight muons",4,muon_etabins,5,muon_ptbins)
 loose_muon_th2d.Sumw2()
 tight_muon_th2d.Sumw2()
 
+def pass_json(run,lumi):
+
+    f_json=open("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-254349_13TeV_PromptReco_Collisions15_JSON.txt")
+    good_run_lumis=json.loads(f_json.read())
+
+    if str(run) not in good_run_lumis.keys():
+        return False
+
+    for lumi_pair in good_run_lumis[str(run)]:
+        if lumi < lumi_pair[1] and lumi > lumi_pair[0]:
+            return True
+
+    return False    
+
 for entry in range(muon_tree.GetEntries()):
     muon_tree.GetEntry(entry)
 
@@ -54,6 +70,9 @@ for entry in range(muon_tree.GetEntries()):
 
     #if muon_tree.nearestparton_pdgid != 5:
     #    continue    
+
+    if not pass_json(muon_tree.run,muon_tree.lumi):
+        continue
 
     if not (muon_tree.flags & LepLooseSelectionV1):
         continue
@@ -99,6 +118,9 @@ tight_electron_th2d.Sumw2()
 
 for entry in range(electron_tree.GetEntries()):
     electron_tree.GetEntry(entry)
+
+    if not pass_json(electron_tree.run,electron_tree.lumi):
+        continue
 
     #if electron_tree.ptjetaway < 70:
     #    continue
