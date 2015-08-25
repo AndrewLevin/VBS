@@ -54,11 +54,16 @@ if type(fin.Get("demo/initrwgt_header")) == TTree:
         if initrwgt_header_tree.initrwgt_header_line == "END_INITRWGT_HEADER\n":
             break
 
+
         initrwgt_header.push_back(initrwgt_header_tree.initrwgt_header_line)
 
     fout.WriteObject(initrwgt_header,"initrwgt_header")
 
-maxcycle = 0
+fout.cd()
+
+maxcycle_events = 0
+maxcycle_muon_tree = 0
+maxcycle_electron_tree = 0
 
 for key in fin.GetListOfKeys():
     object=key.ReadObj()
@@ -66,8 +71,14 @@ for key in fin.GetListOfKeys():
         for key in object.GetListOfKeys():
             obj=key.ReadObj()
             if obj.GetName() == "events":
-                if key.GetCycle() > maxcycle:
-                    maxcycle = key.GetCycle()
+                if key.GetCycle() > maxcycle_events:
+                    maxcycle_events = key.GetCycle()
+            if obj.GetName() == "loose_muons":
+                if key.GetCycle() > maxcycle_muon_tree:
+                    maxcycle_muon_tree = key.GetCycle()
+            if obj.GetName() == "loose_electrons":
+                if key.GetCycle() > maxcycle_electron_tree:
+                    maxcycle_electron_tree = key.GetCycle()                                        
 
 for key in fin.GetListOfKeys():
     object=key.ReadObj()
@@ -76,9 +87,19 @@ for key in fin.GetListOfKeys():
             obj=key.ReadObj()
             if obj.GetName() == "events":
                 if type(obj)==TTree:
-                    if key.GetCycle() != maxcycle:
+                    if key.GetCycle() != maxcycle_events:
                         continue
                     fout.WriteObject(obj.CloneTree(),obj.GetName())
+            if obj.GetName() == "loose_muons":
+                if type(obj)==TTree:
+                    if key.GetCycle() != maxcycle_muon_tree:
+                        continue
+                    fout.WriteObject(obj.CloneTree(),obj.GetName())
+            if obj.GetName() == "loose_electrons":
+                if type(obj)==TTree:
+                    if key.GetCycle() != maxcycle_electron_tree:
+                        continue
+                    fout.WriteObject(obj.CloneTree(),obj.GetName())                    
             if obj.GetName() == "n_events_run_over":
                 fout.WriteObject(obj.Clone(),obj.GetName())
             #print told.GetName()
