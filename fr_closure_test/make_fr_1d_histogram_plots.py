@@ -7,7 +7,8 @@ import optparse
 parser = optparse.OptionParser()
 
 parser.add_option('-i', '--input_filename', help='filename of the input ntuple', dest='finname', default='my_file.root')
-parser.add_option('-o', '--output_filename', help='filename of the output ntuple', dest='foutname', default='my_file.root')
+parser.add_option('--output_dir', help='directory to put the output plots in', dest='output_dir', default='/afs/cern.ch/user/a/anlevin/www/tmp/')
+parser.add_option('--hist_name', help='name of the histogram', dest='hist_name', default='muon_frs')
 
 (options,args) = parser.parse_args()
 
@@ -25,14 +26,11 @@ gStyle.SetOptStat(0)
 #gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/crab/CMSSW_7_2_0/src/ntuple_maker/ntuple_maker/interface/enum_definition.h"')
 
 finname=options.finname
-foutname=options.foutname
-
 fin=TFile(finname)
-fout=TFile(foutname,"recreate")
 
 gROOT.cd()
 
-th2f=fin.Get("electron_frs")
+th2f=fin.Get(options.hist_name)
 
 #muon_ptbins=array('d', [10,15,20,25,30,35])
 
@@ -75,7 +73,9 @@ for xbin in range(1,th2f.GetNbinsX()+1):
     th1f.SetMinimum(0)    
     th1f.Draw()
 
-    c.SaveAs("/afs/cern.ch/user/a/anlevin/www/tmp/delete_this_etabin"+str(xbin)+".png")
+    c.SaveAs(options.output_dir + options.hist_name + "_etabin"+str(xbin)+".png")
+
+    #c.SaveAs("/afs/cern.ch/user/a/anlevin/www/tmp/delete_this_etabin"+str(xbin)+".png")
 
 muon_etabins=array('d', [0,1,1.479,2.0,2.5])
 
@@ -93,4 +93,4 @@ for ybin in range(1,th2f.GetNbinsY()+1):
     th1f.SetMinimum(0)    
     th1f.Draw()
 
-    c.SaveAs("/afs/cern.ch/user/a/anlevin/www/tmp/delete_this_ptbin"+str(ybin)+".png")
+    c.SaveAs(options.output_dir + options.hist_name + "_ptbin"+str(ybin)+".png")
