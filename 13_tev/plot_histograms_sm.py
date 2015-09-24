@@ -57,21 +57,29 @@ gROOT.cd()
 
 c1 = TCanvas("c1", "c1",5,50,500,500);
 
-wpwpjjqcd = hist_file.Get("mjj;1").Clone()
-wpwpjjewk = hist_file.Get("mjj;3").Clone()
-ttbar = hist_file.Get("mjj;2").Clone()
+wpwpjjqcd = hist_file.Get("wpwpjjqcd").Clone()
+wpwpjjewk = hist_file.Get("wpwpjjewk").Clone()
+ttbar = hist_file.Get("ttbar").Clone()
+wjwjdps = hist_file.Get("wjwjdps").Clone()
+wzjj = hist_file.Get("wzjj").Clone()
+
 
 wpwpjjqcd.SetLineColor(kMagenta)
 wpwpjjewk.SetLineColor(kBlue+1)
 ttbar.SetLineColor(kGreen+2)
+wjwjdps.SetLineColor(kAzure-2)
+wzjj.SetLineColor(kBlue-1)
 
 wpwpjjqcd.SetFillStyle(1001)
 wpwpjjewk.SetFillStyle(1001)
 ttbar.SetFillStyle(1001)
+wjwjdps.SetFillStyle(1001)
 
 wpwpjjqcd.SetFillColor(kMagenta)
 wpwpjjewk.SetFillColor(kBlue+1)
 ttbar.SetFillColor(kGreen+2)
+wjwjdps.SetFillColor(kAzure-2)
+wzjj.SetFillColor(kBlue-1)
 
 wpwpjjewk.SetLineWidth(3)
 
@@ -80,10 +88,14 @@ hsum = wpwpjjqcd.Clone()
 hsum.Scale(0.0)
 
 hstack.Add(wpwpjjqcd)
+hstack.Add(wjwjdps)
 hstack.Add(ttbar)
+hstack.Add(wzjj)
 
 hsum.Add(wpwpjjqcd)
+hsum.Add(wjwjdps)
 hsum.Add(ttbar)
+hsum.Add(wzjj)
 
 ymax = max(hstack.GetMaximum(),wpwpjjewk.GetMaximum())
 
@@ -92,7 +104,7 @@ hstack.SetMaximum(1.55 * ymax)
 hstack.Draw()
 
 
-s="10 fb^{-1} (13 TeV)"
+s="4 fb^{-1} (13 TeV)"
 lumilabel = TLatex (0.95, 0.93, s)
 lumilabel.SetNDC ()
 lumilabel.SetTextAlign (30)
@@ -117,7 +129,13 @@ draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjqcd,"wpwpwjj qcd","
 j=j+1
 draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,ttbar,"ttbar","f")
 j=j+1
+draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wjwjdps,"wjwj dps","f")
+j=j+1
+draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wzjj,"wzjj ewk+qcd","f")
+j=j+1
 draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjewk,"wpwpjj ewk","l")
+
+
 
 set_axis_fonts(hstack,"x","m_{jj} (GeV)")
 set_axis_fonts(hstack,"y","Events / bin")
@@ -141,4 +159,3 @@ c1.Update()
 c1.ForceUpdate()
 
 c1.SaveAs("/afs/cern.ch/user/a/anlevin/www/tmp/mjj.png")
-
