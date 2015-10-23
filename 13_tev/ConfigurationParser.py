@@ -19,7 +19,7 @@ def ConfigurationParser(input_filename):
 
         value = line.split('=')[1]
 
-        assert(key == "mode" or key == "background_file" or key == "signal_file" or key == "lumi" or key == "outfile" or key == "variable" or key == "datacard_base" or key == "channel" or key == "charge" or key == "param_name" or key == "reweighted_output_fname" or key == "reweighted_file" or key == "units_conversion_exponent" or key == "block_name")
+        assert(key == "mode" or key == "background_file" or key == "signal_file" or key == "lumi" or key == "outfile" or key == "variable" or key == "datacard_base" or key == "channel" or key == "charge" or key == "param_name" or key == "reweighted_output_fname" or key == "reweighted_file" or key == "units_conversion_exponent" or key == "block_name" or key == "data_file")
 
         if key == "charge":
             cfg[key] = value
@@ -28,7 +28,7 @@ def ConfigurationParser(input_filename):
             cfg[key] = value
 
         if key == "lumi":
-            cfg[key] = int(value)
+            cfg[key] = float(value)
 
         if key == "background_file":
             if "background_file" not in cfg:
@@ -66,5 +66,8 @@ def ConfigurationParser(input_filename):
 
         if key == "block_name":
             cfg[key] = value                                    
+
+        if key == "data_file":
+            cfg[key] = value
 
     return cfg    
