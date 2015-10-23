@@ -13,7 +13,7 @@ samples = {
     1 << 6,
     "zjets" :
     1 << 7,
-    "wz" :
+    "wzjj" :
     1 << 8,
     "wpwmjj" :
     1 << 9,
