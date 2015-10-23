@@ -8,8 +8,10 @@ import optparse
 
 parser = optparse.OptionParser()
 
-parser.add_option('-i', '--input_filename', help='filename of the input ntuple', dest='finname', default='my_file.root')
+parser.add_option('--muon_input_filename', help='filename of the input muon ntuple', dest='finmuonname', default='my_file.root')
+parser.add_option('--electron_input_filename', help='filename of the input electron ntuple', dest='finelectronname', default='my_file.root')
 parser.add_option('-o', '--output_filename', help='filename of the output ntuple', dest='foutname', default='my_file.root')
+parser.add_option('--n_events', help='number of events to run over', dest='n_events', default=100000)
 
 (options,args) = parser.parse_args()
 
@@ -24,17 +26,19 @@ from array import array
 
 gStyle.SetOptStat(0)
 
-gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_7_2_0/src/ntuple_maker/ntuple_maker/interface/fr_enum_definition.h"')
+gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_7_4_15/src/ntuple_maker/ntuple_maker/interface/fr_enum_definition.h"')
 
-finname=options.finname
+finelectronname=options.finelectronname
+finmuonname=options.finmuonname
 foutname=options.foutname
 
-fin=TFile(finname)
+finmuon=TFile(finmuonname)
+finelectron=TFile(finelectronname)
 fout=TFile(foutname,"recreate")
 
 gROOT.cd()
 
-muon_tree=fin.Get("loose_muons")
+muon_tree=finmuon.Get("loose_muons")
 
 muon_ptbins=array('d', [10,15,20,25,30,35])
 muon_etabins=array('d', [0,1,1.479,2.0,2.5])
@@ -47,7 +51,7 @@ tight_muon_th2d.Sumw2()
 
 def pass_json(run,lumi):
 
-    f_json=open("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-254349_13TeV_PromptReco_Collisions15_JSON.txt")
+    f_json=open("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-258750_13TeV_PromptReco_Collisions15_25ns_JSON.txt")
     good_run_lumis=json.loads(f_json.read())
 
     if str(run) not in good_run_lumis.keys():
@@ -61,6 +65,13 @@ def pass_json(run,lumi):
 
 for entry in range(muon_tree.GetEntries()):
     muon_tree.GetEntry(entry)
+
+    if entry >= options.n_events:
+        break
+
+    if entry % 100000 == 0:
+        print entry
+        
 
     #if muon_tree.ptjetaway < 70:
     #   continue
@@ -92,7 +103,7 @@ for entry in range(muon_tree.GetEntries()):
         loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),muon_tree.muon_4mom.Pt(),weight)
     #loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),muon_tree.muon_4mom.Pt())
 
-    if (muon_tree.flags & LepTightSelectionV3):
+    if (muon_tree.flags & LepTightSelectionV2):
         if muon_tree.muon_4mom.Pt() > tight_muon_th2d.GetYaxis().GetBinUpEdge(tight_muon_th2d.GetYaxis().GetNbins()):
             tight_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),tight_muon_th2d.GetYaxis().GetBinCenter(tight_muon_th2d.GetYaxis().GetNbins()),weight)
         else:
@@ -105,7 +116,7 @@ for entry in range(muon_tree.GetEntries()):
     
 tight_muon_th2d.Divide(loose_muon_th2d)
 
-electron_tree=fin.Get("loose_electrons")
+electron_tree=finelectron.Get("loose_electrons")
 
 electron_ptbins=array('d', [10,15,20,25,30,35])
 electron_etabins=array('d', [0,1,1.479,2.0,2.5])
@@ -118,6 +129,9 @@ tight_electron_th2d.Sumw2()
 
 for entry in range(electron_tree.GetEntries()):
     electron_tree.GetEntry(entry)
+
+    if entry >= options.n_events:
+        break
 
     if not pass_json(electron_tree.run,electron_tree.lumi):
         continue
