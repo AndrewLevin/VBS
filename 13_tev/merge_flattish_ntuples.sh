@@ -1,4 +1,6 @@
-input_dir=eos/cms/store/user/anlevin/DoubleMuon/flattish_ntuples_v213
+#input_dir=eos/cms/store/user/anlevin/DoubleMuon/flattish_ntuples_v213
+input_dir=eos/cms/store/user/anlevin/DoubleEG/flattish_ntuples_v216
+
 
 filelist=""; 
 
