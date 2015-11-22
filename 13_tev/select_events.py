@@ -30,7 +30,7 @@ from ROOT import *
 from array import array
 
 #gStyle.SetOptStat(0)
-gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_7_2_0/src/ntuple_maker/ntuple_maker/interface/enum_definition.h"')
+gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_7_4_15/src/ntuple_maker/ntuple_maker/interface/enum_definition.h"')
 
 #put the overflow in the last bin
 #if (t.jet1+t.jet2).M() > hist.GetBinLowEdge(hist.GetNbinsX()):
@@ -39,7 +39,7 @@ gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_7_2_0/src/n
 #    print (t.jet1+t.jet2).M()
 #    hist.Fill((t.jet1+t.jet2).M(),w)
 
-fr_file=TFile("/home/anlevin/VBS/fake_leptons/frs_2015dv4.root")
+fr_file=TFile("/home/anlevin/VBS/fake_leptons/frs_run2015_v1.root")
 muon_fr_hist=fr_file.Get("muon_frs")
 electron_fr_hist=fr_file.Get("electron_frs")
 
@@ -57,18 +57,19 @@ lep2_loose_electron_mask = Lep2LooseSelectionV1
 
         
 def muonfakerate(eta,pt,syst):
+
     myeta  = min(abs(eta),2.4999)
     mypt   = min(pt,34.999)
 
-    etabin = muon_fr_hist.GetXaxis().FindBin(myeta)
-    ptbin = muon_fr_hist.GetYaxis().FindBin(mypt)
+    etabin = muon_fr_hist.GetXaxis().FindFixBin(myeta)
+    ptbin = muon_fr_hist.GetYaxis().FindFixBin(mypt)
 
-    prob = muon_fr_hist.GetBinContent(ptbin,etabin)
+    prob = muon_fr_hist.GetBinContent(etabin,ptbin)
 
     if syst == "up":
-        prob+=muon_fr_hist.GetBinError(ptbin,etabin)
+        prob+=muon_fr_hist.GetBinError(etabin,ptbin)
     elif syst == "down":
-        prob-=muon_fr_hist.GetBinError(ptbin,etabin)
+        prob-=muon_fr_hist.GetBinError(etabin,ptbin)
     else:
         if syst != "nominal":
             sys.exit(0)
@@ -79,15 +80,15 @@ def electronfakerate(eta,pt,syst):
     myeta  = min(abs(eta),2.4999)
     mypt   = min(pt,34.999)
 
-    etabin = electron_fr_hist.GetXaxis().FindBin(myeta)
-    ptbin = electron_fr_hist.GetYaxis().FindBin(mypt)
+    etabin = electron_fr_hist.GetXaxis().FindFixBin(myeta)
+    ptbin = electron_fr_hist.GetYaxis().FindFixBin(mypt)
 
-    prob = electron_fr_hist.GetBinContent(ptbin,etabin)
+    prob = electron_fr_hist.GetBinContent(etabin,ptbin)
 
     if syst == "up":
-        prob+=electron_fr_hist.GetBinError(ptbin,etabin)
+        prob+=electron_fr_hist.GetBinError(etabin,ptbin)
     elif syst == "down":
-        prob-=electron_fr_hist.GetBinError(ptbin,etabin)
+        prob-=electron_fr_hist.GetBinError(etabin,ptbin)
     else:
         if syst != "nominal":
             sys.exit(0)
@@ -104,8 +105,8 @@ def getVariable(t):
         return t.metpt
     elif cfg["variable"] == "detajj":
         return abs(t.jet1.Eta() - t.jet2.Eta())
-    elif cfg["variable"] == "jet1btag":
-        return t.jet1btag
+    elif cfg["variable"] == "maxbtagevent":
+        return t.maxbtagevent
     elif cfg["variable"] == "jet2btag":
         return t.jet2btag
     elif cfg["variable"] == "nvtx":
@@ -121,9 +122,12 @@ def getVariable(t):
 
 import json
 
-f_json=open("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-258750_13TeV_PromptReco_Collisions15_25ns_JSON.txt")
+f_json=open("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON.txt")
 
-#f_json=open("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-254349_13TeV_PromptReco_Collisions15_JSON.txt")
+#f_json = open("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-258714_13TeV_PromptReco_Collisions15_25ns_JSON.txt")
+
+#f_json=open("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-259891_13TeV_PromptReco_Collisions15_25ns_JSON.txt")
+
 good_run_lumis=json.loads(f_json.read())
 
 def pass_json(run,lumi):
@@ -136,6 +140,10 @@ def pass_json(run,lumi):
             return True
 
     return False    
+
+f_pu_weights = TFile("/afs/cern.ch/work/a/anlevin/VBS/13_tev/pileup_weights.root")
+
+pu_weight_hist = f_pu_weights.Get("pileup_weights")
 
 def fillHistogram(t,hist,use_lhe_weight = False,is_data=False):
     print "t.GetEntries() = " + str(t.GetEntries())
@@ -178,8 +186,12 @@ def fillHistogram(t,hist,use_lhe_weight = False,is_data=False):
 
         if is_data:
             w = 1
-        else:    
+        else:
             w=t.xsWeight*float(cfg["lumi"])
+            
+            if t.lhe_weight_orig < 0:
+                w = -w
+            #w = w*pu_weight_hist.GetBinContent(pu_weight_hist.FindFixBin(t.n_pu_interactions))
 
         var=getVariable(t)
 
@@ -258,16 +270,24 @@ def fillHistogramFake(t,hist):
 
         if (not lep1passtightid) and lep1passlooseid and lep2passtightid:
             if abs(t.lep1id) == 13:
+                print t.lep1.Pt()
+                print str(t.run)+" "+str(t.lumi)+" "+str(t.event)
                 w = w * muonfakerate(t.lep1.Eta(), t.lep1.Pt(),fake_rate_syst)
             elif abs(t.lep1id) == 11:
+                print t.lep1.Pt()
+                print str(t.run)+" "+str(t.lumi)+" "+str(t.event)                
                 w = w * electronfakerate(t.lep1.Eta(), t.lep1.Pt(),fake_rate_syst)
             else:
                 print "unknown lepton flavor"
                 sys.exit(0)
         elif lep1passtightid and (not lep2passtightid) and lep2passlooseid:
             if abs(t.lep2id) == 13:
+                print t.lep2.Pt()
+                print str(t.run)+" "+str(t.lumi)+" "+str(t.event)                
                 w = w * muonfakerate(t.lep2.Eta(), t.lep2.Pt(),fake_rate_syst)
             elif abs(t.lep2id) == 11:
+                print t.lep2.Pt()
+                print str(t.run)+" "+str(t.lumi)+" "+str(t.event)                
                 w = w * electronfakerate(t.lep2.Eta(), t.lep2.Pt(),fake_rate_syst)
             else:
                 print "unknown lepton flavor"
@@ -275,7 +295,15 @@ def fillHistogramFake(t,hist):
         else:
             continue
 
+        assert(w > 0)
+
+        #if (t.jet1 + t.jet2).mass() > 1100 and (t.jet1 + t.jet2).mass() < 1600:
+        #    print t.maxbtagevent
+        #    print w
+
         var=getVariable(t)
+
+
 
 
         if cfg["mode"] == "non-sm" and use_lhe_weight == True:
@@ -454,7 +482,7 @@ def fillHistogramWithQCDWeights(t,histo,qcd_up_histo,qcd_down_histo):
         else:
             histo.Fill(var,w)
 
-if  cfg["mode"] != "sm" and cfg["mode"] != "non-sm" and cfg["mode"] != "sm-pdf" and cfg["mode"] != "sm-qcd" and cfg["mode"] != "gm" and cfg["mode"] != "reweighted" and cfg["mode"] != "sm_low_mjj_control_region" and cfg["mode"] != "sm_mc":
+if  cfg["mode"] != "sm" and cfg["mode"] != "non-sm" and cfg["mode"] != "sm-pdf" and cfg["mode"] != "sm-qcd" and cfg["mode"] != "gm" and cfg["mode"] != "reweighted" and cfg["mode"] != "sm_low_mjj_control_region" and cfg["mode"] != "sm_mc" and cfg["mode"] != "sm_mc_fake":
     print "unrecognized mode, exiting"
     sys.exit(1)
 
@@ -592,9 +620,10 @@ elif cfg["variable"] == "mll":
     if cfg["mode"] == "sm_low_mjj_control_region":
         hist = TH1F('mll', 'mll', 15, 0., 150)
     else:
-        hist = TH1F('mjj', 'mjj', 5, 0., 500 )
-        binning = array('f',[50,100,200,300,500])
-        hist = TH1F('mll', 'mll',4, binning )
+        hist = TH1F('mll', 'mll', 15, 0., 150)
+        #hist = TH1F('mll', 'mll', 5, 0., 50 )
+        #binning = array('f',[50,100,200,300,500])
+        #hist = TH1F('mll', 'mll',4, binning )
     #hist = TH1F('mll', 'mll', 35, 0., 500)
     #hist = TH1F('mll', 'mll', 35, 0., 5000)
     hist.GetXaxis().SetTitle("m_{ll} (GeV)")
@@ -602,8 +631,8 @@ elif cfg["variable"] == "met":
     hist = TH1F('met', 'met', 35, 0., 200 )
 elif cfg["variable"] == "detajj":
     hist = TH1F('detajj', 'detajj', 35, 0., 5 )
-elif cfg["variable"] == "jet1btag":
-    hist = TH1F('jet1btag', 'jet1btag', 35, -1., 1 )
+elif cfg["variable"] == "maxbtagevent":
+    hist = TH1F('maxbtagevent', 'maxbtagevent', 35, -1., 1 )
 elif cfg["variable"] == "jet2btag":
     hist = TH1F('jet2btag', 'jet2btag', 35, -1., 1 )
 elif cfg["variable"] == "nvtx":
@@ -675,7 +704,7 @@ if cfg["mode"] == "reweighted":
             backgrounds.append(return_hists)        
 
     fillHistogramsWithReweight(tree_reweighted,aqgc_histos)
-elif cfg["mode"] == "sm_mc" or cfg["mode"] == "sm" or cfg["mode"] == "sm_low_mjj_control_region":
+elif cfg["mode"] == "sm_mc" or cfg["mode"] == "sm" or cfg["mode"] == "sm_low_mjj_control_region" or cfg["mode"] == "sm_mc_fake":
     signal_fname=cfg["signal_file"]
     backgrounds_info=cfg["background_file"]
 
@@ -702,7 +731,13 @@ elif cfg["mode"] == "sm_mc" or cfg["mode"] == "sm" or cfg["mode"] == "sm_low_mjj
             backgrounds.append(return_hists)
 
 
-    if cfg["mode"] == "sm_low_mjj_control_region":
+    if cfg["mode"] == "sm_mc_fake":
+        data_fname=cfg["data_file"]
+        f_data = TFile(data_fname)
+        tree_data = f_data.Get("events")
+        fake=fillHistogramFake(tree_data,hist_fake)        
+
+    if cfg["mode"] == "sm_low_mjj_control_region" or cfg["mode"] == "sm":
         data_fname=cfg["data_file"]
         f_data = TFile(data_fname)
         tree_data = f_data.Get("events")
@@ -1021,7 +1056,7 @@ if cfg["mode"] == "gm":
 
         #print >> dcard, "lumi_8tev lnN 1.024 1.024"    
 
-if cfg["mode"] == "sm_mc":
+if cfg["mode"] == "sm_mc" or cfg["mode"] == "sm_mc_fake":
 
     hist_signal.SetLineWidth(3)
     hist_background.SetLineWidth(3)
@@ -1048,6 +1083,10 @@ if cfg["mode"] == "sm_mc":
 
     signal["hist_central"].Clone("wpwpjjewk").Write()
 
+
+    if cfg["mode"] == "sm_mc_fake":
+        fake["hist_central"].Clone("fake").Write()
+
     hist_stack_background.Write()
 
     hist_sum_background.Write()
@@ -1065,6 +1104,10 @@ if cfg["mode"] == "sm_mc":
         
         for background in backgrounds:
             dcard.write(" bin1")
+
+        if cfg["mode"] == "sm_mc_fake":
+            dcard.write(" bin1")
+            
         dcard.write('\n')    
         
         dcard.write("process")
@@ -1072,17 +1115,30 @@ if cfg["mode"] == "sm_mc":
         
         for background_info in backgrounds_info:
             dcard.write(" " + background_info[1])
+
+        if cfg["mode"] == "sm_mc_fake":
+            dcard.write(" fake")
+
+            
         dcard.write('\n')    
         dcard.write("process")
         dcard.write(" 0")
         
         for j in range(1,len(backgrounds)+1):
             dcard.write(" " + str(j))
+            
+        if cfg["mode"] == "sm_mc_fake":
+            dcard.write(" " + str(len(backgrounds)))
+            
         dcard.write('\n')    
         dcard.write('rate')
         dcard.write(' '+str(signal["hist_central"].GetBinContent(i)))
         for background in backgrounds:
             dcard.write(" "+ str(background["hist_central"].GetBinContent(i)))
+
+        if cfg["mode"] == "sm_mc_fake":    
+            dcard.write(" " + str(fake["hist_central"].GetBinContent(i)))
+            
         dcard.write('\n')    
 
         
@@ -1098,12 +1154,19 @@ if cfg["mode"] == "sm_mc":
         for background in backgrounds:
             dcard.write(" 1.024")
 
+        if cfg["mode"] == "sm_mc_fake":
+            dcard.write(" 1.024")
+
         dcard.write('\n')    
 
         if signal["hist_central"].GetBinContent(i) > 0:
-            dcard.write("mcstat_gm lnN "+str(1+signal["hist_central"].GetBinError(i)/signal["hist_central"].GetBinContent(i)))
+            dcard.write("mcstat_signal lnN "+str(1+signal["hist_central"].GetBinError(i)/signal["hist_central"].GetBinContent(i)))
             for j in range(0,len(backgrounds)):
                 dcard.write(" -")
+                
+            if cfg["mode"] == "sm_mc_fake":
+                dcard.write(" -")
+                
             dcard.write("\n")    
             
         
@@ -1115,8 +1178,22 @@ if cfg["mode"] == "sm_mc":
                         dcard.write(" -")
                     else:    
                         dcard.write(" " + str(1+backgrounds[j]["hist_central"].GetBinError(i)/backgrounds[j]["hist_central"].GetBinContent(i)))
+
+                if cfg["mode"] == "sm_mc_fake":
+                    dcard.write(" -")
+                        
                 dcard.write('\n')        
 
+
+
+        if cfg["mode"] == "sm_mc_fake" and fake["hist_central"].GetBinContent(i) > 0:        
+
+            dcard.write("stat_fake lnN -")
+
+            for j in range(0,len(backgrounds)):
+                dcard.write(" -")
+
+            dcard.write(" " + str(1+fake["hist_central"].GetBinError(i)/fake["hist_central"].GetBinContent(i)))    
 
         at_least_one_syscalc=False        
         for j in range(0,len(backgrounds)):
