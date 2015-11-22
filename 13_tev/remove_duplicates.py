@@ -42,12 +42,14 @@ tnew = told.CloneTree(0)
     
 run_lumi_evt_nums = {}
 
+n_new = 0
+
 for entry in range(0,told.GetEntries()):
 
     if entry % 100000 == 0:
         print entry
 
-    told.GetEntry(i)
+    told.GetEntry(entry)
 
     #sys.stdout("/dev/null")
 
@@ -56,5 +58,13 @@ for entry in range(0,told.GetEntries()):
     #scan_return=tnew.Draw("run:lumi:event",search_string,"goff")
 
     if (told.run,told.lumi,told.event) not in run_lumi_evt_nums:
+        n_new=n_new+1
         tnew.Fill()
         run_lumi_evt_nums[(told.run,told.lumi,told.event)] = True
+
+    assert(tnew.GetEntries() == n_new)
+
+
+#is it always necessary to do Write after filling a tree?
+tnew.Write()
+#print tnew.GetEntries()
