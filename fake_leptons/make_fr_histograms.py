@@ -11,7 +11,7 @@ parser = optparse.OptionParser()
 parser.add_option('--muon_input_filename', help='filename of the input muon ntuple', dest='finmuonname', default='my_file.root')
 parser.add_option('--electron_input_filename', help='filename of the input electron ntuple', dest='finelectronname', default='my_file.root')
 parser.add_option('-o', '--output_filename', help='filename of the output ntuple', dest='foutname', default='my_file.root')
-parser.add_option('--n_events', help='number of events to run over', dest='n_events', default=100000)
+parser.add_option('--mod', help='only use every mod events', dest='mod', default=100)
 
 (options,args) = parser.parse_args()
 
@@ -40,18 +40,20 @@ gROOT.cd()
 
 muon_tree=finmuon.Get("loose_muons")
 
-muon_ptbins=array('d', [10,15,20,25,30,35])
+muon_ptbins=array('d', [20,25,30,35])
 muon_etabins=array('d', [0,1,1.479,2.0,2.5])
 
-loose_muon_th2d=TH2F("loose muons","loose muons",4,muon_etabins,5,muon_ptbins)
-tight_muon_th2d=TH2F("tight muons","tight muons",4,muon_etabins,5,muon_ptbins)
+loose_muon_th2d=TH2F("loose muons","loose muons",4,muon_etabins,len(muon_ptbins)-1,muon_ptbins)
+tight_muon_th2d=TH2F("tight muons","tight muons",4,muon_etabins,len(muon_ptbins)-1,muon_ptbins)
 
 loose_muon_th2d.Sumw2()
 tight_muon_th2d.Sumw2()
 
 def pass_json(run,lumi):
 
-    f_json=open("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-258750_13TeV_PromptReco_Collisions15_25ns_JSON.txt")
+
+    f_json=open("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON.txt")
+    #f_json=open("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-258750_13TeV_PromptReco_Collisions15_25ns_JSON.txt")
     good_run_lumis=json.loads(f_json.read())
 
     if str(run) not in good_run_lumis.keys():
@@ -66,11 +68,14 @@ def pass_json(run,lumi):
 for entry in range(muon_tree.GetEntries()):
     muon_tree.GetEntry(entry)
 
-    if entry >= options.n_events:
-        break
+    #if entry >= options.n_events:
+    #    break
 
     if entry % 100000 == 0:
         print entry
+
+    if entry % int(options.mod) != 0:
+        continue
         
 
     #if muon_tree.ptjetaway < 70:
@@ -118,11 +123,11 @@ tight_muon_th2d.Divide(loose_muon_th2d)
 
 electron_tree=finelectron.Get("loose_electrons")
 
-electron_ptbins=array('d', [10,15,20,25,30,35])
+electron_ptbins=array('d', [20,25,30,35])
 electron_etabins=array('d', [0,1,1.479,2.0,2.5])
 
-loose_electron_th2d=TH2F("loose electrons","loose electrons",4,electron_etabins,5,electron_ptbins)
-tight_electron_th2d=TH2F("tight electrons","tight electrons",4,electron_etabins,5,electron_ptbins)
+loose_electron_th2d=TH2F("loose electrons","loose electrons",4,electron_etabins,len(electron_ptbins)-1,electron_ptbins)
+tight_electron_th2d=TH2F("tight electrons","tight electrons",4,electron_etabins,len(electron_ptbins)-1,electron_ptbins)
 
 loose_electron_th2d.Sumw2()
 tight_electron_th2d.Sumw2()
@@ -130,8 +135,14 @@ tight_electron_th2d.Sumw2()
 for entry in range(electron_tree.GetEntries()):
     electron_tree.GetEntry(entry)
 
-    if entry >= options.n_events:
-        break
+    #if entry >= options.n_events:
+    #    break
+
+    if entry % 100000 == 0:
+        print entry
+
+    if entry % int(options.mod) != 0:
+        continue
 
     if not pass_json(electron_tree.run,electron_tree.lumi):
         continue
