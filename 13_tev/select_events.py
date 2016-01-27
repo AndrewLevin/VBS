@@ -39,22 +39,31 @@ gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_7_4_15/src/
 #    print (t.jet1+t.jet2).M()
 #    hist.Fill((t.jet1+t.jet2).M(),w)
 
-fr_file=TFile("/home/anlevin/VBS/fake_leptons/frs_run2015_v1.root")
+
+fr_file=TFile("/home/anlevin/VBS/fake_leptons/frs_v9.root")
+#fr_file=TFile("/home/anlevin/VBS/fake_leptons/frs_run2015_v1.root")
 muon_fr_hist=fr_file.Get("muon_frs")
 electron_fr_hist=fr_file.Get("electron_frs")
 
+
+lep2_tight_electron_mask = Lep2TightSelectionV2
+lep1_tight_electron_mask = Lep1TightSelectionV2
+
+lep1_loose_muon_mask = Lep1LooseSelectionV5
+lep2_loose_muon_mask = Lep2LooseSelectionV5
+
 lep1_tight_muon_mask = Lep1TightSelectionV1
-lep1_tight_electron_mask = Lep1TightSelectionV1
-
-lep1_loose_muon_mask = Lep1LooseSelectionV1
-lep1_loose_electron_mask = Lep1LooseSelectionV1
-
 lep2_tight_muon_mask = Lep2TightSelectionV1
-lep2_tight_electron_mask = Lep2TightSelectionV1
 
-lep2_loose_muon_mask = Lep2LooseSelectionV1
-lep2_loose_electron_mask = Lep2LooseSelectionV1
+lep1_loose_electron_mask = Lep1LooseSelectionV5
+lep2_loose_electron_mask = Lep2LooseSelectionV5
 
+muon_fr_max=muon_fr_hist.GetBinContent(muon_fr_hist.GetMaximumBin())
+electron_fr_max=electron_fr_hist.GetBinContent(electron_fr_hist.GetMaximumBin())
+
+fr_max = max(muon_fr_max,electron_fr_max)
+
+print fr_max
         
 def muonfakerate(eta,pt,syst):
 
@@ -181,8 +190,25 @@ def fillHistogram(t,hist,use_lhe_weight = False,is_data=False):
         if cfg["channel"] != channel and cfg["channel"] !="all":
             continue
 
-        if not selection.passSelection(t,cfg["mode"]):
+        if not selection.passSelectionExceptLeptonIDs(t,cfg["mode"]):
             continue
+
+        
+
+        if abs(t.lep1id) == 13:
+            if not bool(t.flags & lep1_tight_muon_mask):
+                continue
+        else:
+            if not bool(t.flags & lep1_tight_electron_mask):
+                continue
+        if abs(t.lep2id) == 13:
+            if not bool(t.flags & lep2_tight_muon_mask):
+                continue
+        else:
+            if not bool(t.flags & lep2_tight_electron_mask):
+                continue
+
+        #print str(t.run)+" "+str(t.lumi)+" "+str(t.event)
 
         if is_data:
             w = 1
@@ -251,8 +277,6 @@ def fillHistogramFake(t,hist):
         if not selection.passSelectionExceptLeptonIDs(t,cfg["mode"]):
             continue
 
-
-
         if abs(t.lep1id) == 13:
             lep1passlooseid = bool(t.flags & lep1_loose_muon_mask)
             lep1passtightid = bool(t.flags & lep1_tight_muon_mask)
@@ -268,26 +292,32 @@ def fillHistogramFake(t,hist):
 
         w=1
 
+        var=getVariable(t)
+
+        if var > return_hist.GetBinLowEdge(return_hist.GetNbinsX()):
+            var = return_hist.GetBinCenter(return_hist.GetNbinsX())
+        
+
         if (not lep1passtightid) and lep1passlooseid and lep2passtightid:
             if abs(t.lep1id) == 13:
-                print t.lep1.Pt()
-                print str(t.run)+" "+str(t.lumi)+" "+str(t.event)
+                fake_muons.Fill(var)
+                #print "fake muon event "+str((t.jet1 + t.jet2).mass())+ " "+ str(t.lep1.Pt())+" "+str(t.lep1.Eta())
                 w = w * muonfakerate(t.lep1.Eta(), t.lep1.Pt(),fake_rate_syst)
             elif abs(t.lep1id) == 11:
-                print t.lep1.Pt()
-                print str(t.run)+" "+str(t.lumi)+" "+str(t.event)                
+                fake_electrons.Fill(var)
+                #print "fake electron event "+str((t.jet1 + t.jet2).mass())+ " "+ str(t.lep1.Pt())+" "+str(t.lep1.Eta())
                 w = w * electronfakerate(t.lep1.Eta(), t.lep1.Pt(),fake_rate_syst)
             else:
                 print "unknown lepton flavor"
                 sys.exit(0)
         elif lep1passtightid and (not lep2passtightid) and lep2passlooseid:
             if abs(t.lep2id) == 13:
-                print t.lep2.Pt()
-                print str(t.run)+" "+str(t.lumi)+" "+str(t.event)                
+                fake_muons.Fill(var)
+                #print "fake muon event "+str((t.jet1 + t.jet2).mass())+ " "+ str(t.lep2.Pt())+" "+str(t.lep2.Eta())
                 w = w * muonfakerate(t.lep2.Eta(), t.lep2.Pt(),fake_rate_syst)
             elif abs(t.lep2id) == 11:
-                print t.lep2.Pt()
-                print str(t.run)+" "+str(t.lumi)+" "+str(t.event)                
+                fake_electrons.Fill(var)
+                #print "fake electron event " +str((t.jet1 + t.jet2).mass())+ " "+ str(t.lep2.Pt())+" "+str(t.lep2.Eta())
                 w = w * electronfakerate(t.lep2.Eta(), t.lep2.Pt(),fake_rate_syst)
             else:
                 print "unknown lepton flavor"
@@ -301,7 +331,7 @@ def fillHistogramFake(t,hist):
         #    print t.maxbtagevent
         #    print w
 
-        var=getVariable(t)
+
 
 
 
@@ -344,13 +374,33 @@ def fillHistogramsWithReweight(t,histos):
 
         w=t.xsWeight*float(cfg["lumi"])
 
+        if not selection.passSelectionExceptLeptonIDs(t,cfg["mode"]):
+            continue
+
+        if abs(t.lep1id) == 13:
+            lep1passlooseid = bool(t.flags & lep1_loose_muon_mask)
+            lep1passtightid = bool(t.flags & lep1_tight_muon_mask)
+        else:
+            lep1passlooseid = bool(t.flags & lep1_loose_electron_mask)
+            lep1passtightid = bool(t.flags & lep1_tight_electron_mask)
+        if abs(t.lep2id) == 13:
+            lep2passlooseid = bool(t.flags & lep2_loose_muon_mask)
+            lep2passtightid = bool(t.flags & lep2_tight_muon_mask)
+        else:
+            lep2passlooseid = bool(t.flags & lep2_loose_electron_mask)
+            lep2passtightid = bool(t.flags & lep2_tight_electron_mask)
+
         var=getVariable(t)
 
+        if var > histos[0].GetBinLowEdge(histos[0].GetNbinsX()):
+            var = histos[0].GetBinCenter(histos[0].GetNbinsX())
+
         for i in range(0,len(oneD_grid_points)):
+
             if var > histos[i].GetBinLowEdge(histos[i].GetNbinsX()):
-                histos[i].Fill(histos[i].GetBinCenter(histos[i].GetNbinsX()),w*t.lhe_weights[lhe_weight_index[i]]/t.lhe_weight_orig)
+                histos[i].Fill(histos[i].GetBinCenter(histos[i].GetNbinsX()),w*t.mgreweight_weights[mgreweight_weight_index[i]]/t.lhe_weight_orig)
             else:    
-                histos[i].Fill(var,w*t.lhe_weights[lhe_weight_index[i]]/t.lhe_weight_orig)
+                histos[i].Fill(var,w*t.mgreweight_weights[mgreweight_weight_index[i]]/t.lhe_weight_orig)
 
 def fillHistogramsSyscalc(t,hist):
     print "t.GetEntries() = " + str(t.GetEntries())
@@ -592,7 +642,7 @@ if cfg["mode"] == "reweighted":
 
     oneD_grid_points=reweight_info["oneD_grid_points"]
     histo_grid=reweight_info["histo_grid"]
-    lhe_weight_index=reweight_info["lhe_weight_index"]
+    mgreweight_weight_index=reweight_info["lhe_weight_index"]
 
     #print histo_grid
     #print oneD_grid_points
@@ -609,7 +659,7 @@ if cfg["mode"] == "reweighted":
 gROOT.cd()
 if cfg["variable"] == "mjj":
     if cfg["mode"] == "sm_low_mjj_control_region":
-        hist = TH1F('mjj', 'mjj', 5, 0., 500 )
+        hist = TH1F('mjj', 'mjj', 4, 100., 500 )
     else:    
         binning=array('f',[500,700,1100,1600,2000])
         hist = TH1F('mjj', 'mjj',4, binning )
@@ -620,10 +670,10 @@ elif cfg["variable"] == "mll":
     if cfg["mode"] == "sm_low_mjj_control_region":
         hist = TH1F('mll', 'mll', 15, 0., 150)
     else:
-        hist = TH1F('mll', 'mll', 15, 0., 150)
+        #hist = TH1F('mll', 'mll', 15, 0., 150)
         #hist = TH1F('mll', 'mll', 5, 0., 50 )
-        #binning = array('f',[50,100,200,300,500])
-        #hist = TH1F('mll', 'mll',4, binning )
+        binning = array('f',[50,100,200,300,500])
+        hist = TH1F('mll', 'mll',4, binning )
     #hist = TH1F('mll', 'mll', 35, 0., 500)
     #hist = TH1F('mll', 'mll', 35, 0., 5000)
     hist.GetXaxis().SetTitle("m_{ll} (GeV)")
@@ -647,12 +697,15 @@ else:
     assert(0)
     
 gROOT.cd()
+
+hist.Sumw2()
+
 if cfg["mode"] == "reweighted":
     print hist
     aqgc_histos = [ hist.Clone("clone"+str(i)) for i in range(0,len(oneD_grid_points))]
 
 #error = sqrt(sum weight^2)
-hist.Sumw2()
+
 
 hist.SetTitle("")
 #hist.SetMaximum(6)
@@ -686,6 +739,10 @@ for i in range(0,100):
 
 
 if cfg["mode"] == "reweighted":
+    data_fname=cfg["data_file"]
+    f_data = TFile(data_fname)
+    tree_data = f_data.Get("events")                
+    
     f_reweighted=TFile(cfg["reweighted_file"])
     tree_reweighted=f_reweighted.Get("events")
     backgrounds_info=cfg["background_file"]
@@ -704,6 +761,16 @@ if cfg["mode"] == "reweighted":
             backgrounds.append(return_hists)        
 
     fillHistogramsWithReweight(tree_reweighted,aqgc_histos)
+
+    fake_muons = hist.Clone()
+    fake_electrons = hist.Clone()
+
+    fake=fillHistogramFake(tree_data,hist_fake)
+
+    #the systematic uncertainty on the fake rate method is 50%
+    for b in range(1,fake["hist_central"].GetNbinsX()+1):
+        fake["hist_central"].SetBinError(b,sqrt(0.5*fake["hist_central"].GetBinContent(b)*0.5*fake["hist_central"].GetBinContent(b)+fake["hist_central"].GetBinError(b)*fake["hist_central"].GetBinError(b)))
+    
 elif cfg["mode"] == "sm_mc" or cfg["mode"] == "sm" or cfg["mode"] == "sm_low_mjj_control_region" or cfg["mode"] == "sm_mc_fake":
     signal_fname=cfg["signal_file"]
     backgrounds_info=cfg["background_file"]
@@ -735,15 +802,30 @@ elif cfg["mode"] == "sm_mc" or cfg["mode"] == "sm" or cfg["mode"] == "sm_low_mjj
         data_fname=cfg["data_file"]
         f_data = TFile(data_fname)
         tree_data = f_data.Get("events")
-        fake=fillHistogramFake(tree_data,hist_fake)        
 
     if cfg["mode"] == "sm_low_mjj_control_region" or cfg["mode"] == "sm":
         data_fname=cfg["data_file"]
         f_data = TFile(data_fname)
         tree_data = f_data.Get("events")
-        fake=fillHistogramFake(tree_data,hist_fake)
         data=fillHistogram(tree_data,hist_data,is_data=True)
- 
+
+    if cfg["mode"] == "sm_low_mjj_control_region" or cfg["mode"] == "sm" or cfg["mode"] == "sm_mc_fake":
+
+        fake_muons = hist.Clone()
+        fake_electrons = hist.Clone()
+
+        fake=fillHistogramFake(tree_data,hist_fake)
+
+        #the systematic uncertainty on the fake rate method is 50%
+        for b in range(1,fake["hist_central"].GetNbinsX()+1):
+            fake["hist_central"].SetBinError(b,sqrt(0.5*fake["hist_central"].GetBinContent(b)*0.5*fake["hist_central"].GetBinContent(b)+fake["hist_central"].GetBinError(b)*fake["hist_central"].GetBinError(b)))
+
+
+        #for b in range(1,fake["hist_central"].GetNbinsX()+1):
+        #    if fake["hist_central"].GetBinContent(b)+fake["hist_central"].GetBinError(b) < 1.84*fr_max/(1-fr_max):
+        #        print "replacing "+str(fake["hist_central"].GetBinContent(b))+" +/- "+str(fake["hist_central"].GetBinError(b))+" with "+str(fake["hist_central"].GetBinContent(b))+" +/- "+str(1.84*fr_max/(1-fr_max))
+                #fake["hist_central"].SetBinContent(b,0)
+        #        fake["hist_central"].SetBinError(b,1.84*fr_max/(1-fr_max))
 
 elif cfg["mode"] == "non-sm":
     fillHistogram(tree_signal,hist_signal,True)
@@ -835,6 +917,8 @@ if cfg["mode"] == "sm-pdf" or cfg["mode"] == "sm-qcd":
     
 if cfg["mode"] == "reweighted":
 
+    #signal["hist_central"].Write()
+
     hist_sum_background = hist.Clone()
 
     for background in backgrounds:
@@ -861,12 +945,19 @@ if cfg["mode"] == "reweighted":
         aqgc_scaling_hist=TH1D("aqgc_scaling_bin_"+str(i),"aqgc_scaling_bin_"+str(i),len(oneD_grid_points),histo_min,histo_max);
 
         for j in range(0,len(oneD_grid_points)):
+            assert(aqgc_histos[sm_lhe_weight].GetBinContent(i) > 0)
+
             aqgc_scaling_hist.SetBinContent(aqgc_scaling_hist.GetXaxis().FindFixBin(oneD_grid_points[j]), aqgc_histos[j].GetBinContent(i)/aqgc_histos[sm_lhe_weight].GetBinContent(i))
         
         aqgc_outfile.cd()
         aqgc_scaling_hist.Write()    
 
     for i in range(1,aqgc_histos[sm_lhe_weight].GetNbinsX()+1):
+
+        print ""
+        for j in range(0,len(oneD_grid_points)):
+            print 1+aqgc_histos[j].GetBinError(i)/aqgc_histos[j].GetBinContent(i)
+
 
         dcard = open(cfg["datacard_base"] + "_bin"+str(i)+".txt",'w')
 
@@ -879,6 +970,8 @@ if cfg["mode"] == "reweighted":
         
         for background in backgrounds:
             dcard.write(" bin1")
+
+        dcard.write(" bin1")    
         dcard.write('\n')    
         
         dcard.write("process")
@@ -886,17 +979,20 @@ if cfg["mode"] == "reweighted":
         
         for background_info in backgrounds_info:
             dcard.write(" " + background_info[1])
+
+        dcard.write(" fake")
         dcard.write('\n')    
         dcard.write("process")
         dcard.write(" 0")
         
-        for j in range(1,len(backgrounds)+1):
+        for j in range(1,len(backgrounds)+2):
             dcard.write(" " + str(j))
         dcard.write('\n')    
         dcard.write('rate')
         dcard.write(' '+str(aqgc_histos[sm_lhe_weight].GetBinContent(i)))
         for background in backgrounds:
             dcard.write(" "+ str(background["hist_central"].GetBinContent(i)))
+        dcard.write(" "+str(fake["hist_central"].GetBinContent(i)))    
         dcard.write('\n')    
 
         
@@ -912,12 +1008,16 @@ if cfg["mode"] == "reweighted":
         for background in backgrounds:
             dcard.write(" 1.024")
 
+        dcard.write(" 1.024")
+
         dcard.write('\n')    
 
         if aqgc_histos[sm_lhe_weight].GetBinContent(i) > 0:
-            dcard.write("mcstat_gm lnN "+str(1+aqgc_histos[sm_lhe_weight].GetBinError(i)/aqgc_histos[sm_lhe_weight].GetBinContent(i)))
+            dcard.write("mcstat_dim8 lnN "+str(1+aqgc_histos[sm_lhe_weight].GetBinError(i)/aqgc_histos[sm_lhe_weight].GetBinContent(i)))
             for j in range(0,len(backgrounds)):
                 dcard.write(" -")
+
+            dcard.write(" -")                
             dcard.write("\n")    
             
         
@@ -929,11 +1029,32 @@ if cfg["mode"] == "reweighted":
                         dcard.write(" -")
                     else:    
                         dcard.write(" " + str(1+backgrounds[j]["hist_central"].GetBinError(i)/backgrounds[j]["hist_central"].GetBinContent(i)))
+
+                dcard.write(" -")        
+
                 dcard.write('\n')        
 
-            dcard.write('\n')        
+        if fake["hist_central"].GetBinContent(i) > 0:
 
+            dcard.write("fake lnN -")
+
+            for j in range(0,len(backgrounds)):
+                dcard.write(" -")
+
+            dcard.write(" " + str(1+fake["hist_central"].GetBinError(i)/fake["hist_central"].GetBinContent(i)))            
+
+            dcard.write('\n')
         #print >> dcard, "lumi_8tev lnN 1.024 1.024"    
+
+    outfile=TFile(cfg["outfile"],"recreate")
+
+    outfile.cd()
+
+    for background in backgrounds:
+        background["hist_central"].Write()
+
+    for i in range(0,len(aqgc_histos)):
+        aqgc_histos[i].Write()
 
 #raw_input()
 
@@ -1090,6 +1211,9 @@ if cfg["mode"] == "sm_mc" or cfg["mode"] == "sm_mc_fake":
     hist_stack_background.Write()
 
     hist_sum_background.Write()
+
+    fake_muons.Clone("fake_muons").Write()
+    fake_electrons.Clone("fake_electrons").Write()
 
     for i in range(1,signal["hist_central"].GetNbinsX()+1):
 
