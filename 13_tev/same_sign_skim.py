@@ -1,5 +1,7 @@
 import optparse
 
+parser = optparse.OptionParser()
+
 parser.add_option('-i', '--input_filename', help='input_filename', dest='infname', default='my_input_file.root')
 parser.add_option('-o', '--output_filename', help='output_filename', dest='outfname', default='my_output_file.root')
 

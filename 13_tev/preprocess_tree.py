@@ -102,5 +102,7 @@ for key in fin.GetListOfKeys():
                     fout.WriteObject(obj.CloneTree(),obj.GetName())                    
             if obj.GetName() == "n_events_run_over":
                 fout.WriteObject(obj.Clone(),obj.GetName())
+            if obj.GetName() == "n_weighted_events_run_over":
+                fout.WriteObject(obj.Clone(),obj.GetName())                
             #print told.GetName()
 

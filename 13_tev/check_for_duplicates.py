@@ -7,6 +7,8 @@ import optparse
 import sys
 from array import array
 from samples import *
+import datetime
+
 
 parser = optparse.OptionParser()
 
@@ -16,20 +18,23 @@ parser.add_option('-i', '--input_filename', help='input_filename', dest='infname
 
 fin=TFile(options.infname,"read")
 
-
 t=fin.Get("events")
 
-run_lumi_event_list = []
+run_lumi_evt_nums = {}
 
 for entry in range(0,t.GetEntries()):
     t.GetEntry(entry)
 
-    if [t.run,t.lumi,t.event] in run_lumi_event_list:
+    if entry % 100000 == 0:
+        print entry
+        #print datetime.datetime.now()
+
+    if (t.run,t.lumi,t.event) in run_lumi_evt_nums:
         print "found duplicate event:"
-        print [t.run,t.lumi,t.event]
+        print (t.run,t.lumi,t.event)
         sys.exit(0)
         
 
-    run_lumi_event_list.append([t.run,t.lumi,t.event])
+    run_lumi_evt_nums[(t.run,t.lumi,t.event)] = True
 
 #print run_lumi_event_list

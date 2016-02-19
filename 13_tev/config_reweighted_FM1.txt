@@ -1,22 +1,22 @@
 mode=reweighted
 
-#background_file=filename,process name,qcd uncertainty mode, pdf uncertainty mode
-#background_file=/data/blue/anlevin/ntuples/wpwpjj_qcd_v10.root,wpwpjjqcd,syscalc
-background_file=/data/blue/anlevin/ntuples/ttbar_v10.root,ttbar,none
-#background_file=/data/blue/anlevin/ntuples/wjwj-dps_v1.root,wjwjdps,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wzjj_highmll_v1.root,wzjj,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wgjets_v1.root,wgjets,none
 
-reweighted_file=/data/blue/anlevin/ntuples/wpwpjj_ewk_dim8_v2.root
+data_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/run2015_v1_skim.root
+
+reweighted_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_ewk_qcd_dim8_v1.root
 
 reweighted_output_fname=dim8_FM1_scaling.root
 
-lumi=10
+lumi=2.215
 
 variable=mll
 
 #hel_param=cWW
 param_name=FM1
 
-outfile=histograms.root
+outfile=histograms_FM1.root
 
 datacard_base=wpwp_FM1_datacard
 
