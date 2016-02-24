@@ -31,7 +31,7 @@ from ROOT import *
 
 from array import array
 
-if  cfg["mode"] != "sm" and cfg["mode"] != "non-sm" and cfg["mode"] != "sm-pdf" and cfg["mode"] != "sm-qcd" and cfg["mode"] != "gm" and cfg["mode"] != "reweighted" and cfg["mode"] != "sm_low_mjj_control_region" and cfg["mode"] != "sm_mc" and cfg["mode"] != "sm_mc_fake":
+if  cfg["mode"] != "sm" and cfg["mode"] != "non-sm" and cfg["mode"] != "sm-pdf" and cfg["mode"] != "sm-qcd" and cfg["mode"] != "gm" and cfg["mode"] != "reweighted_v1" and cfg["mode"] != "reweighted_v2" and cfg["mode"] != "sm_low_mjj_control_region" and cfg["mode"] != "sm_mc" and cfg["mode"] != "sm_mc_fake":
     print "unrecognized mode, exiting"
     sys.exit(1)
 
@@ -80,7 +80,7 @@ backgrounds = []
 
 hist.Sumw2()
 
-if cfg["mode"] == "reweighted":
+if cfg["mode"] == "reweighted_v1" or cfg["mode"] == "reweighted_v2":
     if "datacard" in cfg:
         print "datacard should not be used in reweighted mode, exiting"
         sys.exit(1)
@@ -125,7 +125,18 @@ if cfg["mode"] == "reweighted":
         print "unrecognized parameter name, exiting"
         sys.exit(1) 
 
-if cfg["mode"] == "reweighted":
+if cfg["mode"] == "reweighted_v2":
+    if "atgcroostats_config_fname" not in cfg:
+        print "reweighted_v2 mode requires that atgcroostats_config_fname be used, exiting"
+        sys.exit(1)
+
+if cfg["mode"] == "reweighted_v1":
+    if "atgcroostats_config_fname" in cfg:
+        print "atgcroostats_config_fname should not be used in reweighted_v1, exiting"
+        sys.exit(1)        
+
+
+if cfg["mode"] == "reweighted_v1" or cfg["mode"] == "reweighted_v2":
 
     hist_fake=hist.Clone()
 
@@ -199,8 +210,13 @@ if cfg["mode"] == "reweighted":
     #the systematic uncertainty on the fake rate method is 50%
     for b in range(1,fake["hist_central"].GetNbinsX()+1):
         fake["hist_central"].SetBinError(b,sqrt(0.5*fake["hist_central"].GetBinContent(b)*0.5*fake["hist_central"].GetBinContent(b)+fake["hist_central"].GetBinError(b)*fake["hist_central"].GetBinError(b)))
-    
-    write_results.write_reweighted_mode_v2(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,fake_muons,fake_electrons,sm_lhe_weight,backgrounds_info,fake)
+
+    if cfg["mode"] == "reweighted_v1":
+        write_results.write_reweighted_mode_v1(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,fake_muons,fake_electrons,sm_lhe_weight,backgrounds_info,fake)
+    elif cfg["mode"] == "reweighted_v2":
+        write_results.write_reweighted_mode_v2(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,fake_muons,fake_electrons,sm_lhe_weight,backgrounds_info,fake)
+    else:
+        assert(0)
 
 if cfg["mode"] == "sm_mc_fake":
 

@@ -1,4 +1,4 @@
-mode=reweighted
+mode=reweighted_v1
 
 background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wzjj_highmll_v1.root,wzjj,none
 background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wgjets_v1.root,wgjets,none

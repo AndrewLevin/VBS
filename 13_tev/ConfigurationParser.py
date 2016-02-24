@@ -19,7 +19,7 @@ def ConfigurationParser(input_filename):
 
         value = line.split('=')[1]
 
-        assert(key == "mode" or key == "background_file" or key == "signal_file" or key == "lumi" or key == "outfile" or key == "variable" or key == "datacard_base" or key == "channel" or key == "charge" or key == "param_name" or key == "reweighted_output_fname" or key == "reweighted_file" or key == "units_conversion_exponent" or key == "block_name" or key == "data_file")
+        assert(key == "mode" or key == "background_file" or key == "signal_file" or key == "lumi" or key == "outfile" or key == "variable" or key == "datacard_base" or key == "channel" or key == "charge" or key == "param_name" or key == "reweighted_output_fname" or key == "reweighted_file" or key == "units_conversion_exponent" or key == "block_name" or key == "data_file" or key == "atgcroostats_config_fname")
 
         if key == "charge":
             cfg[key] = value
@@ -54,6 +54,9 @@ def ConfigurationParser(input_filename):
 
         if key == "reweighted_file":
             cfg[key] = value
+
+        if key == "atgcroostats_config_fname":
+            cfg[key] = value            
 
         if key == "param_name":
             cfg[key] = value

@@ -144,6 +144,8 @@ def write_reweighted_mode_v1(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,
 def write_reweighted_mode_v2(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,fake_muons,fake_electrons,sm_lhe_weight,backgrounds_info,fake):
     #signal["hist_central"].Write()
 
+    atgcroostats_config=open(cfg["atgcroostats_config_fname"],"w")
+
     hist_sum_background = hist.Clone()
 
     for background in backgrounds:
@@ -278,11 +280,32 @@ def write_reweighted_mode_v2(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,
     for i in range(0,len(backgrounds)):
         backgrounds[i]["hist_central"].Clone(backgrounds_info[i][1]).Write()
 
+    fake["hist_central"].Clone("fake").Write()
+
     aqgc_histos[sm_lhe_weight].Clone("diboson").Write()
     aqgc_histos[sm_lhe_weight].Clone("data_obs").Write()
 
     #for i in range(0,len(aqgc_histos)):
     #    aqgc_histos[i].Write()        
+
+    atgcroostats_config.write("[Global]\n")
+    atgcroostats_config.write("model=par1_TH1\n")
+    atgcroostats_config.write("par1Name = par1\n")
+    atgcroostats_config.write("par1Low = "+str(grid_min)+"\n")
+    atgcroostats_config.write("par1High = "+str(grid_max)+"\n")
+    atgcroostats_config.write("NlnN=1\n")
+    atgcroostats_config.write("lnN1_name=lumi_13TeV\n")
+    atgcroostats_config.write("lnN1_value=1.026,1.026,1.026,1.026\n")
+    atgcroostats_config.write("lnN1_for=channel1_signal,channel1_wzjj,channel1_wgjets,channel1_fake\n")
+    #atgcroostats_config.write("lnN1_value=1.026,1.026,1.026\n")
+    #atgcroostats_config.write("lnN1_for=channel1_signal,channel1_wzjj,channel1_wgjets\n")
+    atgcroostats_config.write("\n")
+    atgcroostats_config.write("[channel1]\n")
+    #atgcroostats_config.write("Nbkg=2\n")
+    atgcroostats_config.write("Nbkg=3\n")
+    atgcroostats_config.write("bkg1_name=wzjj\n")
+    atgcroostats_config.write("bkg2_name=wgjets\n")
+    atgcroostats_config.write("bkg3_name=fake\n")
 
 def write_gm():
 
