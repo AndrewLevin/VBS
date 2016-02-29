@@ -12,5 +12,5 @@ FT2
 
 for operator in $operators
 do
-python2.6 select_events.py --config config_reweighted_${operator}.txt
+python2.6 select_events.py --config config_reweighted_v1_${operator}.txt
 done

@@ -278,11 +278,40 @@ def write_reweighted_mode_v2(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,
     outfile.cd()
 
     for i in range(0,len(backgrounds)):
+        down=backgrounds[i]["hist_central"].Clone("mcstat_"+backgrounds_info[i][1]+"Down")
+        up=backgrounds[i]["hist_central"].Clone("mcstat_"+backgrounds_info[i][1]+"Up")
+        
+        for j in range(1,backgrounds[i]["hist_central"].GetNbinsX()+1):
+            down.SetBinContent(j,max(down.GetBinContent(j) - down.GetBinError(j),0))
+            up.SetBinContent(j,up.GetBinContent(j) + up.GetBinError(j))
+            
         backgrounds[i]["hist_central"].Clone(backgrounds_info[i][1]).Write()
+        down.Write()
+        up.Write()
 
+
+    down=fake["hist_central"].Clone("fakeDown")
+    up=fake["hist_central"].Clone("fakeUp")
+        
+    for j in range(1,fake["hist_central"].GetNbinsX()+1):
+        down.SetBinContent(j,max(down.GetBinContent(j) - down.GetBinError(j),0))
+        up.SetBinContent(j,up.GetBinContent(j) + up.GetBinError(j))
+            
+    down.Write()
+    up.Write()
     fake["hist_central"].Clone("fake").Write()
 
+    down=aqgc_histos[sm_lhe_weight].Clone("mcstat_dibosonDown")
+    up=aqgc_histos[sm_lhe_weight].Clone("mcstat_dibosonUp")
+
+    for j in range(1,aqgc_histos[sm_lhe_weight].GetNbinsX()+1):
+        down.SetBinContent(j,max(down.GetBinContent(j) - down.GetBinError(j),0))
+        up.SetBinContent(j,up.GetBinContent(j) + up.GetBinError(j))
+
+    down.Write()
+    up.Write()
     aqgc_histos[sm_lhe_weight].Clone("diboson").Write()
+
     aqgc_histos[sm_lhe_weight].Clone("data_obs").Write()
 
     #for i in range(0,len(aqgc_histos)):
@@ -295,17 +324,38 @@ def write_reweighted_mode_v2(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,
     atgcroostats_config.write("par1High = "+str(grid_max)+"\n")
     atgcroostats_config.write("NlnN=1\n")
     atgcroostats_config.write("lnN1_name=lumi_13TeV\n")
-    atgcroostats_config.write("lnN1_value=1.026,1.026,1.026,1.026\n")
-    atgcroostats_config.write("lnN1_for=channel1_signal,channel1_wzjj,channel1_wgjets,channel1_fake\n")
+    atgcroostats_config.write("lnN1_value=")
+    atgcroostats_config.write("1.026,")
+    for i in range(0,len(backgrounds_info)):
+        atgcroostats_config.write("1.026,")
+    atgcroostats_config.write("1.026")            
+    atgcroostats_config.write("\n")
+    atgcroostats_config.write("lnN1_for=channel1_signal,")
+    for i in range(0,len(backgrounds_info)):
+        atgcroostats_config.write("channel1_"+str(backgrounds_info[i][1]+","))
+    atgcroostats_config.write("channel1_fake")            
+    atgcroostats_config.write("\n")            
+    #atgcroostats_config.write("lnN1_value=1.026,1.026,1.026,1.026\n")
+    #atgcroostats_config.write("lnN1_for=channel1_signal,channel1_wzjj,channel1_wgjets,channel1_fake\n")
     #atgcroostats_config.write("lnN1_value=1.026,1.026,1.026\n")
     #atgcroostats_config.write("lnN1_for=channel1_signal,channel1_wzjj,channel1_wgjets\n")
     atgcroostats_config.write("\n")
     atgcroostats_config.write("[channel1]\n")
     #atgcroostats_config.write("Nbkg=2\n")
-    atgcroostats_config.write("Nbkg=3\n")
-    atgcroostats_config.write("bkg1_name=wzjj\n")
-    atgcroostats_config.write("bkg2_name=wgjets\n")
-    atgcroostats_config.write("bkg3_name=fake\n")
+    atgcroostats_config.write("Nbkg="+str(len(backgrounds_info)+1)+"\n")
+    for i in range(0,len(backgrounds_info)):
+        atgcroostats_config.write("bkg"+str(i+1)+"_name="+str(backgrounds_info[i][1])+"\n")
+        atgcroostats_config.write("bkg"+str(i+1)+"_shape_syst=mcstat_"+backgrounds_info[i][1]+"\n")
+        
+    atgcroostats_config.write("bkg"+str(len(backgrounds_info)+1)+"_name=fake\n")
+    atgcroostats_config.write("bkg"+str(len(backgrounds_info)+1)+"_shape_syst=fake\n")
+
+    atgcroostats_config.write("signal_shape_syst=mcstat_diboson\n")
+
+    
+    #atgcroostats_config.write("bkg1_name=wzjj\n")
+    #atgcroostats_config.write("bkg2_name=wgjets\n")
+    #atgcroostats_config.write("bkg3_name=fake\n")
 
 def write_gm():
 
