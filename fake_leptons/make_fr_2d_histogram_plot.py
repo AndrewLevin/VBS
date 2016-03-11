@@ -16,7 +16,15 @@ c1=TCanvas("c1")
 
 hist.SetTitle("")
 
-hist.Draw("colz")
+gStyle.SetPaintTextFormat("4.2f")
+
+hist.GetYaxis().SetTitle("p_{T}")
+hist.GetXaxis().SetTitle("|\eta|")
+
+#hist.Draw("colz")
+hist.Draw("texte colz")
+
+#hist.Draw("legoe")
 
 #gPad.SetPhi( -50 )
 #gPad.SetTheta( 50 )
