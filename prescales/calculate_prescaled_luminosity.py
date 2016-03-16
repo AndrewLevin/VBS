@@ -24,7 +24,7 @@ for entry in range(t.GetEntries()):
 
     total_prescale = int(t.prescale)*int(t.l1max)
 
-    if t.prescale not in d:
+    if total_prescale not in d:
         d[total_prescale] = {}
 
     if t.run not in d[total_prescale]:
