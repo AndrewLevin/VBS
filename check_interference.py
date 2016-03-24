@@ -9,27 +9,31 @@ gStyle.SetFillStyle(0)
 gStyle.SetLegendBorderSize(0); 
 gROOT.ForceStyle()
 
-inputfilename=sys.argv[1]
-xs_ewk=float(sys.argv[2])
-xs_qcd=float(sys.argv[3])
-xs_ewk_plus_qcd=float(sys.argv[4])
-nevents_ewk=float(sys.argv[5])
-nevents_qcd=float(sys.argv[6])
-nevents_ewk_plus_qcd=float(sys.argv[7])
-histname_ewk=sys.argv[8]
-histname_qcd=sys.argv[9]
-histname_ewk_plus_qcd=sys.argv[10]
-xlabel=sys.argv[11]
-label_combined=sys.argv[12]
-label_ewk_plus_qcd=sys.argv[13]
-outputfilename=sys.argv[14]
+inputfilename_ewk=sys.argv[1]
+inputfilename_qcd=sys.argv[2]
+inputfilename_ewk_qcd=sys.argv[3]
+xs_ewk=float(sys.argv[4])
+xs_qcd=float(sys.argv[5])
+xs_ewk_plus_qcd=float(sys.argv[6])
+nevents_ewk=float(sys.argv[7])
+nevents_qcd=float(sys.argv[8])
+nevents_ewk_plus_qcd=float(sys.argv[9])
+histname_ewk=sys.argv[10]
+histname_qcd=sys.argv[11]
+histname_ewk_plus_qcd=sys.argv[12]
+xlabel=sys.argv[13]
+label_combined=sys.argv[14]
+label_ewk_plus_qcd=sys.argv[15]
+outputfilename=sys.argv[16]
 
 lumi=19.365*1000
 
-f=TFile(inputfilename,"r")
-hist_ewk=f.Get(histname_ewk)
-hist_qcd=f.Get(histname_qcd)
-hist_ewk_plus_qcd=f.Get(histname_ewk_plus_qcd)
+f_ewk=TFile(inputfilename_ewk,"r")
+f_qcd=TFile(inputfilename_qcd,"r")
+f_ewk_qcd=TFile(inputfilename_ewk_qcd,"r")
+hist_ewk=f_ewk.Get(histname_ewk)
+hist_qcd=f_qcd.Get(histname_qcd)
+hist_ewk_plus_qcd=f_ewk_qcd.Get(histname_ewk_plus_qcd)
 
 if type(hist_ewk) != TH1F:
     print "could not find "+histname_ewk+" in file "+inputfilename
@@ -84,9 +88,8 @@ leg.AddEntry(hist_combined,label_combined,"l")
 leg.AddEntry(hist_ewk_plus_qcd,label_ewk_plus_qcd,"l")
 leg.SetFillColor(0)
 
-hist_combined.Draw()
-hist_ewk_plus_qcd.Draw("SAME")
-
+hist_ewk_plus_qcd.Draw()
+hist_combined.Draw("SAME")
 
 leg.Draw("SAME")
 

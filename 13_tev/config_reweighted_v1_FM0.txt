@@ -1,0 +1,29 @@
+mode=reweighted_v1
+
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wzjj_highmll_v1.root,wzjj,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wgjj_v1.root,wgjets,none
+
+data_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/run2015_v1_skim.root
+
+reweighted_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_ewk_qcd_dim8_v1.root
+
+reweighted_output_fname=dim8_FM0_scaling.root
+
+lumi=2.215
+
+variable=mll
+
+#hel_param=cWW
+param_name=FM0
+
+outfile=histograms_FM0.root
+
+datacard_base=wpwp_FM0_datacard
+
+channel=all
+
+charge=both
+
+units_conversion_exponent = 12
+
+block_name = anoinputs

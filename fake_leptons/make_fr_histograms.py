@@ -103,17 +103,13 @@ if options.finmuondataname != None:
         if not pass_json(muon_tree.run,muon_tree.lumi):
             continue
 
-        if not (muon_tree.flags & LepLooseSelectionV1):
+        if not (muon_tree.flags & LepLooseSelectionV5):
             continue
 
         if abs(muon_tree.muon_4mom.Eta()) > 2.4:
             continue
 
         weight = 1
-
-        #use the xsWeight if it exists, otherwise all events have weight 1
-        if type(muon_tree.GetListOfBranches().FindObject("xsWeight")) == TBranch:
-            weight = muon_tree.xsWeight
 
         if muon_tree.muon_4mom.Pt() > loose_muon_th2d.GetYaxis().GetBinUpEdge(loose_muon_th2d.GetYaxis().GetNbins()):
             loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),loose_muon_th2d.GetYaxis().GetBinCenter(loose_muon_th2d.GetYaxis().GetNbins()),weight)
@@ -158,7 +154,7 @@ if options.finmuonmcname != None:
         if mt > 30:
             continue
         
-        if not (muon_mc_tree.flags & LepLooseSelectionV1):
+        if not (muon_mc_tree.flags & LepLooseSelectionV5):
             continue
 
         if abs(muon_mc_tree.muon_4mom.Eta()) > 2.4:
@@ -232,7 +228,7 @@ if options.finelectrondataname != None:
     #if electron_tree.nearestparton_pdgid != 5:
     #    continue    
 
-        if not (electron_tree.flags & LepLooseSelectionV3):
+        if not (electron_tree.flags & LepLooseSelectionV5):
             continue
 
         if abs(electron_tree.electron_4mom.Eta()) > 2.5:
@@ -283,7 +279,7 @@ if options.finelectronmcname != None:
         if mt > 30:
             continue
 
-        if not (electron_mc_tree.flags & LepLooseSelectionV3):
+        if not (electron_mc_tree.flags & LepLooseSelectionV5):
             continue
 
         if abs(electron_mc_tree.electron_4mom.Eta()) > 2.5:

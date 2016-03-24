@@ -44,12 +44,17 @@ def make_new_tree(told):
     #br2=tnew.Branch('sample',samples[sample],'sample/i')
     br2=tnew.Branch('sample',sample_id,'sample/i')
 
-    n_events_run_over_hist=fin.Get("n_events_run_over")
+    n_events_run_over_hist=fin.Get("n_weighted_events_run_over")
+    #n_events_run_over_hist=fin.Get("n_events_run_over")
+
+    #print n_events_run_over_hist.GetBinContent(0)
+    #print n_events_run_over_hist.GetBinContent(1)
+    #print n_events_run_over_hist.GetBinContent(2)
 
     for entry in range(tnew.GetEntries()):
         tnew.GetEntry(entry)
 
-        w[0] = 1000*xs/n_events_run_over_hist.GetEntries()
+        w[0] = 1000*xs/n_events_run_over_hist.GetBinContent(1)
 
         br.Fill()
         br2.Fill()
@@ -68,11 +73,13 @@ def make_new_tree(told):
 
 maxcycle=0
 
+assert(("loose_electrons" in fin.GetListOfKeys() and "loose_muons" not in fin.GetListOfKeys() and "events" not in fin.GetListOfKeys()) or ("loose_electrons" not in fin.GetListOfKeys() and "loose_muons" not in fin.GetListOfKeys() and "events" in fin.GetListOfKeys()) or ("loose_electrons" not in fin.GetListOfKeys() and "loose_muons" in fin.GetListOfKeys() and "events" not in fin.GetListOfKeys()))
+
 for key in fin.GetListOfKeys():
     if key.GetName() == "slha_header" or key.GetName() == "initrwgt_header":
         continue
     object=key.ReadObj()
-    if object.GetName() == "events":
+    if object.GetName() == "events" or object.GetName() == "loose_electrons" or object.GetName() == "loose_muons":
         if key.GetCycle() > maxcycle:
             maxcycle = key.GetCycle()
 
@@ -82,7 +89,7 @@ for key in fin.GetListOfKeys():
     if key.GetName() == "slha_header" or key.GetName() == "initrwgt_header":
         continue
     object=key.ReadObj()
-    if object.GetName() == "events":
+    if object.GetName() == "events"  or object.GetName() == "loose_electrons" or object.GetName() == "loose_muons":
         if key.GetCycle() != maxcycle:
             continue
         make_new_tree(object)

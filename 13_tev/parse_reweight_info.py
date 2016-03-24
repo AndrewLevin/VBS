@@ -3,14 +3,6 @@ import sys
 
 def parse_reweight_info(param_num,initrwgt_header,slha_header,block_name):
 
-    #fname="/afs/cern.ch/work/a/anlevin/data/lhe/13_tev/wpwmjj_qed_4_qcd_0.lhe"
-
-    #f=file(fname,'r')
-
-    #line=f.readline()
-
-    #f=open(fname)
-
     param_values=[]
     param_values.append(-1); #in order to make the indexing consistent with the dimension 8 parameter numbers
 
@@ -43,6 +35,7 @@ def parse_reweight_info(param_num,initrwgt_header,slha_header,block_name):
 
         i=i+1        
 
+    in_mg_reweighting_header = False
 
     i=0
     while i < len(initrwgt_header):
@@ -51,13 +44,21 @@ def parse_reweight_info(param_num,initrwgt_header,slha_header,block_name):
 
         param_values_copy=copy.deepcopy(param_values)
 
+        if "<weightgroup type=\'mg_reweighting\'>" in line or "<weightgroup type=\"mg_reweighting\">" in line:
+            in_mg_reweighting_header = True
+            i=i+1
+            continue
+
+        if not in_mg_reweighting_header:
+            i=i+1
+            continue
+
+        if "</weightgroup>" in line:
+            i=i+1
+            in_mg_reweighting_header = False
+            continue
+
         if line == "</weight>\n":
-            i=i+1
-            continue
-        if line == "</weightgroup>\n":
-            i=i+1
-            continue
-        if line == "<weightgroup type=\"mg_reweighting\">\n":
             i=i+1
             continue
 
