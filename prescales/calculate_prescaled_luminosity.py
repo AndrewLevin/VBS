@@ -1,3 +1,5 @@
+#the total brilcalc luminosity for the golden json is 2135.416 pb^-1 at least it was on 6 december 2015
+
 from ROOT import *
 import optparse
 import sys
@@ -20,11 +22,15 @@ d = {}
 for entry in range(t.GetEntries()):
     t.GetEntry(entry)
 
-    assert(t.l1min == t.l1max)
+    #assert(t.l1min == t.l1max)
 
-    total_prescale = int(t.prescale)*int(t.l1max)
+    total_prescale = int(t.prescale)*int(t.l1min)
 
-    if t.prescale not in d:
+    #print str(t.prescale)+" "+str(t.l1min)
+
+    #print total_prescale
+
+    if total_prescale not in d:
         d[total_prescale] = {}
 
     if t.run not in d[total_prescale]:
@@ -63,7 +69,8 @@ for k1 in d_merged:
     print >> f, j
     f.flush()
     output=os.popen("rm -r ~/.local/lib/python2.7/site-packages/brilws-0.10.7-py2.7.egg-info/; export PATH=$HOME/.local/bin:/afs/cern.ch/cms/lumi/brilconda-1.0.3/bin:$PATH; pip install --install-option=\"--prefix=\$HOME/.local\" brilws; brilcalc lumi -u /pb -i delete_this.txt").read()
-    sum=sum+float(output.split('|')[len(output.split('|'))-2])/float(k1)
+    sum=sum+float(output.split('|')[len(output.split('|'))-2])/float(k1) 
+    #sum=sum+float(output.split('|')[len(output.split('|'))-2])
 
 print sum
 
