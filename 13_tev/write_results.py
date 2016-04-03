@@ -783,3 +783,14 @@ def write_sm_low_mjj_control_region(cfg,hist,hist_signal,hist_background,backgro
 
         #print >> dcard, "lumi_8tev lnN 1.024 1.024"    
 
+def write_fr_closure_test(cfg,ttbar,ttbar_qcd_fr):
+
+    outfile=TFile(cfg["outfile"],"recreate")
+
+    outfile.cd()
+    
+    ttbar["hist_central"].Clone("ttbar").Write()
+
+    print ttbar_qcd_fr
+    
+    ttbar_qcd_fr["hist_central"].Clone("ttbar_qcd_fr").Write()

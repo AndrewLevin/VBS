@@ -91,8 +91,8 @@ if options.finmuondataname != None:
         if mt > 30:
             continue
         
-    #if muon_tree.ptjetaway < 70:
-    #   continue
+    #    if muon_tree.ptjetaway < 70:
+    #        continue
 
     #if muon_tree.nearestparton_4mom.pt() > 20:
     #   continue
@@ -100,10 +100,10 @@ if options.finmuondataname != None:
     #if muon_tree.nearestparton_pdgid != 5:
     #    continue    
 
-        if not pass_json(muon_tree.run,muon_tree.lumi):
-            continue
+    #    if not pass_json(muon_tree.run,muon_tree.lumi):
+    #        continue
 
-        if not (muon_tree.flags & LepLooseSelectionV5):
+        if not (muon_tree.flags & LepLooseSelectionV4):
             continue
 
         if abs(muon_tree.muon_4mom.Eta()) > 2.4:

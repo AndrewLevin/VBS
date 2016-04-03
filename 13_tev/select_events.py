@@ -31,7 +31,7 @@ from ROOT import *
 
 from array import array
 
-if  cfg["mode"] != "sm" and cfg["mode"] != "non-sm" and cfg["mode"] != "sm-pdf" and cfg["mode"] != "sm-qcd" and cfg["mode"] != "gm" and cfg["mode"] != "reweighted_v1" and cfg["mode"] != "reweighted_v2" and cfg["mode"] != "sm_low_mjj_control_region" and cfg["mode"] != "sm_mc" and cfg["mode"] != "sm_mc_fake":
+if  cfg["mode"] != "sm" and cfg["mode"] != "non-sm" and cfg["mode"] != "sm-pdf" and cfg["mode"] != "sm-qcd" and cfg["mode"] != "gm" and cfg["mode"] != "reweighted_v1" and cfg["mode"] != "reweighted_v2" and cfg["mode"] != "sm_low_mjj_control_region" and cfg["mode"] != "sm_mc" and cfg["mode"] != "sm_mc_fake" and cfg["mode"] != "fr_closure_test":
     print "unrecognized mode, exiting"
     sys.exit(1)
 
@@ -40,9 +40,13 @@ if cfg["variable"] == "mjj":
 
     if cfg["mode"] == "sm_low_mjj_control_region":
         hist = TH1F('mjj', 'mjj', 4, 100., 500 )
-    else:    
-        binning=array('f',[500,700,1100,1600,2000])
-        hist = TH1F('mjj', 'mjj',4, binning )
+    #elif cfg["mode"] == "fr_closure_test":
+    #    binning=array('f',[0,100,200,300,400,500,700,1100,1600,2000])
+    #    hist = TH1F('mjj', 'mjj',9, binning )
+    else:
+        hist = TH1F('mjj', 'mjj', 4, 100., 500 )        
+        #binning=array('f',[500,700,1100,1600,2000])
+        #hist = TH1F('mjj', 'mjj',4, binning )
     #hist = TH1F('mjj', 'mjj', 35, 0., 200 )
     #hist = TH1F('mjj', 'mjj', 35, 0., 3000 )
     hist.GetXaxis().SetTitle("m_{jj} (GeV)")
@@ -313,3 +317,27 @@ if cfg["mode"] == "sm_low_mjj_control_region":
         fake["hist_central"].SetBinError(b,sqrt(0.5*fake["hist_central"].GetBinContent(b)*0.5*fake["hist_central"].GetBinContent(b)+fake["hist_central"].GetBinError(b)*fake["hist_central"].GetBinError(b)))
 
     write_results.write_sm_low_mjj_control_region(cfg,hist,hist_signal,hist_background,backgrounds,backgrounds_info,signal,fake_muons,fake_electrons,fake,data)
+
+
+if cfg["mode"] == "fr_closure_test":
+
+    hist_ttbar=hist.Clone()
+
+    hist_ttbar_qcd_fr=hist.Clone()
+
+    ttbar_fname=cfg["ttbar_fname"]
+
+    c=TCanvas("c", "c",0,0,600,500)
+    c.Range(0,0,1,1)
+
+    f_ttbar=TFile(ttbar_fname)
+
+    tree_ttbar=f_ttbar.Get("events")
+
+    fake_muons = hist.Clone()
+    fake_electrons = hist.Clone()
+
+    ttbar=histogram_fillers.fillHistogram(cfg,tree_ttbar,hist_ttbar)
+    ttbar_qcd_fr=histogram_fillers.fillHistogramFake(cfg,tree_ttbar,hist_ttbar_qcd_fr,fake_muons,fake_electrons,True)
+
+    write_results.write_fr_closure_test(cfg,ttbar,ttbar_qcd_fr)
