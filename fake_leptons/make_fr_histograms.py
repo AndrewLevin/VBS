@@ -62,10 +62,11 @@ if options.finmuondataname != None:
     muon_tree=finmuon.Get("loose_muons")
 
     muon_ptbins=array('d', [20,25,30,35])
+    #muon_ptbins=array('d', [20,30,40,50,70])
     muon_etabins=array('d', [0,1,1.479,2.0,2.5])
 
-    loose_muon_th2d=TH2F("loose_muon_hist","loose_muon_hist",4,muon_etabins,len(muon_ptbins)-1,muon_ptbins)
-    tight_muon_th2d=TH2F("tight_muon_hist","tight_muon_hist",4,muon_etabins,len(muon_ptbins)-1,muon_ptbins)
+    loose_muon_th2d=TH2F("loose_muon_hist","loose_muon_hist",len(muon_etabins)-1,muon_etabins,len(muon_ptbins)-1,muon_ptbins)
+    tight_muon_th2d=TH2F("tight_muon_hist","tight_muon_hist",len(muon_etabins)-1,muon_etabins,len(muon_ptbins)-1,muon_ptbins)
 
     loose_muon_th2d.Sumw2()
     tight_muon_th2d.Sumw2()
@@ -103,25 +104,27 @@ if options.finmuondataname != None:
     #    if not pass_json(muon_tree.run,muon_tree.lumi):
     #        continue
 
-        if not (muon_tree.flags & LepLooseSelectionV4):
+        if not (muon_tree.flags & LepLooseSelectionV5):
             continue
 
         if abs(muon_tree.muon_4mom.Eta()) > 2.4:
             continue
 
         weight = 1
+        corrected_pt = muon_tree.muon_4mom.Pt() * (1 + max(0,(muon_tree.iso - 0.15)))
+        #corrected_pt = muon_tree.muon_4mom.Pt() 
 
-        if muon_tree.muon_4mom.Pt() > loose_muon_th2d.GetYaxis().GetBinUpEdge(loose_muon_th2d.GetYaxis().GetNbins()):
+        if corrected_pt > loose_muon_th2d.GetYaxis().GetBinUpEdge(loose_muon_th2d.GetYaxis().GetNbins()):
             loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),loose_muon_th2d.GetYaxis().GetBinCenter(loose_muon_th2d.GetYaxis().GetNbins()),weight)
         else:    
-            loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),muon_tree.muon_4mom.Pt(),weight)
+            loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),corrected_pt,weight)
         #loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),muon_tree.muon_4mom.Pt())
 
         if (muon_tree.flags & LepTightSelectionV1):
-            if muon_tree.muon_4mom.Pt() > tight_muon_th2d.GetYaxis().GetBinUpEdge(tight_muon_th2d.GetYaxis().GetNbins()):
+            if corrected_pt > tight_muon_th2d.GetYaxis().GetBinUpEdge(tight_muon_th2d.GetYaxis().GetNbins()):
                 tight_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),tight_muon_th2d.GetYaxis().GetBinCenter(tight_muon_th2d.GetYaxis().GetNbins()),weight)
             else:
-                tight_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),muon_tree.muon_4mom.Pt(),weight)
+                tight_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),corrected_pt,weight)
         #if muon_tree.pass_full_muon_id:
         #    tight_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),muon_tree.muon_4mom.Pt())
 
@@ -160,21 +163,24 @@ if options.finmuonmcname != None:
         if abs(muon_mc_tree.muon_4mom.Eta()) > 2.4:
             continue
 
-        if muon_mc_tree.lhe_weight_orig < 0:
-            weight = -weight         
-
         weight = muon_mc_tree.xsWeight*mu17_lumi
 
-        if muon_mc_tree.muon_4mom.Pt() > loose_muon_th2d.GetYaxis().GetBinUpEdge(loose_muon_th2d.GetYaxis().GetNbins()):
+        if muon_mc_tree.gen_weight < 0:
+            weight = -weight         
+
+        corrected_pt = muon_mc_tree.muon_4mom.Pt() * (1 + max(0,(muon_mc_tree.iso - 0.15)))
+        #corrected_pt = muon_mc_tree.muon_4mom.Pt()
+
+        if corrected_pt > loose_muon_th2d.GetYaxis().GetBinUpEdge(loose_muon_th2d.GetYaxis().GetNbins()):
             loose_muon_th2d.Fill(abs(muon_mc_tree.muon_4mom.Eta()),loose_muon_th2d.GetYaxis().GetBinCenter(loose_muon_th2d.GetYaxis().GetNbins()),-weight)
         else:    
-            loose_muon_th2d.Fill(abs(muon_mc_tree.muon_4mom.Eta()),muon_mc_tree.muon_4mom.Pt(),-weight)
+            loose_muon_th2d.Fill(abs(muon_mc_tree.muon_4mom.Eta()),corrected_pt,-weight)
 
         if (muon_mc_tree.flags & LepTightSelectionV1):
-            if muon_mc_tree.muon_4mom.Pt() > tight_muon_th2d.GetYaxis().GetBinUpEdge(tight_muon_th2d.GetYaxis().GetNbins()):
+            if corrected_pt > tight_muon_th2d.GetYaxis().GetBinUpEdge(tight_muon_th2d.GetYaxis().GetNbins()):
                 tight_muon_th2d.Fill(abs(muon_mc_tree.muon_4mom.Eta()),tight_muon_th2d.GetYaxis().GetBinCenter(tight_muon_th2d.GetYaxis().GetNbins()),-weight)
             else:
-                tight_muon_th2d.Fill(abs(muon_mc_tree.muon_4mom.Eta()),muon_mc_tree.muon_4mom.Pt(),-weight)
+                tight_muon_th2d.Fill(abs(muon_mc_tree.muon_4mom.Eta()),corrected_pt,-weight)
 
 #tight_muon_th2d.Print("all")
 #loose_muon_th2d.Print("all")
