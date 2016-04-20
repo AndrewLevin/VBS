@@ -157,7 +157,7 @@ draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wzjj,"wzjj ewk+qcd","f")
 #draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjqcd,"wpwpjj qcd","f")
 
 j=j+1
-draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wgjets,"wgjets","f")
+draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wgjets,"wgjj ewk+qcd","f")
 j=j+1
 draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjewkqcd,"wpwpjj ewk+qcd","l")
 #j=j+1
