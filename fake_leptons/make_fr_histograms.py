@@ -49,20 +49,14 @@ def pass_json(run,lumi):
         if lumi < lumi_pair[1] and lumi > lumi_pair[0]:
             return True
 
+
+
     return False    
 
 if options.finmuondataname != None:
 
-    finmuonname=options.finmuondataname
-
-    finmuon=TFile(finmuonname)
-
-    gROOT.cd()
-
-    muon_tree=finmuon.Get("loose_muons")
-
-    muon_ptbins=array('d', [20,25,30,35])
-    #muon_ptbins=array('d', [20,30,40,50,70])
+    #muon_ptbins=array('d', [20,25,30,35])
+    muon_ptbins=array('d', [20,30,40,50,70])
     muon_etabins=array('d', [0,1,1.479,2.0,2.5])
 
     loose_muon_th2d=TH2F("loose_muon_hist","loose_muon_hist",len(muon_etabins)-1,muon_etabins,len(muon_ptbins)-1,muon_ptbins)
@@ -71,6 +65,14 @@ if options.finmuondataname != None:
     loose_muon_th2d.Sumw2()
     tight_muon_th2d.Sumw2()
 
+
+    finmuonname=options.finmuondataname
+
+    finmuon=TFile(finmuonname)
+
+    gROOT.cd()
+
+    muon_tree=finmuon.Get("loose_muons")
 
     for entry in range(muon_tree.GetEntries()):
         muon_tree.GetEntry(entry)
@@ -82,6 +84,9 @@ if options.finmuondataname != None:
             print entry
 
         if entry % int(options.mod) != 0:
+            continue
+
+        if muon_tree.muon_4mom.Pt() < 20:
             continue
 
         if muon_tree.metpt > 20:
@@ -120,6 +125,8 @@ if options.finmuondataname != None:
             loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),corrected_pt,weight)
         #loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),muon_tree.muon_4mom.Pt())
 
+        #print loose_muon_th2d.Integral()
+
         if (muon_tree.flags & LepTightSelectionV1):
             if corrected_pt > tight_muon_th2d.GetYaxis().GetBinUpEdge(tight_muon_th2d.GetYaxis().GetNbins()):
                 tight_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),tight_muon_th2d.GetYaxis().GetBinCenter(tight_muon_th2d.GetYaxis().GetNbins()),weight)
@@ -149,6 +156,9 @@ if options.finmuonmcname != None:
         if entry % int(options.mod) != 0:
             continue
 
+        if muon_mc_tree.muon_4mom.Pt() < 20:
+            continue
+
         if muon_mc_tree.metpt > 20:
             continue
 
@@ -175,6 +185,8 @@ if options.finmuonmcname != None:
             loose_muon_th2d.Fill(abs(muon_mc_tree.muon_4mom.Eta()),loose_muon_th2d.GetYaxis().GetBinCenter(loose_muon_th2d.GetYaxis().GetNbins()),-weight)
         else:    
             loose_muon_th2d.Fill(abs(muon_mc_tree.muon_4mom.Eta()),corrected_pt,-weight)
+
+        #print loose_muon_th2d.Integral()
 
         if (muon_mc_tree.flags & LepTightSelectionV1):
             if corrected_pt > tight_muon_th2d.GetYaxis().GetBinUpEdge(tight_muon_th2d.GetYaxis().GetNbins()):
@@ -214,8 +226,8 @@ if options.finelectrondataname != None:
         if entry % int(options.mod) != 0:
             continue
 
-        if not pass_json(electron_tree.run,electron_tree.lumi):
-            continue
+        #if not pass_json(electron_tree.run,electron_tree.lumi):
+        #    continue
 
         if electron_tree.metpt > 20:
             continue
@@ -295,7 +307,7 @@ if options.finelectronmcname != None:
 
         weight = electron_mc_tree.xsWeight*ele12_lumi
 
-        if electron_mc_tree.lhe_weight_orig < 0:
+        if electron_mc_tree.gen_weight < 0:
             weight = -weight         
 
         if electron_mc_tree.electron_4mom.Pt() > loose_electron_th2d.GetYaxis().GetBinUpEdge(loose_electron_th2d.GetYaxis().GetNbins()):
@@ -313,7 +325,7 @@ if options.finelectronmcname != None:
 
 fout.cd()
 
-if options.finmuondataname != None:
+if options.finmuondataname != None or options.finmuonmcname != None:
 
     tight_muon_th2d.Clone().Write()
     loose_muon_th2d.Clone().Write()
@@ -321,7 +333,7 @@ if options.finmuondataname != None:
     tight_muon_th2d.Divide(loose_muon_th2d)
     tight_muon_th2d.Clone("muon_frs").Write()
 
-if options.finelectrondataname != None:
+if options.finelectrondataname != None or options.finelectronmcname != None:
 
     tight_electron_th2d.Clone().Write()
     loose_electron_th2d.Clone().Write()
