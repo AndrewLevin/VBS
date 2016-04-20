@@ -156,8 +156,12 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False):
         if cfg["channel"] != channel and cfg["channel"] !="all":
             continue
 
-        if not selection.passSelectionExceptLeptonIDs(t,cfg["mode"]):
-            continue
+        if cfg["which_selection"] == "relaxed" or cfg["which_selection"] == "relaxed_btagged":
+            if not selection.passRelaxedSelectionExceptLeptonIDs(t,cfg):
+                continue
+        else:
+            if not selection.passSelectionExceptLeptonIDs(t,cfg):
+                continue
 
         if abs(t.lep1id) == 13:
             if not bool(t.flags & lep1_tight_muon_mask):
@@ -267,8 +271,12 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
         if cfg["channel"] != channel and cfg["channel"] !="all":
             continue
 
-        if not selection.passSelectionExceptLeptonIDs(t,cfg["mode"]):
-            continue
+        if cfg["which_selection"] == "relaxed" or cfg["which_selection"] == "relaxed_btagged":
+            if not selection.passRelaxedSelectionExceptLeptonIDs(t,cfg):
+                continue
+        else:
+            if not selection.passSelectionExceptLeptonIDs(t,cfg):
+                continue
 
         if abs(t.lep1id) == 13:
             lep1passlooseid = bool(t.flags & lep1_loose_muon_mask)
@@ -304,7 +312,7 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
                 muon_corrected_pt = t.lep1.Pt() * (1 + max(0,t.lep1iso - 0.15))
                 #muon_corrected_pt = t.lep1.Pt() 
                 fake_muons.Fill(var)
-                #print "fake muon event "+str((t.jet1 + t.jet2).mass())+ " "+ str(t.lep1.Pt())+" "+str(t.lep1.Eta())
+                #print "fake muon event "+str((t.jet1 + t.jet2).mass())+ " "+ str(muon_corrected_pt)+" "+str(t.lep1.Eta())
                 w = w * muonfakerate(t.lep1.Eta(), muon_corrected_pt,fake_rate_syst)
             elif abs(t.lep1id) == 11:
                 fake_electrons.Fill(var)
@@ -323,7 +331,7 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
                 muon_corrected_pt = t.lep2.Pt() * (1 + max(0,t.lep2iso - 0.15))
                 #muon_corrected_pt = t.lep2.Pt() 
                 fake_muons.Fill(var)
-                #print "fake muon event "+str((t.jet1 + t.jet2).mass())+ " "+ str(t.lep2.Pt())+" "+str(t.lep2.Eta())
+                #print "fake muon event "+str((t.jet1 + t.jet2).mass())+ " "+ str(muon_corrected_pt)+" "+str(t.lep2.Eta())
                 w = w * muonfakerate(t.lep2.Eta(), muon_corrected_pt,fake_rate_syst)
             elif abs(t.lep2id) == 11:
                 fake_electrons.Fill(var)
@@ -374,12 +382,12 @@ def fillHistogramsWithReweight(cfg,t,histos,mgreweight_weight_index):
         if cfg["channel"] != channel and cfg["channel"] !="all":
             continue
 
-        if not selection.passSelection(t,cfg["mode"]):
+        if not selection.passSelection(t,cfg):
             continue
 
         w=t.xsWeight*float(cfg["lumi"])
 
-        if not selection.passSelectionExceptLeptonIDs(t,cfg["mode"]):
+        if not selection.passSelectionExceptLeptonIDs(t,cfg):
             continue
 
         if abs(t.lep1id) == 13:
@@ -438,7 +446,7 @@ def fillHistogramsSyscalc(cfg,t,hist):
         if cfg["channel"] != channel and cfg["channel"] !="all":
             continue
 
-        if not selection.passSelection(t,cfg["mode"]):
+        if not selection.passSelection(t,cfg):
             continue
 
         w=t.xsWeight*float(cfg["lumi"])
@@ -514,7 +522,7 @@ def fillHistogramWithQCDWeights(cfg,t,histo,qcd_up_histo,qcd_down_histo):
         if options.channel != channel and options.channel!="all":
             continue
 
-        if not selection.passSelection(t,cfg["mode"]):
+        if not selection.passSelection(t,cfg):
             continue
 
         w=t.xsWeight*float(options.lumi)

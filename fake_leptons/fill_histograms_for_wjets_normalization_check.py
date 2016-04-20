@@ -61,7 +61,7 @@ if options.finmuondataname != None:
 
     muon_tree=finmuon.Get("loose_muons")
 
-    muon_data_mt_hist=TH1F("muon_data_mt","muon_data_mt",100,0,100)
+    muon_data_mt_hist=TH1F("muon_data_met","muon_data_met",100,0,100)
 
     for entry in range(muon_tree.GetEntries()):
         muon_tree.GetEntry(entry)
@@ -75,8 +75,8 @@ if options.finmuondataname != None:
         if not pass_json(muon_tree.run,muon_tree.lumi):
             continue
 
-        if muon_tree.metpt < 30:
-            continue
+        #if muon_tree.metpt < 30:
+        #    continue
 
         if muon_tree.muon_4mom.pt() < 40:
             continue
@@ -101,7 +101,7 @@ if options.finmuonmcname != None:
     finmuonmc = TFile(options.finmuonmcname)
     muon_mc_tree=finmuonmc.Get("loose_muons")
 
-    muon_mc_mt_hist=TH1F("muon_mc_mt","muon_mc_mt",100,0,100)
+    muon_mc_mt_hist=TH1F("muon_mc_met","muon_mc_met",100,0,100)
 
     for entry in range(muon_mc_tree.GetEntries()):
         muon_mc_tree.GetEntry(entry)
@@ -112,8 +112,8 @@ if options.finmuonmcname != None:
         if entry % int(options.mod) != 0:
             continue
 
-        if muon_mc_tree.metpt < 30:
-            continue
+        #if muon_mc_tree.metpt < 30:
+        #    continue
 
         if muon_mc_tree.muon_4mom.pt() < 40:
             continue
@@ -131,7 +131,7 @@ if options.finmuonmcname != None:
 
         weight = muon_mc_tree.xsWeight*mu17_lumi
 
-        if muon_mc_tree.lhe_weight_orig < 0:
+        if muon_mc_tree.gen_weight < 0:
             weight = -weight
 
         muon_mc_mt_hist.Fill(muon_mc_tree.metpt,weight)
@@ -144,7 +144,7 @@ if options.finelectrondataname != None:
 
     electron_tree=finelectron.Get("loose_electrons")
 
-    electron_data_mt_hist=TH1F("electron_data_mt","electron_data_mt",100,0,100)
+    electron_data_mt_hist=TH1F("electron_data_met","electron_data_met",100,0,100)
 
     for entry in range(electron_tree.GetEntries()):
         electron_tree.GetEntry(entry)
@@ -158,11 +158,11 @@ if options.finelectrondataname != None:
         if entry % int(options.mod) != 0:
             continue
 
-        if not pass_json(electron_tree.run,electron_tree.lumi):
-            continue
+        #if not pass_json(electron_tree.run,electron_tree.lumi):
+        #    continue
 
-        if electron_tree.metpt < 30:
-            continue
+        #if electron_tree.metpt < 30:
+        #    continue
 
         if electron_tree.electron_4mom.pt() < 40:
             continue
@@ -172,8 +172,8 @@ if options.finelectrondataname != None:
         #if mt > 30:
         #    continue
 
-        #if not (electron_tree.flags & LepTightSelectionV1):
-        #    continue
+        if not (electron_tree.flags & LepTightSelectionV2):
+           continue
 
         if abs(electron_tree.electron_4mom.Eta()) > 2.5:
             continue
@@ -188,7 +188,7 @@ if options.finelectronmcname != None:
     finelectronmc = TFile(options.finelectronmcname)
     electron_mc_tree=finelectronmc.Get("loose_electrons")
 
-    electron_mc_mt_hist=TH1F("electron_mc_mt","electron_mc_mt",100,0,100)
+    electron_mc_mt_hist=TH1F("electron_mc_met","electron_mc_met",100,0,100)
 
     for entry in range(electron_mc_tree.GetEntries()):
         electron_mc_tree.GetEntry(entry)
@@ -199,8 +199,8 @@ if options.finelectronmcname != None:
         if entry % int(options.mod) != 0:
             continue
 
-        if electron_mc_tree.metpt < 30:
-            continue
+        #if electron_mc_tree.metpt < 30:
+        #    continue
 
         if electron_mc_tree.electron_4mom.pt() < 40:
             continue
@@ -210,8 +210,8 @@ if options.finelectronmcname != None:
         #if mt > 30:
         #    continue
 
-        #if not (electron_mc_tree.flags & LepTightSelectionV1):
-        #    continue
+        if not (electron_mc_tree.flags & LepTightSelectionV2):
+            continue
 
         if abs(electron_mc_tree.electron_4mom.Eta()) > 2.5:
             continue
@@ -219,7 +219,7 @@ if options.finelectronmcname != None:
         #weight = electron_mc_tree.xsWeight*ele33_lumi
         weight = electron_mc_tree.xsWeight*ele12_lumi
 
-        if electron_mc_tree.lhe_weight_orig < 0:
+        if electron_mc_tree.gen_weight < 0:
             weight = -weight
 
         electron_mc_mt_hist.Fill(electron_mc_tree.metpt,weight)

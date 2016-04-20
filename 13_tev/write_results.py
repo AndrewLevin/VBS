@@ -87,12 +87,12 @@ def write_reweighted_mode_v1(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,
 
         dcard.write("lumi_13tev lnN")
 
-        dcard.write(" 1.024")
+        dcard.write(" 1.027")
 
         for background in backgrounds:
-            dcard.write(" 1.024")
+            dcard.write(" 1.027")
 
-        dcard.write(" 1.024")
+        dcard.write(" 1.027")
 
         dcard.write('\n')    
 
@@ -128,7 +128,7 @@ def write_reweighted_mode_v1(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,
             dcard.write(" " + str(1+fake["hist_central"].GetBinError(i)/fake["hist_central"].GetBinContent(i)))            
 
             dcard.write('\n')
-        #print >> dcard, "lumi_8tev lnN 1.024 1.024"    
+        #print >> dcard, "lumi_8tev lnN 1.027 1.027"    
 
     outfile=TFile(cfg["outfile"],"recreate")
 
@@ -230,12 +230,12 @@ def write_reweighted_mode_v2(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,
 
         dcard.write("lumi_13tev lnN")
 
-        dcard.write(" 1.024")
+        dcard.write(" 1.027")
 
         for background in backgrounds:
-            dcard.write(" 1.024")
+            dcard.write(" 1.027")
 
-        dcard.write(" 1.024")
+        dcard.write(" 1.027")
 
         dcard.write('\n')    
 
@@ -271,7 +271,7 @@ def write_reweighted_mode_v2(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,
             dcard.write(" " + str(1+fake["hist_central"].GetBinError(i)/fake["hist_central"].GetBinContent(i)))            
 
             dcard.write('\n')
-        #print >> dcard, "lumi_8tev lnN 1.024 1.024"    
+        #print >> dcard, "lumi_8tev lnN 1.027 1.027"    
 
     outfile=TFile(cfg["outfile"],"recreate")
 
@@ -325,10 +325,10 @@ def write_reweighted_mode_v2(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,
     atgcroostats_config.write("NlnN=1\n")
     atgcroostats_config.write("lnN1_name=lumi_13TeV\n")
     atgcroostats_config.write("lnN1_value=")
-    atgcroostats_config.write("1.026,")
+    atgcroostats_config.write("1.027,")
     for i in range(0,len(backgrounds_info)):
-        atgcroostats_config.write("1.026,")
-    atgcroostats_config.write("1.026")            
+        atgcroostats_config.write("1.027,")
+    atgcroostats_config.write("1.027")            
     atgcroostats_config.write("\n")
     atgcroostats_config.write("lnN1_for=channel1_signal,")
     for i in range(0,len(backgrounds_info)):
@@ -608,7 +608,7 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
 
         if cfg["mode"] == "sm_mc_fake" and fake["hist_central"].GetBinContent(i) > 0:        
 
-            dcard.write("stat_fake lnN -")
+            dcard.write("sys_stat_fake lnN -")
 
             for j in range(0,len(backgrounds)):
                 dcard.write(" -")
@@ -648,15 +648,12 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
 
         #print >> dcard, "lumi_8tev lnN 1.024 1.024"    
 
-def write_sm_low_mjj_control_region(cfg,hist,hist_signal,hist_background,backgrounds,backgrounds_info,signal,fake_muons,fake_electrons,fake,data):
+def write_sm_low_mjj_control_region(cfg,hist,hist_background,backgrounds,backgrounds_info,fake_muons,fake_electrons,fake,data):
 
-    hist_signal.SetLineWidth(3)
     hist_background.SetLineWidth(3)
 
-    hist_signal.SetLineColor(kRed)
     hist_background.SetLineColor(kBlue)
 
-    hist_signal.SetMinimum(0)
     hist_background.SetMinimum(0)
     #hist_signal.SetMaximum(14)
     #hist_background.SetMaximum(14)
@@ -673,8 +670,6 @@ def write_sm_low_mjj_control_region(cfg,hist,hist_signal,hist_background,backgro
         hist_stack_background.Add(backgrounds[i]["hist_central"])
         hist_sum_background.Add(backgrounds[i]["hist_central"])
 
-    signal["hist_central"].Clone("wpwpjjewkqcd").Write()
-
     data["hist_central"].Clone("data").Write()
 
     fake["hist_central"].Clone("fake").Write()
@@ -682,106 +677,6 @@ def write_sm_low_mjj_control_region(cfg,hist,hist_signal,hist_background,backgro
     hist_stack_background.Write()
 
     hist_sum_background.Write()
-
-    for i in range(1,signal["hist_central"].GetNbinsX()+1):
-
-        dcard = open(cfg["datacard_base"] + "_bin"+str(i)+".txt",'w')
-
-        print >> dcard, "imax 1 number of channels"
-        print >> dcard, "jmax * number of background"
-        print >> dcard, "kmax * number of nuisance parameters"
-        print >> dcard, "Observation 0"
-        dcard.write("bin")
-        dcard.write(" bin1")
-        
-        for background in backgrounds:
-            dcard.write(" bin1")
-        dcard.write('\n')    
-        
-        dcard.write("process")
-        dcard.write(" WWjj")
-        
-        for background_info in backgrounds_info:
-            dcard.write(" " + background_info[1])
-        dcard.write('\n')    
-        dcard.write("process")
-        dcard.write(" 0")
-        
-        for j in range(1,len(backgrounds)+1):
-            dcard.write(" " + str(j))
-        dcard.write('\n')    
-        dcard.write('rate')
-        dcard.write(' '+str(signal["hist_central"].GetBinContent(i)))
-        for background in backgrounds:
-            dcard.write(" "+ str(background["hist_central"].GetBinContent(i)))
-        dcard.write('\n')    
-
-        
-        #print >> dcard, "process WWjj WWqcd ttbar"
-        #print >> dcard, "process 0 1"
-        bkg_yield=max(hist_sum_background.GetBinContent(i),0.001)
-        #print >> dcard, "rate "+str(signal["hist_central"].GetBinContent(i))+" "+str(bkg_yield)
-
-        dcard.write("lumi_13tev lnN")
-
-        dcard.write(" 1.024")
-
-        for background in backgrounds:
-            dcard.write(" 1.024")
-
-        dcard.write('\n')    
-
-        if signal["hist_central"].GetBinContent(i) > 0:
-            dcard.write("mcstat_gm lnN "+str(1+signal["hist_central"].GetBinError(i)/signal["hist_central"].GetBinContent(i)))
-            for j in range(0,len(backgrounds)):
-                dcard.write(" -")
-            dcard.write("\n")    
-            
-        
-        for j in range(0,len(backgrounds)):
-            if backgrounds[j]["hist_central"].GetBinContent(i) > 0:
-                dcard.write("mcstat_"+backgrounds_info[j][1]+" lnN -")
-                for k in range(0,len(backgrounds)):
-                    if j != k:
-                        dcard.write(" -")
-                    else:    
-                        dcard.write(" " + str(1+backgrounds[j]["hist_central"].GetBinError(i)/backgrounds[j]["hist_central"].GetBinContent(i)))
-                dcard.write('\n')        
-
-
-        at_least_one_syscalc=False        
-        for j in range(0,len(backgrounds)):
-            if backgrounds[j]["hist_central"].GetBinContent(i) > 0 and backgrounds_info[j][2] == "syscalc":
-                at_least_one_syscalc=True
-
-
-        if at_least_one_syscalc:
-            dcard.write("pdf lnN")
-
-            dcard.write(" -")
-            
-            for j in range(0,len(backgrounds)):
-                if backgrounds[j]["hist_central"].GetBinContent(i) > 0 and backgrounds_info[j][2] == "syscalc":
-                    dcard.write(" "+str(backgrounds[j]["hist_pdf_up"].GetBinContent(i)/backgrounds[j]["hist_central"].GetBinContent(i)))
-                else:
-                    dcard.write(" -")
-
-            dcard.write('\n')        
-
-            dcard.write("qcd_scale lnN")
-
-            dcard.write(" -")
-
-            for j in range(0,len(backgrounds)):
-                if backgrounds[j]["hist_central"].GetBinContent(i) > 0 and backgrounds_info[j][2] == "syscalc":
-                    dcard.write(" "+str(backgrounds[j]["hist_qcd_down"].GetBinContent(i)/backgrounds[j]["hist_central"].GetBinContent(i)) +"/"+str(backgrounds[j]["hist_qcd_up"].GetBinContent(i)/backgrounds[j]["hist_central"].GetBinContent(i)))
-                else:
-                    dcard.write(" -")
-
-            dcard.write('\n')        
-
-
-        #print >> dcard, "lumi_8tev lnN 1.024 1.024"    
 
 def write_fr_closure_test(cfg,ttbar,ttbar_qcd_fr):
 

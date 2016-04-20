@@ -1,14 +1,18 @@
 mode=sm_mc_fake
 
+fr_fname=/home/anlevin/VBS/fake_leptons/frs_v201.root
+
+which_selection=full
+
 #background_file=/data/blue/anlevin/ntuples/wpwpjj_qcd_v101.root,wpwpjjqcd,none
-background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wzjj_highmll_v1.root,wzjj,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wzjj_highmll_v3.root,wzjj,none
 #background_file=/data/blue/anlevin/ntuples/wjwj-dps_v101.root,wjwjdps,none
 #background_file=/data/blue/anlevin/ntuples/zjets_v201_skim.root,zjets,none
-background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wgjj_v1.root,wgjets,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wgjj_v4.root,wgjets,none
 
-signal_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_ewk_qcd_v1.root
+signal_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_ewk_qcd_v2.root
 
-data_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/run2015_v1_skim.root
+data_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/run2015_v2_ss.root
 
 lumi=2.215
 

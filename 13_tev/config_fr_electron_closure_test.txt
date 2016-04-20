@@ -1,8 +1,10 @@
 mode=fr_closure_test
 
+which_selection=relaxed_btagged
+
 ttbar_fname=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/ttbar_v2_ss.root
 
-fr_fname=/home/anlevin/VBS/fake_leptons/frs_electron_mc_v1.root
+fr_fname=/home/anlevin/VBS/fake_leptons/frs_electron_mc_v20.root
 
 lumi=2.215
 
