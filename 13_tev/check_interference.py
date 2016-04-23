@@ -9,9 +9,9 @@ gStyle.SetFillStyle(0)
 gStyle.SetLegendBorderSize(0); 
 gROOT.ForceStyle()
 
-inputfilename_ewk="histogram_ewk.root"
-inputfilename_qcd="histogram_qcd.root"
-inputfilename_ewk_qcd="histogram_ewk_qcd.root"
+inputfilename_ewk="histogram_wz_ewk.root"
+inputfilename_qcd="histogram_wz_qcd.root"
+inputfilename_ewk_qcd="histogram_wz_ewk_qcd.root"
 histname_ewk="wpwpjjewkqcd"
 histname_qcd="wpwpjjewkqcd"
 histname_ewk_plus_qcd="wpwpjjewkqcd"
@@ -115,19 +115,19 @@ gPad.SaveAs("/afs/cern.ch/user/a/anlevin/www/tmp/ewk_qcd_ewkqcd.png");
 
 leg3=TLegend(.10,.65,.90,.90)
 
-hist_ewk_plus_qcd_clone = hist_ewk_plus_qcd.Clone()
+hist_combined_clone = hist_combined.Clone()
 
-hist_combined.Scale(-1)
+hist_ewk_plus_qcd.Scale(-1)
 
-hist_ewk_plus_qcd.Add(hist_combined)
+hist_combined.Add(hist_ewk_plus_qcd)
 
-hist_ewk_plus_qcd.Divide(hist_ewk_plus_qcd_clone)
+hist_combined.Divide(hist_combined_clone)
 
-hist_ewk_plus_qcd.SetMaximum(0)
+#hist_combined.SetMaximum(0)
 
-leg3.AddEntry(hist_ewk_plus_qcd,"(|EWK|^2 + |QCD|^2 - |EWK+QCD|^2)/(EWK|^2 + |QCD|^2)","l")
+leg3.AddEntry(hist_combined,"(|EWK|^2 + |QCD|^2 - |EWK+QCD|^2)/(EWK|^2 + |QCD|^2)","l")
 
-hist_ewk_plus_qcd.Draw()
+hist_combined.Draw()
 
 leg3.Draw()
 
