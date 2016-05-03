@@ -472,11 +472,14 @@ def write_gm():
                 else:
                     dcard.write(" -")
 
+            #for the fake background
+            dcard.write(" -")
+
             dcard.write('\n')        
 
         #print >> dcard, "lumi_8tev lnN 1.024 1.024"    
 
-def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,backgrounds_info,signal,fake_muons,fake_electrons,fake):
+def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,backgrounds_info,signal,signal_info,fake_muons,fake_electrons,fake):
     hist_signal.SetLineWidth(3)
     hist_background.SetLineWidth(3)
 
@@ -550,7 +553,7 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
             dcard.write(" " + str(j))
             
         if cfg["mode"] == "sm_mc_fake":
-            dcard.write(" " + str(len(backgrounds)))
+            dcard.write(" " + str(len(backgrounds)+1))
             
         dcard.write('\n')    
         dcard.write('rate')
@@ -613,18 +616,27 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
             for j in range(0,len(backgrounds)):
                 dcard.write(" -")
 
-            dcard.write(" " + str(1+fake["hist_central"].GetBinError(i)/fake["hist_central"].GetBinContent(i)))    
+            dcard.write(" " + str(1+fake["hist_central"].GetBinError(i)/fake["hist_central"].GetBinContent(i)))
+
+            dcard.write('\n')
 
         at_least_one_syscalc=False        
         for j in range(0,len(backgrounds)):
             if backgrounds[j]["hist_central"].GetBinContent(i) > 0 and backgrounds_info[j][2] == "syscalc":
                 at_least_one_syscalc=True
 
+        if signal_info[2] == "syscalc":
+            at_least_one_syscalc = True
+
 
         if at_least_one_syscalc:
             dcard.write("pdf lnN")
 
-            dcard.write(" -")
+
+            if signal_info[2] == "syscalc":
+                dcard.write(" "+str(signal["hist_pdf_up"].GetBinContent(i)/signal["hist_central"].GetBinContent(i)))
+            else:
+                dcard.write(" -")
             
             for j in range(0,len(backgrounds)):
                 if backgrounds[j]["hist_central"].GetBinContent(i) > 0 and backgrounds_info[j][2] == "syscalc":
@@ -632,17 +644,26 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
                 else:
                     dcard.write(" -")
 
+            #for the fake background
+            dcard.write(" -")
+
             dcard.write('\n')        
 
             dcard.write("qcd_scale lnN")
 
-            dcard.write(" -")
+            if signal_info[2] == "syscalc":
+                dcard.write(" "+str(signal["hist_qcd_down"].GetBinContent(i)/signal["hist_central"].GetBinContent(i)) +"/"+str(signal["hist_qcd_up"].GetBinContent(i)/signal["hist_central"].GetBinContent(i)))
+            else:
+                dcard.write(" -")
 
             for j in range(0,len(backgrounds)):
                 if backgrounds[j]["hist_central"].GetBinContent(i) > 0 and backgrounds_info[j][2] == "syscalc":
                     dcard.write(" "+str(backgrounds[j]["hist_qcd_down"].GetBinContent(i)/backgrounds[j]["hist_central"].GetBinContent(i)) +"/"+str(backgrounds[j]["hist_qcd_up"].GetBinContent(i)/backgrounds[j]["hist_central"].GetBinContent(i)))
                 else:
                     dcard.write(" -")
+                    
+            #for the fake background
+            dcard.write(" -")
 
             dcard.write('\n')        
 

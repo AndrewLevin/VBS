@@ -120,11 +120,24 @@ f_pu_weights = TFile("/afs/cern.ch/work/a/anlevin/VBS/13_tev/pileup_weights.root
 
 pu_weight_hist = f_pu_weights.Get("pileup_weights")
 
-def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False):
+def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False):
     print "t.GetEntries() = " + str(t.GetEntries())
 
     return_hist = hist.Clone()
-    
+
+    if syscalc:
+
+        return_hist_central = hist.Clone()
+        return_hist_pdf_up = hist.Clone()
+        return_hist_qcd_down = hist.Clone()
+        return_hist_qcd_up = hist.Clone()
+        
+        histos = []
+
+        for i in range(0,100):
+            new_hist = hist.Clone()
+            histos.append(new_hist)
+
     for entry in range(t.GetEntries()):
         t.GetEntry(entry)
 
@@ -204,7 +217,53 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False):
             else:
                 return_hist.Fill(var,w)
 
-    return {"hist_central" : return_hist }
+        if syscalc:
+
+            for i in range(0,100):
+                if var > histos[i].GetBinLowEdge(histos[i].GetNbinsX()):
+                    histos[i].Fill(histos[i].GetBinCenter(histos[i].GetNbinsX()),w*t.pdf_weights[i]/t.qcd_pdf_weight_orig)
+                else:    
+                    histos[i].Fill(var,w*t.pdf_weights[i]/t.qcd_pdf_weight_orig)
+
+            if var > return_hist_qcd_up.GetBinLowEdge(return_hist_qcd_up.GetNbinsX()):
+                return_hist_qcd_up.Fill(return_hist_qcd_up.GetBinCenter(return_hist_qcd_up.GetNbinsX()),w*t.qcd_weight_mur2muf2/t.qcd_pdf_weight_orig)
+            else:
+                return_hist_qcd_up.Fill(var,w*t.qcd_weight_mur2muf2/t.qcd_pdf_weight_orig)
+
+            if var > return_hist_qcd_down.GetBinLowEdge(return_hist_qcd_down.GetNbinsX()):
+                return_hist_qcd_down.Fill(return_hist_qcd_down.GetBinCenter(return_hist_qcd_down.GetNbinsX()),w*t.qcd_weight_mur0p5muf0p5/t.qcd_pdf_weight_orig)
+            else:
+                return_hist_qcd_down.Fill(var,w*t.qcd_weight_mur0p5muf0p5/t.qcd_pdf_weight_orig)
+    
+
+    if syscalc:
+        for i in range(1,hist.GetNbinsX()+1):
+            yields = []
+        
+            for j in range(0,100):            
+                yields.append(histos[j].GetBinContent(i))
+
+            mean = 0.0    
+
+            for j in range(0,len(yields)):
+                mean = mean + yields[j]
+
+            mean = mean/len(yields)
+
+            stdev = 0.0
+
+            for j in range(0,len(yields)):
+                stdev = stdev+(yields[j] - mean)*(yields[j] - mean)
+
+            stdev = sqrt(stdev/(len(yields) -1))
+
+            return_hist_pdf_up.SetBinContent(i,return_hist_central.GetBinContent(i)+stdev)
+
+
+    if syscalc:
+        return {"hist_central" : return_hist , "hist_pdf_up" : return_hist_pdf_up  , "hist_qcd_up" : return_hist_qcd_up, "hist_qcd_down" : return_hist_qcd_down }
+    else:
+        return {"hist_central" : return_hist }
 
 def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=False):
 
@@ -413,94 +472,6 @@ def fillHistogramsWithReweight(cfg,t,histos,mgreweight_weight_index):
                 histos[i].Fill(histos[i].GetBinCenter(histos[i].GetNbinsX()),w*t.mgreweight_weights[mgreweight_weight_index[i]]/t.lhe_weight_orig)
             else:    
                 histos[i].Fill(var,w*t.mgreweight_weights[mgreweight_weight_index[i]]/t.lhe_weight_orig)
-
-def fillHistogramsSyscalc(cfg,t,hist):
-    print "t.GetEntries() = " + str(t.GetEntries())
-
-    return_hist_central = hist.Clone()
-    return_hist_pdf_up = hist.Clone()
-    return_hist_qcd_down = hist.Clone()
-    return_hist_qcd_up = hist.Clone()
-
-    histos = []
-
-    for i in range(0,100):
-        new_hist = hist.Clone()
-        histos.append(new_hist)
-
-    for entry in range(t.GetEntries()):
-        t.GetEntry(entry)
-
-        if entry % 100000 == 0:
-            print "entry = " + str(entry)
-
-        if (abs(t.lep1id) == 13 and abs(t.lep2id) == 11) or (abs(t.lep1id) == 11 and abs(t.lep1id) == 13) :
-            channel="em"
-        elif abs(t.lep1id) == 13 and abs(t.lep2id) == 13:
-            channel = "mm"
-        elif abs(t.lep1id) == 11 and abs(t.lep2id) == 11:
-            channel = "ee"
-        else:
-            assert(0)
-            
-        if cfg["channel"] != channel and cfg["channel"] !="all":
-            continue
-
-        if not selection.passSelection(t,cfg):
-            continue
-
-        w=t.xsWeight*float(cfg["lumi"])
-
-        var=getVariable(cfg,t)
-
-        if var > return_hist_central.GetBinLowEdge(return_hist_central.GetNbinsX()):
-            return_hist_central.Fill(return_hist_central.GetBinCenter(return_hist_central.GetNbinsX()),w)
-        else:
-            return_hist_central.Fill(var,w)
-
-        for i in range(0,100):
-            if var > histos[i].GetBinLowEdge(histos[i].GetNbinsX()):
-                histos[i].Fill(histos[i].GetBinCenter(histos[i].GetNbinsX()),w*t.pdf_weights[i]/t.qcd_pdf_weight_orig)
-            else:    
-                histos[i].Fill(var,w*t.pdf_weights[i]/t.qcd_pdf_weight_orig)
-
-        if var > return_hist_qcd_up.GetBinLowEdge(return_hist_qcd_up.GetNbinsX()):
-            return_hist_qcd_up.Fill(return_hist_qcd_up.GetBinCenter(return_hist_qcd_up.GetNbinsX()),w*t.qcd_weight_up/t.qcd_pdf_weight_orig)
-        else:
-            return_hist_qcd_up.Fill(var,w*t.qcd_weight_up/t.qcd_pdf_weight_orig)
-
-        if var > return_hist_qcd_down.GetBinLowEdge(return_hist_qcd_down.GetNbinsX()):
-            return_hist_qcd_down.Fill(return_hist_qcd_down.GetBinCenter(return_hist_qcd_down.GetNbinsX()),w*t.qcd_weight_down/t.qcd_pdf_weight_orig)
-        else:
-            return_hist_qcd_down.Fill(var,w*t.qcd_weight_down/t.qcd_pdf_weight_orig)
-
-    #stdevs = []
-
-    for i in range(1,hist.GetNbinsX()+1):
-        yields = []
-        
-        for j in range(0,100):            
-            yields.append(histos[j].GetBinContent(i))
-
-        mean = 0.0    
-
-        for j in range(0,len(yields)):
-            mean = mean + yields[j]
-
-        mean = mean/len(yields)
-
-        stdev = 0.0
-
-        for j in range(0,len(yields)):
-            stdev = stdev+(yields[j] - mean)*(yields[j] - mean)
-
-        stdev = sqrt(stdev/(len(yields) -1))
-
-        return_hist_pdf_up.SetBinContent(i,return_hist_central.GetBinContent(i)+stdev)
-
-        #stdevs.append(stdev)
-
-    return {"hist_central" : return_hist_central , "hist_pdf_up" : return_hist_pdf_up  , "hist_qcd_up" : return_hist_qcd_up, "hist_qcd_down" : return_hist_qcd_down }
 
 def fillHistogramWithQCDWeights(cfg,t,histo,qcd_up_histo,qcd_down_histo):
     print "t.GetEntries() = " + str(t.GetEntries())

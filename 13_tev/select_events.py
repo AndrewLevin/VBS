@@ -214,7 +214,7 @@ if cfg["mode"] == "reweighted_v1" or cfg["mode"] == "reweighted_v2":
         hist_background=hist.Clone()
 
         if background_info[2] == "syscalc":
-            return_hists = histogram_fillers.fillHistogramsSyscalc(cfg,tree_background,hist_background)
+            return_hists = histogram_fillers.fillHistogram(cfg,tree_background,hist_background,syscalc=True)
             backgrounds.append(return_hists)
         else:
             assert(background_info[2] == "none")
@@ -242,7 +242,7 @@ if cfg["mode"] == "sm_mc_fake":
 
     assert(cfg["channel"] == "all" or cfg["channel"] == "ee" or cfg["channel"] == "em" or cfg["channel"] == "mm")
 
-    signal_fname=cfg["signal_file"]
+    signal_info=cfg["signal_file"]
     backgrounds_info=cfg["background_file"]
 
     hist_fake=hist.Clone()
@@ -252,11 +252,16 @@ if cfg["mode"] == "sm_mc_fake":
     c=TCanvas("c", "c",0,0,600,500)
     c.Range(0,0,1,1)
 
-    f_signal=TFile(signal_fname)
+    f_signal=TFile(signal_info[0])
 
     tree_signal=f_signal.Get("events")
 
-    signal=histogram_fillers.fillHistogram(cfg,tree_signal,hist_signal)
+    if signal_info[2] == "syscalc":
+        signal=histogram_fillers.fillHistogram(cfg,tree_signal,hist_signal,syscalc=True)
+    else:
+        assert(signal_info[2] == "none")
+        signal=histogram_fillers.fillHistogram(cfg,tree_signal,hist_signal,syscalc=True)
+
     for background_info in backgrounds_info:
         f_background=TFile(background_info[0])
         gROOT.cd() #without this, hist_background gets written into a file that goes out of scope
@@ -264,7 +269,7 @@ if cfg["mode"] == "sm_mc_fake":
         hist_background=hist.Clone()
 
         if background_info[2] == "syscalc":
-            return_hists = fillHistogramsSyscalc(tree_background,hist_background)
+            return_hists = histogram_fillers.fillHistogram(cfg,tree_background,hist_background,syscalc=True)
             backgrounds.append(return_hists)
         else:
             assert(background_info[2] == "none")
@@ -285,7 +290,7 @@ if cfg["mode"] == "sm_mc_fake":
     for b in range(1,fake["hist_central"].GetNbinsX()+1):
         fake["hist_central"].SetBinError(b,sqrt(fake_sys*fake["hist_central"].GetBinContent(b)*fake_sys*fake["hist_central"].GetBinContent(b)+fake["hist_central"].GetBinError(b)*fake["hist_central"].GetBinError(b)))
 
-    write_results.write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,backgrounds_info,signal,fake_muons,fake_electrons,fake)
+    write_results.write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,backgrounds_info,signal,signal_info,fake_muons,fake_electrons,fake)
 
 if cfg["mode"] == "sm_low_mjj_control_region":
 
@@ -315,7 +320,7 @@ if cfg["mode"] == "sm_low_mjj_control_region":
         hist_background=hist.Clone()
 
         if background_info[2] == "syscalc":
-            return_hists = histogram_fillers.fillHistogramsSyscalc(cfg,tree_background,hist_background)
+            return_hists = histogram_fillers.fillHistogram(cfg,tree_background,hist_background,syscalc=True)
             backgrounds.append(return_hists)
         else:
             assert(background_info[2] == "none")
