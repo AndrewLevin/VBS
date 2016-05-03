@@ -44,7 +44,7 @@ def ConfigurationParser(input_filename):
             cfg[key].append(value.split(','))
 
         if key == "signal_file":
-            cfg[key] = value
+            cfg[key] = value.split(',')
 
         if key == "outfile":
             cfg[key] = value
