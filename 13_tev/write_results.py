@@ -519,8 +519,6 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
         hist_stack_background.Add(backgrounds[i]["hist_central"])
         hist_sum_background.Add(backgrounds[i]["hist_central"])
 
-    print "andrew debug 1"
-
     signal["hist_central"].Clone("wpwpjjewkqcd").Write()
 
     if cfg["mode"] == "sm_mc_fake":
