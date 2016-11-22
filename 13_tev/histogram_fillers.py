@@ -11,6 +11,11 @@ gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_7_4_15/src/
 
 #fr_file=TFile("/home/anlevin/VBS/fake_leptons/frs_v12.root")
 
+#which cuts must be passed for the event to pass the selection
+
+pass_mask =  (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7) | (1 << 8) | (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13) | (1 << 14)
+
+pass_mask_w_o_lepton_ids =   (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7) | (1 << 8) | (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13) | (1 << 14)
 
 lep2_tight_electron_mask = Lep2TightSelectionV2
 lep1_tight_electron_mask = Lep1TightSelectionV2
@@ -34,7 +39,7 @@ lep2_loose_electron_mask = Lep2LooseSelectionV5
 def muonfakerate(eta,pt,syst):
 
     myeta  = min(abs(eta),2.4999)
-    mypt   = min(pt,34.999)
+    mypt   = min(pt,69.999)
 
     etabin = muon_fr_hist.GetXaxis().FindFixBin(myeta)
     ptbin = muon_fr_hist.GetYaxis().FindFixBin(mypt)
@@ -52,6 +57,7 @@ def muonfakerate(eta,pt,syst):
     return prob/(1-prob)
 
 def electronfakerate(eta,pt,syst):
+
     myeta  = min(abs(eta),2.4999)
     mypt   = min(pt,34.999)
 
@@ -120,14 +126,31 @@ f_pu_weights = TFile("/afs/cern.ch/work/a/anlevin/VBS/13_tev/pileup_weights.root
 
 pu_weight_hist = f_pu_weights.Get("pileup_weights")
 
-def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False):
+def fill_histograms_cut_mask(histograms,var, weight, mask):
+
+    for i in range(0,len(histograms)):
+        partial_pass_mask = 1
+        for j in range(1,i+1):
+            partial_pass_mask = partial_pass_mask | 1 << j
+
+        if partial_pass_mask & mask == partial_pass_mask:
+            histograms[i].Fill(var, weight)
+
+
+def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False, fill_cutflow_histograms = False):
+
     print "t.GetEntries() = " + str(t.GetEntries())
 
     return_hist = hist.Clone()
 
+    ncuts = 15
+    cutflow_histograms = []
+    for i in range(0,15):
+        cutflow_histograms.append(hist.Clone())
+
     if syscalc:
 
-        return_hist_central = hist.Clone()
+        #return_hist_central = hist.Clone()
         return_hist_pdf_up = hist.Clone()
         return_hist_qcd_down = hist.Clone()
         return_hist_qcd_up = hist.Clone()
@@ -144,9 +167,13 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
         if entry % 100000 == 0:
             print "entry = " + str(entry)
 
-        if is_data:
-            if not pass_json(t.run,t.lumi):
-                continue
+        #if t.lumi != 7001 or t.event != 100:
+        #    continue
+
+
+        #if is_data:
+        #    if not pass_json(t.run,t.lumi):
+        #        continue
 
         if cfg["charge"] == "+":
             if t.lep1id > 0:
@@ -169,34 +196,46 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
         if cfg["channel"] != channel and cfg["channel"] !="all":
             continue
 
+        [p,mask] = selection.passSelectionExceptLeptonIDs(t,cfg)
+
         if cfg["which_selection"] == "relaxed" or cfg["which_selection"] == "relaxed_btagged":
+            #in this case the mask has useless information
+            p = True
             if not selection.passRelaxedSelectionExceptLeptonIDs(t,cfg):
+                p = False
                 continue
-        else:
-            if not selection.passSelectionExceptLeptonIDs(t,cfg):
-                continue
+
+        pass_lepton_ids = True
 
         if abs(t.lep1id) == 13:
             if not bool(t.flags & lep1_tight_muon_mask):
-                continue
+                pass_lepton_ids = False
         else:
             if not bool(t.flags & lep1_tight_electron_mask):
-                continue
+                pass_lepton_ids = False
         if abs(t.lep2id) == 13:
             if not bool(t.flags & lep2_tight_muon_mask):
-                continue
+                pass_lepton_ids = False
         else:
             if not bool(t.flags & lep2_tight_electron_mask):
-                continue
+                pass_lepton_ids = False
 
-        #print str(t.run)+" "+str(t.lumi)+" "+str(t.event)
+        if pass_lepton_ids:
+            mask = mask | (1 << 0)
+        else:
+            p = False
+
+        #mask = mask | (1 << 0)
+
+        #if p:
+        #    print "event passed: " +str(t.lumi)+" "+str(t.event)
 
         if is_data:
             w = 1
         else:
             w=t.xsWeight*float(cfg["lumi"])
 
-            if t.lhe_weight_orig < 0:
+            if t.gen_weight < 0:
                 w = -w
             #w = w*pu_weight_hist.GetBinContent(pu_weight_hist.FindFixBin(t.n_pu_interactions))
 
@@ -205,6 +244,8 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
         #if var > 500:
         #    print "["+str(t.event)+","+str(t.lumi)+","+str(t.run)+"],"
 
+        if var > 500 and cfg["variable"] == "mjj" and cfg["blind_high_mjj"] == True:
+            continue
 
         if cfg["mode"] == "non-sm" and use_lhe_weight == True:
             if var > return_hist.GetBinLowEdge(return_hist.GetNbinsX()):
@@ -212,28 +253,39 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
             else:
                 return_hist.Fill(var,w*t.lhe_weights[int(options.which_lhe_weight)]/t.lhe_weight_orig)
         else:
+
             if var > return_hist.GetBinLowEdge(return_hist.GetNbinsX()):
-                return_hist.Fill(return_hist.GetBinCenter(return_hist.GetNbinsX()),w)
+                fill_histograms_cut_mask(cutflow_histograms,return_hist.GetBinCenter(return_hist.GetNbinsX()),w,mask)                                
+                if p:
+                    return_hist.Fill(return_hist.GetBinCenter(return_hist.GetNbinsX()),w)
             else:
-                return_hist.Fill(var,w)
+                fill_histograms_cut_mask(cutflow_histograms,var,w,mask)                                
+                if p:
+                    return_hist.Fill(var,w)
 
         if syscalc:
 
             for i in range(0,100):
                 if var > histos[i].GetBinLowEdge(histos[i].GetNbinsX()):
-                    histos[i].Fill(histos[i].GetBinCenter(histos[i].GetNbinsX()),w*t.pdf_weights[i]/t.qcd_pdf_weight_orig)
-                else:    
-                    histos[i].Fill(var,w*t.pdf_weights[i]/t.qcd_pdf_weight_orig)
+                    if p:
+                        histos[i].Fill(histos[i].GetBinCenter(histos[i].GetNbinsX()),w*t.pdf_weights[i]/t.qcd_pdf_weight_orig)
+                else:
+                    if p:
+                        histos[i].Fill(var,w*t.pdf_weights[i]/t.qcd_pdf_weight_orig)
 
             if var > return_hist_qcd_up.GetBinLowEdge(return_hist_qcd_up.GetNbinsX()):
-                return_hist_qcd_up.Fill(return_hist_qcd_up.GetBinCenter(return_hist_qcd_up.GetNbinsX()),w*t.qcd_weight_mur2muf2/t.qcd_pdf_weight_orig)
+                if p:
+                    return_hist_qcd_up.Fill(return_hist_qcd_up.GetBinCenter(return_hist_qcd_up.GetNbinsX()),w*t.qcd_weight_mur2muf2/t.qcd_pdf_weight_orig)
             else:
-                return_hist_qcd_up.Fill(var,w*t.qcd_weight_mur2muf2/t.qcd_pdf_weight_orig)
+                if p:
+                    return_hist_qcd_up.Fill(var,w*t.qcd_weight_mur2muf2/t.qcd_pdf_weight_orig)
 
             if var > return_hist_qcd_down.GetBinLowEdge(return_hist_qcd_down.GetNbinsX()):
-                return_hist_qcd_down.Fill(return_hist_qcd_down.GetBinCenter(return_hist_qcd_down.GetNbinsX()),w*t.qcd_weight_mur0p5muf0p5/t.qcd_pdf_weight_orig)
+                if p:
+                    return_hist_qcd_down.Fill(return_hist_qcd_down.GetBinCenter(return_hist_qcd_down.GetNbinsX()),w*t.qcd_weight_mur0p5muf0p5/t.qcd_pdf_weight_orig)
             else:
-                return_hist_qcd_down.Fill(var,w*t.qcd_weight_mur0p5muf0p5/t.qcd_pdf_weight_orig)
+                if p:
+                    return_hist_qcd_down.Fill(var,w*t.qcd_weight_mur0p5muf0p5/t.qcd_pdf_weight_orig)
     
 
     if syscalc:
@@ -257,19 +309,25 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
 
             stdev = sqrt(stdev/(len(yields) -1))
 
-            return_hist_pdf_up.SetBinContent(i,return_hist_central.GetBinContent(i)+stdev)
-
+            return_hist_pdf_up.SetBinContent(i,return_hist.GetBinContent(i)+stdev)
 
     if syscalc:
-        return {"hist_central" : return_hist , "hist_pdf_up" : return_hist_pdf_up  , "hist_qcd_up" : return_hist_qcd_up, "hist_qcd_down" : return_hist_qcd_down }
+        return {"hist_central" : return_hist , "hist_pdf_up" : return_hist_pdf_up  , "hist_qcd_up" : return_hist_qcd_up, "hist_qcd_down" : return_hist_qcd_down, "cutflow_histograms" : cutflow_histograms }
     else:
-        return {"hist_central" : return_hist }
+        return {"hist_central" : return_hist , "cutflow_histograms" : cutflow_histograms}
 
 def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=False):
 
     fr_file=TFile(cfg["fr_fname"])
 
     gROOT.cd()
+
+    ncuts = 15
+    cutflow_histograms = []
+    for i in range(0,15):
+        cutflow_histograms.append(hist.Clone())
+
+
 
     #these need to be accessed in the muonfakerate and electronfakerate functions
     global muon_fr_hist
@@ -330,12 +388,13 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
         if cfg["channel"] != channel and cfg["channel"] !="all":
             continue
 
+        [p,mask] = selection.passSelectionExceptLeptonIDs(t,cfg)
+
         if cfg["which_selection"] == "relaxed" or cfg["which_selection"] == "relaxed_btagged":
+            #in this case the mask has useless information
+            p = True
             if not selection.passRelaxedSelectionExceptLeptonIDs(t,cfg):
-                continue
-        else:
-            if not selection.passSelectionExceptLeptonIDs(t,cfg):
-                continue
+                p = False
 
         if abs(t.lep1id) == 13:
             lep1passlooseid = bool(t.flags & lep1_loose_muon_mask)
@@ -355,12 +414,17 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
         else:
             w= 1
 
+
         var=getVariable(cfg,t)
+
+        if var > 500 and cfg["variable"] == "mjj" and cfg["blind_high_mjj"] == True:
+            continue
 
         if var > return_hist.GetBinLowEdge(return_hist.GetNbinsX()):
             var = return_hist.GetBinCenter(return_hist.GetNbinsX())
         
-
+        loose_but_not_tight=True
+        
         if (not lep1passtightid) and lep1passlooseid and lep2passtightid:
 
             if applying_to_ttbar_mc:
@@ -368,13 +432,13 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
                     continue
             
             if abs(t.lep1id) == 13:
+                fake_lepton_abs_pdg_id = 13
                 muon_corrected_pt = t.lep1.Pt() * (1 + max(0,t.lep1iso - 0.15))
                 #muon_corrected_pt = t.lep1.Pt() 
-                fake_muons.Fill(var)
                 #print "fake muon event "+str((t.jet1 + t.jet2).mass())+ " "+ str(muon_corrected_pt)+" "+str(t.lep1.Eta())
                 w = w * muonfakerate(t.lep1.Eta(), muon_corrected_pt,fake_rate_syst)
             elif abs(t.lep1id) == 11:
-                fake_electrons.Fill(var)
+                fake_lepton_abs_pdg_id = 11
                 #print "fake electron event "+str((t.jet1 + t.jet2).mass())+ " "+ str(t.lep1.Pt())+" "+str(t.lep1.Eta())
                 w = w * electronfakerate(t.lep1.Eta(), t.lep1.Pt(),fake_rate_syst)
             else:
@@ -387,20 +451,26 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
                     continue
 
             if abs(t.lep2id) == 13:
+                fake_lepton_abs_pdg_id = 13
                 muon_corrected_pt = t.lep2.Pt() * (1 + max(0,t.lep2iso - 0.15))
                 #muon_corrected_pt = t.lep2.Pt() 
-                fake_muons.Fill(var)
                 #print "fake muon event "+str((t.jet1 + t.jet2).mass())+ " "+ str(muon_corrected_pt)+" "+str(t.lep2.Eta())
                 w = w * muonfakerate(t.lep2.Eta(), muon_corrected_pt,fake_rate_syst)
             elif abs(t.lep2id) == 11:
-                fake_electrons.Fill(var)
+                fake_lepton_abs_pdg_id = 11
+
                 #print "fake electron event " +str((t.jet1 + t.jet2).mass())+ " "+ str(t.lep2.Pt())+" "+str(t.lep2.Eta())
                 w = w * electronfakerate(t.lep2.Eta(), t.lep2.Pt(),fake_rate_syst)
             else:
                 print "unknown lepton flavor"
                 sys.exit(0)
         else:
-            continue
+            loose_but_not_tight=False
+
+        if loose_but_not_tight:
+            mask = mask | (1 << 0)
+        else:
+            p=False
 
         assert(w > 0)
 
@@ -414,12 +484,33 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
             else:
                 return_hist.Fill(var,w*t.lhe_weights[int(options.which_lhe_weight)]/t.lhe_weight_orig)
         else:
-            if var > return_hist.GetBinLowEdge(return_hist.GetNbinsX()):
-                return_hist.Fill(return_hist.GetBinCenter(return_hist.GetNbinsX()),w)
-            else:
-                return_hist.Fill(var,w)
 
-    return {"hist_central" : return_hist }
+            if var > return_hist.GetBinLowEdge(return_hist.GetNbinsX()):
+                fill_histograms_cut_mask(cutflow_histograms,return_hist.GetBinCenter(return_hist.GetNbinsX()),w,mask)
+                if p:
+
+                    assert("fake_lepton_abs_pdg_id" in vars() and fake_lepton_abs_pdg_id != -1)
+
+                    if fake_lepton_abs_pdg_id == 11:
+                        fake_electrons.Fill(var)
+                    else:
+                        fake_muons.Fill(var)                        
+
+                    return_hist.Fill(return_hist.GetBinCenter(return_hist.GetNbinsX()),w)
+            else:
+                fill_histograms_cut_mask(cutflow_histograms,var,w,mask)
+                if p:
+
+                    assert("fake_lepton_abs_pdg_id" in vars() and fake_lepton_abs_pdg_id != -1)
+                    
+                    if fake_lepton_abs_pdg_id == 11:
+                        fake_electrons.Fill(var)
+                    else:
+                        fake_muons.Fill(var)                        
+                
+                    return_hist.Fill(var,w)
+
+    return {"hist_central" : return_hist , "cutflow_histograms" : cutflow_histograms}
 
 def fillHistogramsWithReweight(cfg,t,histos,mgreweight_weight_index):
     print "t.GetEntries() = " + str(t.GetEntries())
@@ -441,37 +532,40 @@ def fillHistogramsWithReweight(cfg,t,histos,mgreweight_weight_index):
         if cfg["channel"] != channel and cfg["channel"] !="all":
             continue
 
-        if not selection.passSelection(t,cfg):
-            continue
-
         w=t.xsWeight*float(cfg["lumi"])
 
-        if not selection.passSelectionExceptLeptonIDs(t,cfg):
-            continue
+        [p,mask] = selection.passSelectionExceptLeptonIDs(t,cfg)
+
+        pass_lepton_ids = True
 
         if abs(t.lep1id) == 13:
-            lep1passlooseid = bool(t.flags & lep1_loose_muon_mask)
-            lep1passtightid = bool(t.flags & lep1_tight_muon_mask)
+            if not bool(t.flags & lep1_tight_muon_mask):
+                pass_lepton_ids = False
         else:
-            lep1passlooseid = bool(t.flags & lep1_loose_electron_mask)
-            lep1passtightid = bool(t.flags & lep1_tight_electron_mask)
+            if not bool(t.flags & lep1_tight_electron_mask):
+                pass_lepton_ids = False
         if abs(t.lep2id) == 13:
-            lep2passlooseid = bool(t.flags & lep2_loose_muon_mask)
-            lep2passtightid = bool(t.flags & lep2_tight_muon_mask)
+            if not bool(t.flags & lep2_tight_muon_mask):
+                pass_lepton_ids = False
         else:
-            lep2passlooseid = bool(t.flags & lep2_loose_electron_mask)
-            lep2passtightid = bool(t.flags & lep2_tight_electron_mask)
+            if not bool(t.flags & lep2_tight_electron_mask):
+                pass_lepton_ids = False
+
+        if pass_lepton_ids:
+            mask = mask | (1 << 0)
+        else:
+            p = False
 
         var=getVariable(cfg,t)
 
-        if var > histos[0].GetBinLowEdge(histos[0].GetNbinsX()):
-            var = histos[0].GetBinCenter(histos[0].GetNbinsX())
-
         for i in range(0,len(mgreweight_weight_index)):
             if var > histos[i].GetBinLowEdge(histos[i].GetNbinsX()):
-                histos[i].Fill(histos[i].GetBinCenter(histos[i].GetNbinsX()),w*t.mgreweight_weights[mgreweight_weight_index[i]]/t.lhe_weight_orig)
-            else:    
-                histos[i].Fill(var,w*t.mgreweight_weights[mgreweight_weight_index[i]]/t.lhe_weight_orig)
+                if p:
+                    histos[i].Fill(histos[i].GetBinCenter(histos[i].GetNbinsX()),w*t.mgreweight_weights[mgreweight_weight_index[i]]/t.lhe_weight_orig)
+            else:
+                if p:
+                    histos[i].Fill(var,w*t.mgreweight_weights[mgreweight_weight_index[i]]/t.lhe_weight_orig)
+
 
 def fillHistogramWithQCDWeights(cfg,t,histo,qcd_up_histo,qcd_down_histo):
     print "t.GetEntries() = " + str(t.GetEntries())

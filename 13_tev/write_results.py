@@ -495,6 +495,22 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
 
     outfile.cd()
 
+    for i in range(0,len(signal["cutflow_histograms"])):
+        signal["cutflow_histograms"][i].Clone("signal_cut"+str(i)).Write()
+
+        
+    for i in range(0,len(backgrounds)):
+        if "cutflow_histograms" in backgrounds[i]:
+            for j in range(0,len(signal["cutflow_histograms"])):
+                backgrounds[i]["cutflow_histograms"][j].Clone(backgrounds_info[i][1]+"_cut"+str(j)).Write()
+
+    for i in range(0,len(fake["cutflow_histograms"])):
+        fake["cutflow_histograms"][i].Clone("fake_cut"+str(i)).Write()
+
+    #for i in range(0,len(backgrounds[1]["cutflow_histograms"])):
+    #    backgrounds[1]["cutflow_histograms"][i].Clone().Write()
+
+
     hist_stack_background = THStack()
     hist_sum_background = hist.Clone("background_sum")
 
@@ -503,8 +519,9 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
         hist_stack_background.Add(backgrounds[i]["hist_central"])
         hist_sum_background.Add(backgrounds[i]["hist_central"])
 
-    signal["hist_central"].Clone("wpwpjjewkqcd").Write()
+    print "andrew debug 1"
 
+    signal["hist_central"].Clone("wpwpjjewkqcd").Write()
 
     if cfg["mode"] == "sm_mc_fake":
         fake["hist_central"].Clone("fake").Write()
@@ -584,6 +601,18 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
 
         dcard.write('\n')    
 
+        dcard.write("fake_sys lnN")
+
+        dcard.write(" -")
+
+        for background in backgrounds:
+            dcard.write(" -")
+
+        if cfg["mode"] == "sm_mc_fake":
+            dcard.write(" 1.4")            
+
+        dcard.write('\n')    
+
         if signal["hist_central"].GetBinContent(i) > 0:
             dcard.write("mcstat_signal lnN "+str(1+signal["hist_central"].GetBinError(i)/signal["hist_central"].GetBinContent(i)))
             for j in range(0,len(backgrounds)):
@@ -609,9 +638,9 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
                         
                 dcard.write('\n')        
 
-        if cfg["mode"] == "sm_mc_fake" and fake["hist_central"].GetBinContent(i) > 0:        
+        if cfg["mode"] == "sm_mc_fake" and fake["hist_central"].GetBinContent(i) > 0:
 
-            dcard.write("sys_stat_fake lnN -")
+            dcard.write("fake_stat lnN -")
 
             for j in range(0,len(backgrounds)):
                 dcard.write(" -")
@@ -695,6 +724,10 @@ def write_sm_low_mjj_control_region(cfg,hist,hist_background,backgrounds,backgro
 
     fake["hist_central"].Clone("fake").Write()
 
+    fake_electrons.Clone("fake_electrons").Write()
+
+    fake_muons.Clone("fake_muons").Write()
+
     hist_stack_background.Write()
 
     hist_sum_background.Write()
@@ -710,3 +743,23 @@ def write_fr_closure_test(cfg,ttbar,ttbar_qcd_fr):
     print ttbar_qcd_fr
     
     ttbar_qcd_fr["hist_central"].Clone("ttbar_qcd_fr").Write()
+
+def write_produce_histograms(cfg,hist,mc_samples,mc_samples_info,fake_samples, data_samples):
+    outfile=TFile(cfg["outfile"],"recreate")
+
+    outfile.cd()
+
+    for i in range(0,len(mc_samples)):
+        if "cutflow_histograms" in mc_samples[i]:
+            for j in range(0,len(mc_samples[i]["cutflow_histograms"])):
+                mc_samples[i]["cutflow_histograms"][j].Clone(mc_samples_info[i][1]+"_cut"+str(j)).Write()
+
+    for i in range(0,len(fake_samples)):
+        if "cutflow_histograms" in fake_samples[i]:
+            for j in range(0,len(fake_samples[i]["cutflow_histograms"])):
+                fake_samples[i]["cutflow_histograms"][j].Clone("fake_sample" + str(i) + "_cut"+str(j)).Write()
+
+    for i in range(0,len(data_samples)):
+        if "cutflow_histograms" in data_samples[i]:
+            for j in range(0,len(data_samples[i]["cutflow_histograms"])):
+                data_samples[i]["cutflow_histograms"][j].Clone("data_sample" + str(i) + "_cut"+str(j)).Write()                

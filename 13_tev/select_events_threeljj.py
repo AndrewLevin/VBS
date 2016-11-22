@@ -42,9 +42,9 @@ gROOT.cd()
 if cfg["variable"] == "mjj":
 
     if cfg["mode"] == "sm_low_mjj_control_region":
-        #hist = TH1F('mjj', 'mjj', 4, 100., 500 )
-        binning=array('f',[0,100,200,300,400,500,700,1100,1600,2000])
-        hist = TH1F('mjj', 'mjj',9, binning )
+        hist = TH1F('mjj', 'mjj', 4, 100., 500 )
+        #binning=array('f',[0,100,200,300,400,500,700,1100,1600,2000])
+        #hist = TH1F('mjj', 'mjj',9, binning )
     elif cfg["mode"] == "fr_closure_test":
         if cfg["which_selection"] == "full":
             #hist = TH1F('mjj', 'mjj', 4, 100., 500 )

@@ -1,15 +1,19 @@
 mode=reweighted_v1
 
+fr_fname=/home/anlevin/VBS/fake_leptons/frs_v300_subtract_wjets.root
+
+which_selection=full
+
 background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wzjj_highmll_v1.root,wzjj,none
 background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wgjj_v1.root,wgjets,none
 
-data_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/run2015_v1_skim.root
+data_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/run2016_v6_ss.root
 
-reweighted_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_ewk_qcd_dim8_v1.root
+reweighted_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_ewk_qcd_dim8_v3.root
 
 reweighted_output_fname=dim8_FT2_scaling.root
 
-lumi=2.215
+lumi=12.9
 
 variable=mll
 

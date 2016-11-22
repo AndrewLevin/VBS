@@ -31,16 +31,12 @@ from ROOT import *
 
 from array import array
 
-if  cfg["mode"] != "sm" and cfg["mode"] != "non-sm" and cfg["mode"] != "sm-pdf" and cfg["mode"] != "sm-qcd" and cfg["mode"] != "gm" and cfg["mode"] != "reweighted_v1" and cfg["mode"] != "reweighted_v2" and cfg["mode"] != "sm_low_mjj_control_region" and cfg["mode"] != "sm_mc" and cfg["mode"] != "sm_mc_fake" and cfg["mode"] != "fr_closure_test":
+if  cfg["mode"] != "sm" and cfg["mode"] != "non-sm" and cfg["mode"] != "sm-pdf" and cfg["mode"] != "sm-qcd" and cfg["mode"] != "gm" and cfg["mode"] != "reweighted_v1" and cfg["mode"] != "reweighted_v2" and cfg["mode"] != "sm_low_mjj_control_region" and cfg["mode"] != "sm_mc" and cfg["mode"] != "sm_mc_fake" and cfg["mode"] != "fr_closure_test" and cfg["mode"] != "produce_histograms":
     print "unrecognized mode, exiting"
     sys.exit(1)
 
-#systematic uncertainty for the fake lepton background estimation
-fake_sys = float(0.4)
-
 gROOT.cd()
 if cfg["variable"] == "mjj":
-
     if cfg["mode"] == "sm_low_mjj_control_region":
         hist = TH1F('mjj', 'mjj', 4, 100., 500 )
     elif cfg["mode"] == "fr_closure_test":
@@ -57,6 +53,11 @@ if cfg["variable"] == "mjj":
         else:
             binning=array('f',[0,100,200,300,400,500,700,1100,1600,2000])
             hist = TH1F('mjj', 'mjj',9, binning )
+    elif cfg["mode"] == "produce_histograms":
+        binning=array('f',[500,700,1100,1600,2000])
+        hist = TH1F('mjj', 'mjj',4, binning )
+        #binning=array('f',[0,100,200,300,400,500,700,1100,1600,2000])
+        #hist = TH1F('mjj', 'mjj',9, binning )        
     else:
         #hist = TH1F('mjj', 'mjj', 4, 100., 500 )        
         binning=array('f',[500,700,1100,1600,2000])
@@ -227,10 +228,6 @@ if cfg["mode"] == "reweighted_v1" or cfg["mode"] == "reweighted_v2":
 
     fake=histogram_fillers.fillHistogramFake(cfg,tree_data,hist_fake,fake_muons,fake_electrons)
 
-    #the systematic uncertainty on the fake rate method is 50%
-    for b in range(1,fake["hist_central"].GetNbinsX()+1):
-        fake["hist_central"].SetBinError(b,sqrt(fake_sys*fake["hist_central"].GetBinContent(b)*fake_sys*fake["hist_central"].GetBinContent(b)+fake["hist_central"].GetBinError(b)*fake["hist_central"].GetBinError(b)))
-
     if cfg["mode"] == "reweighted_v1":
         write_results.write_reweighted_mode_v1(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,fake_muons,fake_electrons,sm_lhe_weight,backgrounds_info,fake)
     elif cfg["mode"] == "reweighted_v2":
@@ -248,7 +245,7 @@ if cfg["mode"] == "sm_mc_fake":
     hist_fake=hist.Clone()
 
     hist_signal=hist.Clone()
-    
+
     c=TCanvas("c", "c",0,0,600,500)
     c.Range(0,0,1,1)
 
@@ -260,7 +257,7 @@ if cfg["mode"] == "sm_mc_fake":
         signal=histogram_fillers.fillHistogram(cfg,tree_signal,hist_signal,syscalc=True)
     else:
         assert(signal_info[2] == "none")
-        signal=histogram_fillers.fillHistogram(cfg,tree_signal,hist_signal,syscalc=True)
+        signal=histogram_fillers.fillHistogram(cfg,tree_signal,hist_signal,fill_cutflow_histograms=True)
 
     for background_info in backgrounds_info:
         f_background=TFile(background_info[0])
@@ -276,7 +273,6 @@ if cfg["mode"] == "sm_mc_fake":
             return_hists = histogram_fillers.fillHistogram(cfg,tree_background,hist_background)
             backgrounds.append(return_hists)
 
-
     data_fname=cfg["data_file"]
     f_data = TFile(data_fname)
     tree_data = f_data.Get("events")
@@ -286,10 +282,6 @@ if cfg["mode"] == "sm_mc_fake":
     
     fake=histogram_fillers.fillHistogramFake(cfg,tree_data,hist_fake,fake_muons,fake_electrons)
     
-    #the systematic uncertainty on the fake rate method is 50%
-    for b in range(1,fake["hist_central"].GetNbinsX()+1):
-        fake["hist_central"].SetBinError(b,sqrt(fake_sys*fake["hist_central"].GetBinContent(b)*fake_sys*fake["hist_central"].GetBinContent(b)+fake["hist_central"].GetBinError(b)*fake["hist_central"].GetBinError(b)))
-
     write_results.write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,backgrounds_info,signal,signal_info,fake_muons,fake_electrons,fake)
 
 if cfg["mode"] == "sm_low_mjj_control_region":
@@ -337,10 +329,6 @@ if cfg["mode"] == "sm_low_mjj_control_region":
 
     fake=histogram_fillers.fillHistogramFake(cfg,tree_data,hist_fake,fake_muons,fake_electrons)
     
-    #the systematic uncertainty on the fake rate method is 50%
-    for b in range(1,fake["hist_central"].GetNbinsX()+1):
-        fake["hist_central"].SetBinError(b,sqrt(fake_sys*fake["hist_central"].GetBinContent(b)*fake_sys*fake["hist_central"].GetBinContent(b)+fake["hist_central"].GetBinError(b)*fake["hist_central"].GetBinError(b)))
-
     write_results.write_sm_low_mjj_control_region(cfg,hist,hist_background,backgrounds,backgrounds_info,fake_muons,fake_electrons,fake,data)
 
 
@@ -366,3 +354,69 @@ if cfg["mode"] == "fr_closure_test":
     ttbar_qcd_fr=histogram_fillers.fillHistogramFake(cfg,tree_ttbar,hist_ttbar_qcd_fr,fake_muons,fake_electrons,True)
 
     write_results.write_fr_closure_test(cfg,ttbar,ttbar_qcd_fr)
+
+if cfg["mode"] == "produce_histograms":
+
+    assert(cfg["channel"] == "all" or cfg["channel"] == "ee" or cfg["channel"] == "em" or cfg["channel"] == "mm")
+
+    if "mc_sample_file" in cfg:
+        mc_samples_info=cfg["mc_sample_file"]
+    else:
+        mc_samples_info = []
+
+    if "fake_sample_file" in cfg:
+        fake_samples_info=cfg["fake_sample_file"]
+    else:
+        fake_samples_info = []
+
+    if "data_sample_file" in cfg:
+        data_samples_info=cfg["data_sample_file"]    
+    else:
+        data_samples_info = []
+
+    c=TCanvas("c", "c",0,0,600,500)
+    c.Range(0,0,1,1)
+
+    mc_samples = []
+
+    data_samples = []    
+
+    fake_samples = []
+
+    for fake_sample_info in fake_samples_info:
+        f_fake_sample=TFile(fake_sample_info[0])
+        gROOT.cd() #without this, hist_background gets written into a file that goes out of scope
+
+        tree_fake_sample=f_fake_sample.Get("events")
+        hist_fake_sample=hist.Clone()
+        
+        fake_muons = hist.Clone()
+        fake_electrons = hist.Clone()
+
+        return_hists=histogram_fillers.fillHistogramFake(cfg,tree_fake_sample,hist_fake_sample,fake_muons,fake_electrons)
+
+        fake_samples.append(return_hists)
+
+    for mc_sample_info in mc_samples_info:
+        f_mc_sample=TFile(mc_sample_info[0])
+        gROOT.cd() #without this, hist_background gets written into a file that goes out of scope
+        tree_mc_sample=f_mc_sample.Get("events")
+        hist_mc_sample=hist.Clone()
+
+        return_hists = histogram_fillers.fillHistogram(cfg,tree_mc_sample,hist_mc_sample)
+
+        mc_samples.append(return_hists)
+
+    for data_sample_info in data_samples_info:
+        f_data_sample=TFile(data_sample_info[0])
+        gROOT.cd() #without this, hist_background gets written into a file that goes out of scope
+        tree_data_sample=f_data_sample.Get("events")
+        hist_data_sample=hist.Clone()
+
+        return_hists = histogram_fillers.fillHistogram(cfg,tree_data_sample,hist_data_sample, is_data=True)
+
+        data_samples.append(return_hists)
+
+    write_results.write_produce_histograms(cfg,hist,mc_samples,mc_samples_info,fake_samples, data_samples)
+
+

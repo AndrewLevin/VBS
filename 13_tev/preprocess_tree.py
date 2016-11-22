@@ -31,7 +31,7 @@ if type(fin.Get("demo/slha_header")) == TTree:
 
     for entry in range(slha_header_tree.GetEntries()):
         slha_header_tree.GetEntry(entry)
-        
+
         #the headers will be merged together, so only include the first one
         if slha_header_tree.slha_header_line == "END_SLHA_HEADER\n":
             break

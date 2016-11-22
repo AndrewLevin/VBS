@@ -11,7 +11,6 @@ gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_7_6_1/src/n
 
 #fr_file=TFile("/home/anlevin/VBS/fake_leptons/frs_v12.root")
 
-
 lep1_tight_electron_mask = Lep1TightSelectionV2
 lep2_tight_electron_mask = Lep2TightSelectionV2
 lep3_tight_electron_mask = Lep3TightSelectionV2
@@ -38,7 +37,7 @@ lep3_loose_electron_mask = Lep3LooseSelectionV5
 def muonfakerate(eta,pt,syst):
 
     myeta  = min(abs(eta),2.4999)
-    mypt   = min(pt,34.999)
+    mypt   = min(pt,69.999)
 
     etabin = muon_fr_hist.GetXaxis().FindFixBin(myeta)
     ptbin = muon_fr_hist.GetYaxis().FindFixBin(mypt)
@@ -56,6 +55,7 @@ def muonfakerate(eta,pt,syst):
     return prob/(1-prob)
 
 def electronfakerate(eta,pt,syst):
+
     myeta  = min(abs(eta),2.4999)
     mypt   = min(pt,34.999)
 
@@ -132,12 +132,15 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False):
     for entry in range(t.GetEntries()):
         t.GetEntry(entry)
 
+        #if t.event != 1318757963:
+        #    continue
+        
         if entry % 100000 == 0:
             print "entry = " + str(entry)
 
-        if is_data:
-            if not pass_json(t.run,t.lumi):
-                continue
+        #if is_data:
+        #    if not pass_json(t.run,t.lumi):
+        #        continue
 
         if cfg["charge"] == "+":
             if t.lep1id > 0:
@@ -147,16 +150,18 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False):
                 continue
         else:
             assert(cfg["charge"] == "both")
-            
-        if (abs(t.lep1id) == 13 and abs(t.lep2id) == 11) or (abs(t.lep1id) == 11 and abs(t.lep2id) == 13):
-            channel="em"
-        elif abs(t.lep1id) == 13 and abs(t.lep2id) == 13:
-            channel = "mm"
-        elif abs(t.lep1id) == 11 and abs(t.lep2id) == 11:
-            channel = "ee"
+
+        if (abs(t.lep1id) == 13 and abs(t.lep2id) == 11 and abs(t.lep3id) == 11) or (abs(t.lep1id) == 11 and abs(t.lep2id) == 13 and abs(t.lep3id) == 11) or (abs(t.lep1id) == 11 and abs(t.lep2id) == 11 and abs(t.lep3id) == 13):
+            channel="eem"
+        elif (abs(t.lep1id) == 11 and abs(t.lep2id) == 13 and abs(t.lep3id) == 13) or (abs(t.lep1id) == 13 and abs(t.lep2id) == 13 and abs(t.lep3id) == 11) or (abs(t.lep1id) == 13 and abs(t.lep2id) == 11 and abs(t.lep3id) == 13):
+            channel="emm"            
+        elif abs(t.lep1id) == 13 and abs(t.lep2id) == 13 and abs(t.lep3id) == 13:
+            channel = "mmm"
+        elif abs(t.lep1id) == 11 and abs(t.lep2id) == 11 and abs(t.lep3id) == 11:
+            channel = "eee"
         else:
             assert(0)
-            
+
         if cfg["channel"] != channel and cfg["channel"] !="all":
             continue
 
@@ -173,12 +178,14 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False):
         else:
             if not bool(t.flags & lep1_tight_electron_mask):
                 continue
+            
         if abs(t.lep2id) == 13:
             if not bool(t.flags & lep2_tight_muon_mask):
                 continue
         else:
             if not bool(t.flags & lep2_tight_electron_mask):
                 continue
+            
         if abs(t.lep3id) == 13:
             if not bool(t.flags & lep3_tight_muon_mask):
                 continue
@@ -186,14 +193,12 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False):
             if not bool(t.flags & lep3_tight_electron_mask):
                 continue            
 
-        #print str(t.run)+" "+str(t.lumi)+" "+str(t.event)
-
         if is_data:
             w = 1
         else:
             w=t.xsWeight*float(cfg["lumi"])
 
-            if t.lhe_weight_orig < 0:
+            if t.gen_weight < 0:
                 w = -w
             #w = w*pu_weight_hist.GetBinContent(pu_weight_hist.FindFixBin(t.n_pu_interactions))
 
@@ -229,10 +234,10 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
     muon_fr_hist=fr_file.Get("muon_frs")
     electron_fr_hist=fr_file.Get("electron_frs")
 
-    if cfg["channel"] == "mm" or cfg["channel"] == "em" or cfg["channel"] == "all":
+    if cfg["channel"] == "mmm" or cfg["channel"] == "eem" or cfg["channel"] == "emm" or cfg["channel"] == "all":
         muon_fr_max=muon_fr_hist.GetBinContent(muon_fr_hist.GetMaximumBin())
 
-    if cfg["channel"] == "ee" or cfg["channel"] == "em" or cfg["channel"] == "all":
+    if cfg["channel"] == "eee" or cfg["channel"] == "eem" or cfg["channel"] == "emm" or cfg["channel"] == "all":
         electron_fr_max=electron_fr_hist.GetBinContent(electron_fr_hist.GetMaximumBin())
 
     if "electron_fr_max" in vars() and "muon_fr_max" in vars():
@@ -257,6 +262,18 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
         if entry % 100000 == 0:
             print "entry = " + str(entry)
 
+        if (abs(t.lep1id) == 13 and abs(t.lep2id) == 11 and abs(t.lep3id) == 11) or (abs(t.lep1id) == 11 and abs(t.lep2id) == 13 and abs(t.lep3id) == 11) or (abs(t.lep1id) == 11 and abs(t.lep2id) == 11 and abs(t.lep3id) == 13):
+            channel="eem"
+        elif (abs(t.lep1id) == 11 and abs(t.lep2id) == 13 and abs(t.lep3id) == 13) or (abs(t.lep1id) == 13 and abs(t.lep2id) == 13 and abs(t.lep3id) == 11) or (abs(t.lep1id) == 13 and abs(t.lep2id) == 11 and abs(t.lep3id) == 13):
+            channel="emm"            
+        elif abs(t.lep1id) == 13 and abs(t.lep2id) == 13 and abs(t.lep3id) == 13:
+            channel = "mmm"
+        elif abs(t.lep1id) == 11 and abs(t.lep2id) == 11 and abs(t.lep3id) == 11:
+            channel = "eee"
+        else:
+            assert(0)
+
+
         #if not pass_json(t.run,t.lumi):
         #    continue
 
@@ -268,16 +285,7 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
                 continue
         else:
             assert(cfg["charge"] == "both")
-            
-        if (abs(t.lep1id) == 13 and abs(t.lep2id) == 11) or (abs(t.lep1id) == 11 and abs(t.lep2id) == 13) :
-            channel="em"
-        elif abs(t.lep1id) == 13 and abs(t.lep2id) == 13:
-            channel = "mm"
-        elif abs(t.lep1id) == 11 and abs(t.lep2id) == 11:
-            channel = "ee"
-        else:
-            assert(0)
-            
+
         if cfg["channel"] != channel and cfg["channel"] !="all":
             continue
 
@@ -300,6 +308,12 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
         else:
             lep2passlooseid = bool(t.flags & lep2_loose_electron_mask)
             lep2passtightid = bool(t.flags & lep2_tight_electron_mask)
+        if abs(t.lep3id) == 13:
+            lep3passlooseid = bool(t.flags & lep3_loose_muon_mask)
+            lep3passtightid = bool(t.flags & lep3_tight_muon_mask)
+        else:
+            lep3passlooseid = bool(t.flags & lep3_loose_electron_mask)
+            lep3passtightid = bool(t.flags & lep3_tight_electron_mask)
 
         if applying_to_ttbar_mc:
             w=t.xsWeight*float(cfg["lumi"])
@@ -310,9 +324,8 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
 
         if var > return_hist.GetBinLowEdge(return_hist.GetNbinsX()):
             var = return_hist.GetBinCenter(return_hist.GetNbinsX())
-        
 
-        if (not lep1passtightid) and lep1passlooseid and lep2passtightid:
+        if (not lep1passtightid) and lep1passlooseid and lep2passtightid and lep3passtightid:
 
             if applying_to_ttbar_mc:
                 if t.lep1_matching_real_gen_lepton_pdgid != 0:
@@ -320,6 +333,9 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
             
             if abs(t.lep1id) == 13:
                 muon_corrected_pt = t.lep1.Pt() * (1 + max(0,t.lep1iso - 0.15))
+
+                #print t.lep1iso
+                
                 #muon_corrected_pt = t.lep1.Pt() 
                 fake_muons.Fill(var)
                 #print "fake muon event "+str((t.jet1 + t.jet2).mass())+ " "+ str(muon_corrected_pt)+" "+str(t.lep1.Eta())
@@ -331,7 +347,7 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
             else:
                 print "unknown lepton flavor"
                 sys.exit(0)
-        elif lep1passtightid and (not lep2passtightid) and lep2passlooseid:
+        elif lep1passtightid and (not lep2passtightid) and lep2passlooseid and lep3passtightid:
 
             if applying_to_ttbar_mc:
                 if t.lep2_matching_real_gen_lepton_pdgid != 0:
@@ -350,6 +366,26 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
             else:
                 print "unknown lepton flavor"
                 sys.exit(0)
+        elif lep1passtightid and lep2passtightid and lep3passlooseid and (not lep3passtightid):
+
+            if applying_to_ttbar_mc:
+                if t.lep2_matching_real_gen_lepton_pdgid != 0:
+                    continue
+
+            if abs(t.lep3id) == 13:
+                muon_corrected_pt = t.lep3.Pt() * (1 + max(0,t.lep3iso - 0.15))
+                #muon_corrected_pt = t.lep2.Pt() 
+                fake_muons.Fill(var)
+                #print "fake muon event "+str((t.jet1 + t.jet2).mass())+ " "+ str(muon_corrected_pt)+" "+str(t.lep2.Eta())
+                w = w * muonfakerate(t.lep3.Eta(), muon_corrected_pt,fake_rate_syst)
+            elif abs(t.lep3id) == 11:
+                fake_electrons.Fill(var)
+                #print "fake electron event " +str((t.jet1 + t.jet2).mass())+ " "+ str(t.lep2.Pt())+" "+str(t.lep2.Eta())
+                w = w * electronfakerate(t.lep3.Eta(), t.lep3.Pt(),fake_rate_syst)
+            else:
+                print "unknown lepton flavor"
+                sys.exit(0)
+
         else:
             continue
 
@@ -358,6 +394,7 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
         #if (t.jet1 + t.jet2).mass() > 1100 and (t.jet1 + t.jet2).mass() < 1600:
         #    print t.maxbtagevent
         #    print w
+
 
         if cfg["mode"] == "non-sm" and use_lhe_weight == True:
             if var > return_hist.GetBinLowEdge(return_hist.GetNbinsX()):

@@ -23,11 +23,11 @@ def parse_reweight_info(param_num,initrwgt_header,slha_header,block_name):
 
         line=str(slha_header[i])
 
-        if line == "Block "+block_name+" \n":
+        if line == "Block "+block_name+" \n" or line == "BLOCK "+block_name.upper()+" # \n":
             
             i=i+1
             line=slha_header[i]
-            while line != "\n":
+            while line != "\n" and line != "###################################\n":
                 line_inside_block_anoinputs=line_inside_block_anoinputs+1
                 param_values.append(float(line.lstrip(' ').split(' ')[1]))
                 i=i+1
