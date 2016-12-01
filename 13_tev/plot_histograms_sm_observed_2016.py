@@ -65,7 +65,9 @@ gROOT.cd()
 
 c1 = TCanvas("c1", "c1",5,50,500,500);
 
-#data = hist_file.Get("data").Clone()
+
+
+data = hist_file.Get("data").Clone()
 fake = hist_file.Get("fake").Clone()
 #zjets = hist_file.Get("zjets").Clone()
 wpwpjjewk = hist_file.Get("wpwpjjewk").Clone()
@@ -76,15 +78,15 @@ wzjjewk = hist_file.Get("wzjjewk").Clone()
 wzjjqcd = hist_file.Get("wzjjqcd").Clone()
 wgjets = hist_file.Get("wgjets").Clone()
 
-#data.SetLineColor(kBlack)
+data.SetLineColor(kBlack)
 fake.SetLineColor(kMagenta)
 #zjets.SetLineColor(kBlue+1)
-wpwpjjqcd.SetLineColor(kYellow)
 wpwpjjewk.SetLineColor(kAzure-2)
+wpwpjjqcd.SetLineColor(kYellow)
 #ttbar.SetLineColor(kGreen+2)
 #wjwjdps.SetLineColor(kAzure-2)
-wzjjewk.SetLineColor(kBlue+2)
 wzjjqcd.SetLineColor(kRed)
+wzjjewk.SetLineColor(kBlue-1)
 wgjets.SetLineColor(kGreen+2)
 
 fake.SetFillStyle(1001)
@@ -99,17 +101,16 @@ wzjjqcd.SetFillStyle(1001)
 
 fake.SetFillColor(kMagenta)
 #zjets.SetFillColor(kBlue+1)
-wpwpjjqcd.SetFillColor(kYellow)
 wpwpjjewk.SetFillColor(kAzure-2)
+wpwpjjqcd.SetFillColor(kYellow)
 #ttbar.SetFillColor(kGreen+2)
 #wjwjdps.SetFillColor(kAzure-2)
-wzjjewk.SetFillColor(kBlue+2)
+wzjjewk.SetFillColor(kBlue-1)
 wzjjqcd.SetFillColor(kRed)
 wgjets.SetFillColor(kGreen+2)
 
-#data.SetMarkerStyle(kFullCircle);
+data.SetMarkerStyle(kFullCircle);
 
-wpwpjjqcd.SetLineWidth(3)
 wpwpjjewk.SetLineWidth(3)
 
 hstack = THStack()
@@ -127,7 +128,7 @@ hstack.Add(wgjets)
 
 hsum.Add(fake)
 #hsum.Add(zjets)
-#hsum.Add(wpwpjjewk)
+hsum.Add(wpwpjjqcd)
 #hsum.Add(wjwjdps)
 #hsum.Add(ttbar)
 hsum.Add(wzjjewk)
@@ -162,24 +163,20 @@ wpwpjjewk.Draw("same")
 
 j=0
 draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,fake,"fake","f")
-#j=j+1
-#draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,zjets,"z+jets","f")
 j=j+1
 draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wzjjewk,"WZJJ EWK","f")
 j=j+1
-draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wzjjqcd,"WZJJ QCD","f")
+draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wzjjqcd,"WZ+jets QCD","f")
 j=j+1
 draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjqcd,"WWJJ QCD","f")
-
-
 j=j+1
 draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wgjets,"WGJJ","f")
 j=j+1
 draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjewk,"WWJJ","l")
-#j=j+1
-#draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,data,"data","lp")
+j=j+1
+draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,data,"data","lp")
 
-#data.Draw("same")
+data.Draw("same")
 
 set_axis_fonts(hstack,"x","m_{jj} (GeV)")
 #set_axis_fonts(hstack,"x","|\eta_{jj}|")

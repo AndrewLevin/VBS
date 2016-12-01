@@ -242,6 +242,8 @@ if cfg["mode"] == "sm_mc_fake":
     signal_info=cfg["signal_file"]
     backgrounds_info=cfg["background_file"]
 
+    hist_data=hist.Clone()
+
     hist_fake=hist.Clone()
 
     hist_signal=hist.Clone()
@@ -281,8 +283,13 @@ if cfg["mode"] == "sm_mc_fake":
     fake_electrons = hist.Clone()
     
     fake=histogram_fillers.fillHistogramFake(cfg,tree_data,hist_fake,fake_muons,fake_electrons)
+
+    data = None
+
+    if not cfg["blind_high_mjj"]:
+        data=histogram_fillers.fillHistogram(cfg,tree_data,hist_data,is_data=True)
     
-    write_results.write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,backgrounds_info,signal,signal_info,fake_muons,fake_electrons,fake)
+    write_results.write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,backgrounds_info,signal,signal_info,fake_muons,fake_electrons,fake,data)
 
 if cfg["mode"] == "sm_low_mjj_control_region":
 

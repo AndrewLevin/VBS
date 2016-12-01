@@ -479,7 +479,7 @@ def write_gm():
 
         #print >> dcard, "lumi_8tev lnN 1.024 1.024"    
 
-def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,backgrounds_info,signal,signal_info,fake_muons,fake_electrons,fake):
+def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,backgrounds_info,signal,signal_info,fake_muons,fake_electrons,fake,data):
     hist_signal.SetLineWidth(3)
     hist_background.SetLineWidth(3)
 
@@ -519,10 +519,13 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
         hist_stack_background.Add(backgrounds[i]["hist_central"])
         hist_sum_background.Add(backgrounds[i]["hist_central"])
 
-    signal["hist_central"].Clone("wpwpjjewkqcd").Write()
+    signal["hist_central"].Clone("wpwpjjewk").Write()
 
     if cfg["mode"] == "sm_mc_fake":
         fake["hist_central"].Clone("fake").Write()
+
+    if cfg["blind_high_mjj"] == False:
+        data["hist_central"].Clone("data").Write()
 
     hist_stack_background.Write()
 
@@ -538,7 +541,11 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
         print >> dcard, "imax 1 number of channels"
         print >> dcard, "jmax * number of background"
         print >> dcard, "kmax * number of nuisance parameters"
-        print >> dcard, "Observation 0"
+
+        if cfg["blind_high_mjj"] == False:
+            print >> dcard, "Observation "+str(data["hist_central"].GetBinContent(i))
+        else:
+            print >> dcard, "Observation 0"
         dcard.write("bin")
         dcard.write(" bin1")
         
