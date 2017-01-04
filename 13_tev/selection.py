@@ -1,6 +1,6 @@
 from ROOT import *
 
-gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_7_4_15/src/ntuple_maker/ntuple_maker/interface/enum_definition.h"')
+gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_8_0_10_patch2/src/ntuple_maker/ntuple_maker/interface/enum_definition.h"')
 
 z_mass = 91.18
 
@@ -32,7 +32,7 @@ def passRelaxedSelectionExceptLeptonIDs(t,cfg):
             p=False
 
     if cfg["which_selection"] == "relaxed":
-        if t.maxbtagevent > 0.46:
+        if t.maxbtagevent > 0.5426:
             p=False
         if (t.flags & WLLJJVetoV5):
             p=False                    
@@ -58,7 +58,7 @@ def passSelectionExceptLeptonIDs(t,cfg):
 
     mask = 0
 
-    if t.lep1.pt() < 20 or t.lep2.pt() < 20:
+    if not(t.lep1.pt() > 25 and t.lep2.pt() > 20):
         p=False
     else:
         mask = mask | (1 << 1)
@@ -69,6 +69,7 @@ def passSelectionExceptLeptonIDs(t,cfg):
         mask = mask | (1 << 2)
 
     if abs(t.jet1.eta()) > 4.7 or abs(t.jet2.eta()) > 4.7:
+    #if False:
         p=False
     else:
         mask = mask | (1 << 3)
@@ -93,7 +94,10 @@ def passSelectionExceptLeptonIDs(t,cfg):
     else:
         mask = mask | (1 << 7)
 
-    if t.maxbtagevent > 0.46:
+    #print t.maxbtagevent
+
+    #if t.maxbtagevent > 0.45:
+    if t.maxbtagevent > 0.5426:
     #if t.maxbtagevent > 0.56:
     #if t.maxbtagevent > 0.8:
     #if False:        
@@ -107,13 +111,16 @@ def passSelectionExceptLeptonIDs(t,cfg):
     else:
         mask = mask | (1 << 9)       
 
+
     if (t.flags & WLLJJVetoV2):
     #if False:        
         p=False
     else:
         mask = mask | (1 << 10)
 
-    if (t.flags & WLLJJVetoV3):
+    #the hadronic tau veto
+#    if (t.flags & WLLJJVetoV3):
+    if (t.flags & WLLJJVetoV7):
     #if False:        
         p=False
     else:
@@ -148,6 +155,18 @@ def passSelectionExceptLeptonIDs(t,cfg):
             p=False
         else:
             mask = mask | (1 << 14)
+        if max(abs(t.lep1.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta()),abs(t.lep2.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta())) > 0.75:
+            p=False
+        else:
+            mask = mask | (1 << 15)
+
+    if (t.flags & WLLJJVetoV9):
+    #if False:        
+        p=False
+    else:
+        mask = mask | (1 << 16)
+
+    #print max(abs(t.lep1.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta()),abs(t.lep2.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta()))
 
     #passall = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7) | (1 << 8) | (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13) | (1 << 14) | (1 << 15)
 
