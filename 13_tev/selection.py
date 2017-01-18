@@ -1,6 +1,6 @@
 from ROOT import *
 
-gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_8_0_10_patch2/src/ntuple_maker/ntuple_maker/interface/enum_definition.h"')
+gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_8_0_20/src/ntuple_maker/ntuple_maker/interface/enum_definition.h"')
 
 z_mass = 91.18
 
@@ -58,7 +58,8 @@ def passSelectionExceptLeptonIDs(t,cfg):
 
     mask = 0
 
-    if not(t.lep1.pt() > 25 and t.lep2.pt() > 20):
+
+    if not(t.lep1.pt() > 25 and t.lep2.pt() > 20) and not (t.lep1.pt() > 20 and t.lep2.pt() > 25):
         p=False
     else:
         mask = mask | (1 << 1)
@@ -105,7 +106,8 @@ def passSelectionExceptLeptonIDs(t,cfg):
     else:
         mask = mask | (1 << 8)
 
-    if (t.flags & WLLJJVetoV1):
+    if (t.flags & WLLJJVetoV10):
+#    if (t.flags & WLLJJVetoV1):
     #if False:        
         p=False
     else:
@@ -165,6 +167,15 @@ def passSelectionExceptLeptonIDs(t,cfg):
         p=False
     else:
         mask = mask | (1 << 16)
+
+    #if not (t.flags & PassTriggerV6):
+    #if not (t.flags & PassTriggerV3):
+    if not (t.flags & PassTriggerV2):
+    #if not (t.flags & PassTriggerV1):
+    #if False:        
+        p=False
+    else:
+        mask = mask | (1 << 17)        
 
     #print max(abs(t.lep1.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta()),abs(t.lep2.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta()))
 
