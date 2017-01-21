@@ -31,7 +31,7 @@ from array import array
 
 gStyle.SetOptStat(0)
 
-gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_7_4_15/src/ntuple_maker/ntuple_maker/interface/fr_enum_definition.h"')
+gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_8_0_20/src/ntuple_maker/ntuple_maker/interface/fr_enum_definition.h"')
 
 foutname=options.foutname
 
@@ -72,8 +72,8 @@ if options.finmuondataname != None:
         if entry % int(options.mod) != 0:
             continue
 
-        if not pass_json(muon_tree.run,muon_tree.lumi):
-            continue
+        #if not pass_json(muon_tree.run,muon_tree.lumi):
+        #    continue
 
         #if muon_tree.metpt < 30:
         #    continue
@@ -96,7 +96,8 @@ if options.finmuondataname != None:
 
 if options.finmuonmcname != None:
 
-    mu17_lumi = 182.88/1000.0
+    #mu17_lumi = 182.88/1000.0
+    mu17_lumi = 100.00/1000.0
     
     finmuonmc = TFile(options.finmuonmcname)
     muon_mc_tree=finmuonmc.Get("loose_muons")
@@ -123,7 +124,7 @@ if options.finmuonmcname != None:
         #if mt > 30:
         #    continue
 
-        if not (muon_mc_tree.flags & LepTightSelectionV1):
+        if not (muon_mc_tree.flags & LepTightSelectionV5):
             continue
 
         if abs(muon_mc_tree.muon_4mom.Eta()) > 2.5:
@@ -172,7 +173,7 @@ if options.finelectrondataname != None:
         #if mt > 30:
         #    continue
 
-        if not (electron_tree.flags & LepTightSelectionV2):
+        if not (electron_tree.flags & LepTightSelectionV5):
            continue
 
         if abs(electron_tree.electron_4mom.Eta()) > 2.5:
@@ -182,7 +183,7 @@ if options.finelectrondataname != None:
 
 if options.finelectronmcname != None:
 
-    ele12_lumi = 10.57/1000.0
+    ele12_lumi = 5/1000.0
     #ele33_lumi = 4.98/1000.0
     
     finelectronmc = TFile(options.finelectronmcname)
@@ -210,7 +211,7 @@ if options.finelectronmcname != None:
         #if mt > 30:
         #    continue
 
-        if not (electron_mc_tree.flags & LepTightSelectionV2):
+        if not (electron_mc_tree.flags & LepTightSelectionV5):
             continue
 
         if abs(electron_mc_tree.electron_4mom.Eta()) > 2.5:

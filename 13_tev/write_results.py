@@ -631,7 +631,7 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
         
         for j in range(0,len(backgrounds)):
             if backgrounds[j]["hist_central"].GetBinContent(i) > 0:
-                dcard.write("mcstat_"+backgrounds_info[j][1]+" lnN -")
+                dcard.write("mcstat_"+backgrounds_info[j][1]+"_bin_"+str(i)+" lnN -")
                 for k in range(0,len(backgrounds)):
                     if j != k:
                         dcard.write(" -")
@@ -645,7 +645,7 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
 
         if cfg["mode"] == "sm_mc_fake" and fake["hist_central"].GetBinContent(i) > 0:
 
-            dcard.write("fake_stat lnN -")
+            dcard.write("fake_stat_bin"+str(i)+" lnN -")
 
             for j in range(0,len(backgrounds)):
                 dcard.write(" -")

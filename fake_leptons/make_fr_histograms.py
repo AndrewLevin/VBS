@@ -55,8 +55,8 @@ def pass_json(run,lumi):
 
 if options.finmuondataname != None:
 
-    #muon_ptbins=array('d', [20,25,30,35])
-    muon_ptbins=array('d', [20,30,40,50,70])
+    muon_ptbins=array('d', [20,25,30,35])
+    #muon_ptbins=array('d', [20,30,40,50,70])
     muon_etabins=array('d', [0,1,1.479,2.0,2.5])
 
     loose_muon_th2d=TH2F("loose_muon_hist","loose_muon_hist",len(muon_etabins)-1,muon_etabins,len(muon_ptbins)-1,muon_ptbins)
@@ -109,15 +109,17 @@ if options.finmuondataname != None:
     #    if not pass_json(muon_tree.run,muon_tree.lumi):
     #        continue
 
-        if not (muon_tree.flags & LepLooseSelectionV5):
+        #if not ((muon_tree.flags & LepLooseSelectionV4) and (muon_tree.flags & LepLooseSelectionV5)):
+            continue
+        if not (muon_tree.flags & LepLooseSelectionV3):
             continue
 
         if abs(muon_tree.muon_4mom.Eta()) > 2.4:
             continue
 
         weight = 1
-        corrected_pt = muon_tree.muon_4mom.Pt() * (1 + max(0,(muon_tree.iso - 0.15)))
-        #corrected_pt = muon_tree.muon_4mom.Pt() 
+        #corrected_pt = muon_tree.muon_4mom.Pt() * (1 + max(0,(muon_tree.iso - 0.15)))
+        corrected_pt = muon_tree.muon_4mom.Pt() 
 
         if corrected_pt > loose_muon_th2d.GetYaxis().GetBinUpEdge(loose_muon_th2d.GetYaxis().GetNbins()):
             loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),loose_muon_th2d.GetYaxis().GetBinCenter(loose_muon_th2d.GetYaxis().GetNbins()),weight)
@@ -137,7 +139,7 @@ if options.finmuondataname != None:
 
 if options.finmuonmcname != None:
 
-    mu17_lumi = 182.88/1000.0
+    mu17_lumi = 100.00/1000.0
 
     finmuonmcname=options.finmuonmcname
 
@@ -167,7 +169,7 @@ if options.finmuonmcname != None:
         if mt > 30:
             continue
         
-        if not (muon_mc_tree.flags & LepLooseSelectionV5):
+        if not (muon_mc_tree.flags & LepLooseSelectionV3):
             continue
 
         if abs(muon_mc_tree.muon_4mom.Eta()) > 2.4:
@@ -178,8 +180,8 @@ if options.finmuonmcname != None:
         if muon_mc_tree.gen_weight < 0:
             weight = -weight         
 
-        corrected_pt = muon_mc_tree.muon_4mom.Pt() * (1 + max(0,(muon_mc_tree.iso - 0.15)))
-        #corrected_pt = muon_mc_tree.muon_4mom.Pt()
+        #corrected_pt = muon_mc_tree.muon_4mom.Pt() * (1 + max(0,(muon_mc_tree.iso - 0.15)))
+        corrected_pt = muon_mc_tree.muon_4mom.Pt()
 
         if corrected_pt > loose_muon_th2d.GetYaxis().GetBinUpEdge(loose_muon_th2d.GetYaxis().GetNbins()):
             loose_muon_th2d.Fill(abs(muon_mc_tree.muon_4mom.Eta()),loose_muon_th2d.GetYaxis().GetBinCenter(loose_muon_th2d.GetYaxis().GetNbins()),-weight)
@@ -196,7 +198,7 @@ if options.finmuonmcname != None:
 
 #tight_muon_th2d.Print("all")
 #loose_muon_th2d.Print("all")
-    
+
 if options.finelectrondataname != None:
 
     finelectronname=options.finelectrondataname
@@ -246,7 +248,7 @@ if options.finelectrondataname != None:
     #if electron_tree.nearestparton_pdgid != 5:
     #    continue    
 
-        if not (electron_tree.flags & LepLooseSelectionV5):
+        if not (electron_tree.flags & LepLooseSelectionV4):
             continue
 
         if abs(electron_tree.electron_4mom.Eta()) > 2.5:
@@ -264,7 +266,7 @@ if options.finelectrondataname != None:
             loose_electron_th2d.Fill(abs(electron_tree.electron_4mom.Eta()),electron_tree.electron_4mom.Pt(),weight)
 #    loose_electron_th2d.Fill(electron_tree.electron_4mom.Eta(),electron_tree.electron_4mom.Pt())
 
-        if (electron_tree.flags & LepTightSelectionV2):
+        if (electron_tree.flags & LepTightSelectionV5):
             if electron_tree.electron_4mom.Pt() > tight_electron_th2d.GetYaxis().GetBinUpEdge(tight_electron_th2d.GetYaxis().GetNbins()):
                 tight_electron_th2d.Fill(abs(electron_tree.electron_4mom.Eta()),tight_electron_th2d.GetYaxis().GetBinCenter(tight_electron_th2d.GetYaxis().GetNbins()),weight)
             else:    
@@ -274,8 +276,9 @@ if options.finelectrondataname != None:
 
 if options.finelectronmcname != None:
 
-    ele12_lumi = 10.57/1000.0
+    #ele12_lumi = 10.57/1000.0
     #ele33_lumi = 4.98/1000.0
+    ele12_lumi = 5/1000.0
     
     finelectronmc = TFile(options.finelectronmcname)
     electron_mc_tree=finelectronmc.Get("loose_electrons")
@@ -297,13 +300,11 @@ if options.finelectronmcname != None:
         if mt > 30:
             continue
 
-        if not (electron_mc_tree.flags & LepLooseSelectionV5):
+        if not (electron_mc_tree.flags & LepLooseSelectionV4):
             continue
 
         if abs(electron_mc_tree.electron_4mom.Eta()) > 2.5:
             continue
-
-        weight = 1
 
         weight = electron_mc_tree.xsWeight*ele12_lumi
 
@@ -316,7 +317,7 @@ if options.finelectronmcname != None:
             loose_electron_th2d.Fill(abs(electron_mc_tree.electron_4mom.Eta()),electron_mc_tree.electron_4mom.Pt(),-weight)
 
 
-        if (electron_mc_tree.flags & LepTightSelectionV2):
+        if (electron_mc_tree.flags & LepTightSelectionV5):
             if electron_mc_tree.electron_4mom.Pt() > tight_electron_th2d.GetYaxis().GetBinUpEdge(tight_electron_th2d.GetYaxis().GetNbins()):
                 tight_electron_th2d.Fill(abs(electron_mc_tree.electron_4mom.Eta()),tight_electron_th2d.GetYaxis().GetBinCenter(tight_electron_th2d.GetYaxis().GetNbins()),-weight)
             else:    
