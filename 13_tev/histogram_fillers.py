@@ -41,7 +41,8 @@ lep2_loose_electron_mask = Lep2LooseSelectionV2
 def muonfakerate(eta,pt,syst):
 
     myeta  = min(abs(eta),2.4999)
-    mypt   = min(pt,69.999)
+    #mypt   = min(pt,69.999)
+    mypt   = min(pt,34.999)
 
     etabin = muon_fr_hist.GetXaxis().FindFixBin(myeta)
     ptbin = muon_fr_hist.GetYaxis().FindFixBin(mypt)
@@ -170,7 +171,7 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
         if entry % 100000 == 0:
             print "entry = " + str(entry)
 
-#        if t.event != 307072356:
+#        if t.lumi != 1021 or t.event != 126029:
 #            continue
 
         #if is_data:
@@ -230,7 +231,19 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
         #mask = mask | (1 << 0)
 
         if p and debug:
-            print "eventNum lumiNum runNum " +str(t.event)+" "+str(t.lumi)+" "+str(t.run)
+            #print "eventEvent.eventNum eventEvent.lumiNum eventEvent.runNum " +str(t.event)+" "+str(t.lumi)+" "+str(t.run)
+
+            if t.lep1.pt() > t.lep2.pt():
+                s=str(t.run)+" "+str(t.lumi)+" "+str(t.event)+" "+str(t.lep1id)+" "+str(t.lep2id)+" "+str(t.lep1.pt())+" "+str(t.lep1.eta())+" "+str(t.lep2.pt())+" "+str(t.lep2.eta())
+            else:
+                s=str(t.run)+" "+str(t.lumi)+" "+str(t.event)+" "+str(t.lep2id)+" "+str(t.lep1id)+" "+str(t.lep2.pt())+" "+str(t.lep2.eta())+" "+str(t.lep1.pt())+" "+str(t.lep1.eta())
+
+            if t.jet1.pt() > t.jet2.pt():
+                s = s+str(t.jet1.pt())+ " "+ str(t.jet1.eta())+ " " + str(t.jet2.pt()) + " " + str(t.jet2.eta())
+            else:
+                s = s+str(t.jet2.pt())+ " "+ str(t.jet2.eta())+ " " + str(t.jet1.pt()) + " " + str(t.jet1.eta())
+
+            #print s
 
         if is_data:
             w = 1
@@ -424,7 +437,7 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
         
         loose_but_not_tight=True
         
-        if (not lep1passtightid) and lep1passlooseid and lep2passtightid:
+        if (not lep1passtightid) and lep1passlooseid:
 
             if applying_to_ttbar_mc:
                 if t.lep1_matching_real_gen_lepton_pdgid != 0:
@@ -432,8 +445,8 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
             
             if abs(t.lep1id) == 13:
                 fake_lepton_abs_pdg_id = 13
-                muon_corrected_pt = t.lep1.Pt() * (1 + max(0,t.lep1iso - 0.15))
-                #muon_corrected_pt = t.lep1.Pt() 
+                #muon_corrected_pt = t.lep1.Pt() * (1 + max(0,t.lep1iso - 0.15))
+                muon_corrected_pt = t.lep1.Pt() 
                 #print "fake muon event "+str((t.jet1 + t.jet2).mass())+ " "+ str(muon_corrected_pt)+" "+str(t.lep1.Eta())
                 w = w * muonfakerate(t.lep1.Eta(), muon_corrected_pt,fake_rate_syst)
             elif abs(t.lep1id) == 11:
@@ -443,7 +456,8 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
             else:
                 print "unknown lepton flavor"
                 sys.exit(0)
-        elif lep1passtightid and (not lep2passtightid) and lep2passlooseid:
+                
+        if (not lep2passtightid) and lep2passlooseid:
 
             if applying_to_ttbar_mc:
                 if t.lep2_matching_real_gen_lepton_pdgid != 0:
@@ -451,8 +465,8 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
 
             if abs(t.lep2id) == 13:
                 fake_lepton_abs_pdg_id = 13
-                muon_corrected_pt = t.lep2.Pt() * (1 + max(0,t.lep2iso - 0.15))
-                #muon_corrected_pt = t.lep2.Pt() 
+                #muon_corrected_pt = t.lep2.Pt() * (1 + max(0,t.lep2iso - 0.15))
+                muon_corrected_pt = t.lep2.Pt() 
                 #print "fake muon event "+str((t.jet1 + t.jet2).mass())+ " "+ str(muon_corrected_pt)+" "+str(t.lep2.Eta())
                 w = w * muonfakerate(t.lep2.Eta(), muon_corrected_pt,fake_rate_syst)
             elif abs(t.lep2id) == 11:
@@ -463,18 +477,21 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
             else:
                 print "unknown lepton flavor"
                 sys.exit(0)
-        else:
-            loose_but_not_tight=False
+                
 
-        if loose_but_not_tight:
+        
+        if ((not lep1passtightid) and lep1passlooseid and lep2passtightid) or ((not lep2passtightid) and lep2passlooseid and lep1passtightid):
             mask = mask | (1 << 0)
+        elif (not lep1passtightid) and lep1passlooseid and (not lep2passtightid) and lep2passlooseid:
+            mask = mask | (1 << 0)
+            w = -w
         else:
             p=False
 
-        if p and debug:
-            print "eventNum lumiNum runNum " +str(t.event)+" "+str(t.lumi)+" "+str(t.run)
+        if p and debug and (t.jet1 + t.jet2).mass() > 1600:
+            print "eventNum lumiNum runNum " +str(t.event)+" "+str(t.lumi)+" "+str(t.run)+" "+str(w)
 
-        assert(w > 0)
+        assert(w != 0)
 
         #if (t.jet1 + t.jet2).mass() > 1100 and (t.jet1 + t.jet2).mass() < 1600:
         #    print t.maxbtagevent
