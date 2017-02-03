@@ -82,9 +82,6 @@ if options.finmuondataname != None:
     #if entry >= options.n_events:
     #    break
     
-        if muon_tree.event != 8085660:
-            continue
-    
         if entry % 100000 == 0:
             print entry
 
@@ -104,8 +101,6 @@ if options.finmuondataname != None:
 
         mt = sqrt(2*muon_tree.muon_4mom.pt()*muon_tree.metpt*(1 - cos(dphi)) )
 
-        print mt
-        
         if mt > 20:
             continue
         
