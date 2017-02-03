@@ -2,6 +2,8 @@
 #source /afs/cern.ch/sw/lcg/external/gcc/4.7.2/x86_64-slc5-gcc47-opt/setup.sh
 #source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.34.20/x86_64-slc5-gcc47-opt/root/bin/thisroot.sh
 
+import math
+
 import json
 
 import optparse
@@ -31,7 +33,7 @@ from array import array
 
 gStyle.SetOptStat(0)
 
-gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_7_4_15/src/ntuple_maker/ntuple_maker/interface/fr_enum_definition.h"')
+gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_8_0_20/src/ntuple_maker/ntuple_maker/interface/fr_enum_definition.h"')
 
 foutname=options.foutname
 
@@ -79,7 +81,10 @@ if options.finmuondataname != None:
 
     #if entry >= options.n_events:
     #    break
-
+    
+        if muon_tree.event != 8085660:
+            continue
+    
         if entry % 100000 == 0:
             print entry
 
@@ -89,16 +94,23 @@ if options.finmuondataname != None:
         if muon_tree.muon_4mom.Pt() < 20:
             continue
 
-        if muon_tree.metpt > 20:
+        if muon_tree.metpt > 30:
             continue
 
-        mt = sqrt(2*muon_tree.muon_4mom.pt()*muon_tree.metpt*(1 - cos(muon_tree.metphi - muon_tree.muon_4mom.phi())) )
+        dphi = muon_tree.metphi - muon_tree.muon_4mom.phi()
 
-        if mt > 30:
+        if dphi > math.pi:
+            dphi = 2*math.pi - dphi
+
+        mt = sqrt(2*muon_tree.muon_4mom.pt()*muon_tree.metpt*(1 - cos(dphi)) )
+
+        print mt
+        
+        if mt > 20:
             continue
         
-    #    if muon_tree.ptjetaway < 70:
-    #        continue
+        #if muon_tree.ptjetaway < 20:
+        #    continue
 
     #if muon_tree.nearestparton_4mom.pt() > 20:
     #   continue
@@ -116,6 +128,9 @@ if options.finmuondataname != None:
 
         if abs(muon_tree.muon_4mom.Eta()) > 2.4:
             continue
+
+        if muon_tree.muon_4mom.Pt() > 30 and abs(muon_tree.muon_4mom.Eta()) > 2.0:
+            print "andrew debug "+str(muon_tree.run)+" "+str(muon_tree.lumi)+" "+str(muon_tree.event)+" "+str(bool(muon_tree.flags & LepTightSelectionV1))
 
         weight = 1
         #corrected_pt = muon_tree.muon_4mom.Pt() * (1 + max(0,(muon_tree.iso - 0.15)))
@@ -139,7 +154,9 @@ if options.finmuondataname != None:
 
 if options.finmuonmcname != None:
 
-    mu17_lumi = 100.00/1000.0
+    #mu17_lumi = 100.00/1000.0
+    #mu17_lumi = 70.00/1000.0
+    mu17_lumi = 36*0.007
 
     finmuonmcname=options.finmuonmcname
 
@@ -164,7 +181,12 @@ if options.finmuonmcname != None:
         if muon_mc_tree.metpt > 20:
             continue
 
-        mt = sqrt(2*muon_mc_tree.muon_4mom.pt()*muon_mc_tree.metpt*(1 - cos(muon_mc_tree.metphi - muon_mc_tree.muon_4mom.phi())) )
+        dphi = muon_mc_tree.metphi - muon_mc_tree.muon_4mom.phi()
+
+        if dphi > math.pi:
+            dphi = 2*math.pi - dphi
+
+        mt = sqrt(2*muon_mc_tree.muon_4mom.pt()*muon_mc_tree.metpt*(1 - cos(dphi)) )
 
         if mt > 30:
             continue
@@ -234,7 +256,12 @@ if options.finelectrondataname != None:
         if electron_tree.metpt > 20:
             continue
 
-        mt = sqrt(2*electron_tree.electron_4mom.pt()*electron_tree.metpt*(1 - cos(electron_tree.metphi - electron_tree.electron_4mom.phi())) )
+        dphi = electron_tree.metphi - electron_tree.electron_4mom.phi()
+
+        if dphi > math.pi:
+            dphi = 2*math.pi - dphi
+
+        mt = sqrt(2*electron_tree.electron_4mom.pt()*electron_tree.metpt*(1 - cos(dphi)) )
 
         if mt > 30:
             continue
@@ -295,7 +322,12 @@ if options.finelectronmcname != None:
         if electron_mc_tree.metpt > 20:
             continue
 
-        mt = sqrt(2*electron_mc_tree.electron_4mom.pt()*electron_mc_tree.metpt*(1 - cos(electron_mc_tree.metphi - electron_mc_tree.electron_4mom.phi())) )
+        dphi = electron_mc_tree.metphi - electron_mc_tree.electron_4mom.phi()
+
+        if dphi > math.pi:
+            dphi = 2*math.pi - dphi
+
+        mt = sqrt(2*electron_mc_tree.electron_4mom.pt()*electron_mc_tree.metpt*(1 - cos(dphi)) )
 
         if mt > 30:
             continue
