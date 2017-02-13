@@ -81,6 +81,11 @@ if options.finmuondataname != None:
 
     #if entry >= options.n_events:
     #    break
+
+        #if muon_tree.event != 319598276:
+        #    continue
+
+        #print "andrew debug 1"
     
         if entry % 100000 == 0:
             print entry
@@ -94,7 +99,7 @@ if options.finmuondataname != None:
         if muon_tree.metpt > 30:
             continue
 
-        dphi = muon_tree.metphi - muon_tree.muon_4mom.phi()
+        dphi = abs(muon_tree.metphi - muon_tree.muon_4mom.phi())
 
         if dphi > math.pi:
             dphi = 2*math.pi - dphi
@@ -104,8 +109,8 @@ if options.finmuondataname != None:
         if mt > 20:
             continue
         
-        #if muon_tree.ptjetaway < 20:
-        #    continue
+        if muon_tree.ptjetaway < 20:
+            continue
 
     #if muon_tree.nearestparton_4mom.pt() > 20:
     #   continue
@@ -128,7 +133,7 @@ if options.finmuondataname != None:
             print "andrew debug "+str(muon_tree.run)+" "+str(muon_tree.lumi)+" "+str(muon_tree.event)+" "+str(bool(muon_tree.flags & LepTightSelectionV1))
 
         weight = 1
-        #corrected_pt = muon_tree.muon_4mom.Pt() * (1 + max(0,(muon_tree.iso - 0.15)))
+        #corrected_pt = muon_tree.muon_4mom.Pt() * (1 + max5~(0,(muon_tree.iso - 0.15)))
         corrected_pt = muon_tree.muon_4mom.Pt() 
 
         if corrected_pt > loose_muon_th2d.GetYaxis().GetBinUpEdge(loose_muon_th2d.GetYaxis().GetNbins()):
@@ -173,17 +178,20 @@ if options.finmuonmcname != None:
         if muon_mc_tree.muon_4mom.Pt() < 20:
             continue
 
-        if muon_mc_tree.metpt > 20:
+        if muon_mc_tree.metpt > 30:
             continue
 
-        dphi = muon_mc_tree.metphi - muon_mc_tree.muon_4mom.phi()
+        dphi = abs(muon_mc_tree.metphi - muon_mc_tree.muon_4mom.phi())
 
         if dphi > math.pi:
             dphi = 2*math.pi - dphi
 
         mt = sqrt(2*muon_mc_tree.muon_4mom.pt()*muon_mc_tree.metpt*(1 - cos(dphi)) )
 
-        if mt > 30:
+        if mt > 20:
+            continue
+
+        if muon_mc_tree.ptjetaway < 20:
             continue
         
         if not (muon_mc_tree.flags & LepLooseSelectionV3):
@@ -248,21 +256,21 @@ if options.finelectrondataname != None:
         #if not pass_json(electron_tree.run,electron_tree.lumi):
         #    continue
 
-        if electron_tree.metpt > 20:
+        if electron_tree.metpt > 30:
             continue
 
-        dphi = electron_tree.metphi - electron_tree.electron_4mom.phi()
+        dphi = abs(electron_tree.metphi - electron_tree.electron_4mom.phi())
 
         if dphi > math.pi:
             dphi = 2*math.pi - dphi
 
         mt = sqrt(2*electron_tree.electron_4mom.pt()*electron_tree.metpt*(1 - cos(dphi)) )
 
-        if mt > 30:
+        if mt > 20:
             continue
 
-    #if electron_tree.ptjetaway < 70:
-    #    continue
+        if electron_tree.ptjetaway < 30:
+            continue
 
     #if electron_tree.nearestparton_4mom.pt() > 20:
     #   continue    
@@ -270,11 +278,14 @@ if options.finelectrondataname != None:
     #if electron_tree.nearestparton_pdgid != 5:
     #    continue    
 
-        if not (electron_tree.flags & LepLooseSelectionV4):
+        if not (electron_tree.flags & LepLooseSelectionV2):
             continue
 
         if abs(electron_tree.electron_4mom.Eta()) > 2.5:
             continue
+
+        if electron_tree.electron_4mom.Pt() > 30 and abs(electron_tree.electron_4mom.Eta()) > 2.0:
+            print "andrew debug "+str(electron_tree.run)+" "+str(electron_tree.lumi)+" "+str(electron_tree.event)+" "+str(bool(electron_tree.flags & LepTightSelectionV5))
 
         weight = 1
 
@@ -314,20 +325,23 @@ if options.finelectronmcname != None:
         if entry % int(options.mod) != 0:
             continue
 
-        if electron_mc_tree.metpt > 20:
+        if electron_mc_tree.metpt > 30:
             continue
 
-        dphi = electron_mc_tree.metphi - electron_mc_tree.electron_4mom.phi()
+        dphi = abs(electron_mc_tree.metphi - electron_mc_tree.electron_4mom.phi())
 
         if dphi > math.pi:
             dphi = 2*math.pi - dphi
 
         mt = sqrt(2*electron_mc_tree.electron_4mom.pt()*electron_mc_tree.metpt*(1 - cos(dphi)) )
 
-        if mt > 30:
+        if mt > 20:
             continue
 
-        if not (electron_mc_tree.flags & LepLooseSelectionV4):
+        if electron_mc_tree.ptjetaway < 30:
+            continue
+
+        if not (electron_mc_tree.flags & LepLooseSelectionV2):
             continue
 
         if abs(electron_mc_tree.electron_4mom.Eta()) > 2.5:
