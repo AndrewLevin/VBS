@@ -55,18 +55,26 @@ def pass_json(run,lumi):
 
     return False    
 
+run2016B = [273150,275376]
+run2016C = [275656,276283]
+run2016D = [276315,276811]
+run2016E = [276831,277420]
+run2016F = [277932,278808]
+run2016G = [278820,280385]
+run2016H = [281207,284035]
+
 if options.finmuondataname != None:
 
     muon_ptbins=array('d', [20,25,30,35])
     #muon_ptbins=array('d', [20,30,40,50,70])
-    muon_etabins=array('d', [0,1,1.479,2.0,2.5])
+    #muon_etabins=array('d', [0,1,1.479,2.0,2.5])
+    muon_etabins=array('d', [0,0.5,1.0,1.479,2.0,2.5])
 
     loose_muon_th2d=TH2F("loose_muon_hist","loose_muon_hist",len(muon_etabins)-1,muon_etabins,len(muon_ptbins)-1,muon_ptbins)
     tight_muon_th2d=TH2F("tight_muon_hist","tight_muon_hist",len(muon_etabins)-1,muon_etabins,len(muon_ptbins)-1,muon_ptbins)
 
     loose_muon_th2d.Sumw2()
     tight_muon_th2d.Sumw2()
-
 
     finmuonname=options.finmuondataname
 
@@ -81,6 +89,7 @@ if options.finmuondataname != None:
 
     #if entry >= options.n_events:
     #    break
+
 
         #if muon_tree.event != 319598276:
         #    continue
@@ -156,7 +165,7 @@ if options.finmuonmcname != None:
 
     #mu17_lumi = 100.00/1000.0
     #mu17_lumi = 70.00/1000.0
-    mu17_lumi = 36*0.007
+    mu17_lumi = 35.9*0.007
 
     finmuonmcname=options.finmuonmcname
 
@@ -233,10 +242,10 @@ if options.finelectrondataname != None:
     electron_tree=finelectron.Get("loose_electrons")
 
     electron_ptbins=array('d', [20,25,30,35])
-    electron_etabins=array('d', [0,1,1.479,2.0,2.5])
+    electron_etabins=array('d', [0,0.5,1,1.479,2.0,2.5])
 
-    loose_electron_th2d=TH2F("loose_electron_hist","loose_electron_hist",4,electron_etabins,len(electron_ptbins)-1,electron_ptbins)
-    tight_electron_th2d=TH2F("tight_electron_hist","tight_electron_hist",4,electron_etabins,len(electron_ptbins)-1,electron_ptbins)
+    loose_electron_th2d=TH2F("loose_electron_hist","loose_electron_hist",len(electron_etabins)-1,electron_etabins,len(electron_ptbins)-1,electron_ptbins)
+    tight_electron_th2d=TH2F("tight_electron_hist","tight_electron_hist",len(electron_etabins)-1,electron_etabins,len(electron_ptbins)-1,electron_ptbins)
 
     loose_electron_th2d.Sumw2()
     tight_electron_th2d.Sumw2()
@@ -252,6 +261,12 @@ if options.finelectrondataname != None:
 
         if entry % int(options.mod) != 0:
             continue
+
+#        if electron_tree.run > run2016E[1] or electron_tree.run < run2016E[0]:
+#            continue
+
+        #if electron_tree.event != 319630862:
+        #    continue
 
         #if not pass_json(electron_tree.run,electron_tree.lumi):
         #    continue
@@ -285,7 +300,8 @@ if options.finelectrondataname != None:
             continue
 
         if electron_tree.electron_4mom.Pt() > 30 and abs(electron_tree.electron_4mom.Eta()) > 2.0:
-            print "andrew debug "+str(electron_tree.run)+" "+str(electron_tree.lumi)+" "+str(electron_tree.event)+" "+str(bool(electron_tree.flags & LepTightSelectionV5))
+            #print "andrew debug "+str(electron_tree.run)+" "+str(electron_tree.lumi)+" "+str(electron_tree.event)+" "+str(bool(electron_tree.flags & LepTightSelectionV5))
+            print "andrew debug "+str(electron_tree.run)+" "+str(electron_tree.lumi)+" "+str(bool(electron_tree.flags & LepTightSelectionV5))
 
         weight = 1
 
@@ -311,7 +327,10 @@ if options.finelectronmcname != None:
 
     #ele12_lumi = 10.57/1000.0
     #ele33_lumi = 4.98/1000.0
-    ele12_lumi = 5/1000.0
+    #ele12_lumi = 5/1000.0
+    #ele12_lumi=35.9*0.0008
+    #ele12_lumi=35.9*0.0006
+    ele12_lumi=35.9*0.0005    
     
     finelectronmc = TFile(options.finelectronmcname)
     electron_mc_tree=finelectronmc.Get("loose_electrons")
