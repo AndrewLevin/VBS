@@ -85,6 +85,8 @@ def getVariable(cfg,t):
         return (t.jet1+t.jet2).M()
     elif cfg["variable"] == "mll":
         return (t.lep1+t.lep2).M()
+    elif cfg["variable"] == "mlljj":
+        return (t.lep1+t.lep2+t.jet1+t.jet2).M()
     elif cfg["variable"] == "met":
         return t.metpt
     elif cfg["variable"] == "detajj":

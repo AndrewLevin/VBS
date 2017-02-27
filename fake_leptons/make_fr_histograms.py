@@ -16,6 +16,7 @@ parser.add_option('--electron_mc_input_filename', help='filename of the input mc
 parser.add_option('--muon_mc_input_filename', help='filename of the input mc muon ntuple', dest='finmuonmcname')
 parser.add_option('-o', '--output_filename', help='filename of the output ntuple', dest='foutname', default='my_file.root')
 parser.add_option('--mod', help='only use every mod events', dest='mod', default=1)
+parser.add_option('--debug', help='print out information about the events that pass', dest='debug', default=False)
 
 (options,args) = parser.parse_args()
 
@@ -132,32 +133,34 @@ if options.finmuondataname != None:
 
         #if not ((muon_tree.flags & LepLooseSelectionV4) and (muon_tree.flags & LepLooseSelectionV5)):
             continue
-        if not (muon_tree.flags & LepLooseSelectionV3):
-            continue
+
 
         if abs(muon_tree.muon_4mom.Eta()) > 2.4:
             continue
 
-        if muon_tree.muon_4mom.Pt() > 30 and abs(muon_tree.muon_4mom.Eta()) > 2.0:
+        if options.debug:
             print "andrew debug "+str(muon_tree.run)+" "+str(muon_tree.lumi)+" "+str(muon_tree.event)+" "+str(bool(muon_tree.flags & LepTightSelectionV1))
 
         weight = 1
         #corrected_pt = muon_tree.muon_4mom.Pt() * (1 + max5~(0,(muon_tree.iso - 0.15)))
         corrected_pt = muon_tree.muon_4mom.Pt() 
 
-        if corrected_pt > loose_muon_th2d.GetYaxis().GetBinUpEdge(loose_muon_th2d.GetYaxis().GetNbins()):
-            loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),loose_muon_th2d.GetYaxis().GetBinCenter(loose_muon_th2d.GetYaxis().GetNbins()),weight)
-        else:    
-            loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),corrected_pt,weight)
-        #loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),muon_tree.muon_4mom.Pt())
-
-        #print loose_muon_th2d.Integral()
-
         if (muon_tree.flags & LepTightSelectionV1):
             if corrected_pt > tight_muon_th2d.GetYaxis().GetBinUpEdge(tight_muon_th2d.GetYaxis().GetNbins()):
                 tight_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),tight_muon_th2d.GetYaxis().GetBinCenter(tight_muon_th2d.GetYaxis().GetNbins()),weight)
             else:
                 tight_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),corrected_pt,weight)
+
+        elif (muon_tree.flags & LepLooseSelectionV3):
+            if corrected_pt > loose_muon_th2d.GetYaxis().GetBinUpEdge(loose_muon_th2d.GetYaxis().GetNbins()):
+                loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),loose_muon_th2d.GetYaxis().GetBinCenter(loose_muon_th2d.GetYaxis().GetNbins()),weight)
+            else:    
+                loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),corrected_pt,weight)
+        #loose_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),muon_tree.muon_4mom.Pt())
+
+        #print loose_muon_th2d.Integral()
+
+
         #if muon_tree.pass_full_muon_id:
         #    tight_muon_th2d.Fill(abs(muon_tree.muon_4mom.Eta()),muon_tree.muon_4mom.Pt())
 
@@ -203,8 +206,6 @@ if options.finmuonmcname != None:
         if muon_mc_tree.ptjetaway < 20:
             continue
         
-        if not (muon_mc_tree.flags & LepLooseSelectionV3):
-            continue
 
         if abs(muon_mc_tree.muon_4mom.Eta()) > 2.4:
             continue
@@ -217,11 +218,6 @@ if options.finmuonmcname != None:
         #corrected_pt = muon_mc_tree.muon_4mom.Pt() * (1 + max(0,(muon_mc_tree.iso - 0.15)))
         corrected_pt = muon_mc_tree.muon_4mom.Pt()
 
-        if corrected_pt > loose_muon_th2d.GetYaxis().GetBinUpEdge(loose_muon_th2d.GetYaxis().GetNbins()):
-            loose_muon_th2d.Fill(abs(muon_mc_tree.muon_4mom.Eta()),loose_muon_th2d.GetYaxis().GetBinCenter(loose_muon_th2d.GetYaxis().GetNbins()),-weight)
-        else:    
-            loose_muon_th2d.Fill(abs(muon_mc_tree.muon_4mom.Eta()),corrected_pt,-weight)
-
         #print loose_muon_th2d.Integral()
 
         if (muon_mc_tree.flags & LepTightSelectionV1):
@@ -229,6 +225,15 @@ if options.finmuonmcname != None:
                 tight_muon_th2d.Fill(abs(muon_mc_tree.muon_4mom.Eta()),tight_muon_th2d.GetYaxis().GetBinCenter(tight_muon_th2d.GetYaxis().GetNbins()),-weight)
             else:
                 tight_muon_th2d.Fill(abs(muon_mc_tree.muon_4mom.Eta()),corrected_pt,-weight)
+
+        elif (muon_mc_tree.flags & LepLooseSelectionV3):
+
+            if corrected_pt > loose_muon_th2d.GetYaxis().GetBinUpEdge(loose_muon_th2d.GetYaxis().GetNbins()):
+                loose_muon_th2d.Fill(abs(muon_mc_tree.muon_4mom.Eta()),loose_muon_th2d.GetYaxis().GetBinCenter(loose_muon_th2d.GetYaxis().GetNbins()),-weight)
+            else:    
+                loose_muon_th2d.Fill(abs(muon_mc_tree.muon_4mom.Eta()),corrected_pt,-weight)
+
+
 
 #tight_muon_th2d.Print("all")
 #loose_muon_th2d.Print("all")
@@ -293,33 +298,37 @@ if options.finelectrondataname != None:
     #if electron_tree.nearestparton_pdgid != 5:
     #    continue    
 
-        if not (electron_tree.flags & LepLooseSelectionV2):
-            continue
 
         if abs(electron_tree.electron_4mom.Eta()) > 2.5:
             continue
 
-        if electron_tree.electron_4mom.Pt() > 30 and abs(electron_tree.electron_4mom.Eta()) > 2.0:
+        weight = 1
+
+        if not (electron_tree.flags & PassTriggerV1):
+            continue
+
+        if options.debug:
             #print "andrew debug "+str(electron_tree.run)+" "+str(electron_tree.lumi)+" "+str(electron_tree.event)+" "+str(bool(electron_tree.flags & LepTightSelectionV5))
             print "andrew debug "+str(electron_tree.run)+" "+str(electron_tree.lumi)+" "+str(bool(electron_tree.flags & LepTightSelectionV5))
-
-        weight = 1
 
         #use the xsWeight if it exists, otherwise all events have weight 1
         if type(electron_tree.GetListOfBranches().FindObject("xsWeight")) == TBranch:
             weight = electron_tree.xsWeight
 
-        if electron_tree.electron_4mom.Pt() > loose_electron_th2d.GetYaxis().GetBinUpEdge(loose_electron_th2d.GetYaxis().GetNbins()):
-            loose_electron_th2d.Fill(abs(electron_tree.electron_4mom.Eta()),loose_electron_th2d.GetYaxis().GetBinCenter(loose_electron_th2d.GetYaxis().GetNbins()),weight)
-        else:
-            loose_electron_th2d.Fill(abs(electron_tree.electron_4mom.Eta()),electron_tree.electron_4mom.Pt(),weight)
-#    loose_electron_th2d.Fill(electron_tree.electron_4mom.Eta(),electron_tree.electron_4mom.Pt())
-
         if (electron_tree.flags & LepTightSelectionV5):
+
             if electron_tree.electron_4mom.Pt() > tight_electron_th2d.GetYaxis().GetBinUpEdge(tight_electron_th2d.GetYaxis().GetNbins()):
                 tight_electron_th2d.Fill(abs(electron_tree.electron_4mom.Eta()),tight_electron_th2d.GetYaxis().GetBinCenter(tight_electron_th2d.GetYaxis().GetNbins()),weight)
             else:    
                 tight_electron_th2d.Fill(abs(electron_tree.electron_4mom.Eta()),electron_tree.electron_4mom.Pt(),weight)
+        elif (electron_tree.flags & LepLooseSelectionV2):
+            if electron_tree.electron_4mom.Pt() > loose_electron_th2d.GetYaxis().GetBinUpEdge(loose_electron_th2d.GetYaxis().GetNbins()):
+                loose_electron_th2d.Fill(abs(electron_tree.electron_4mom.Eta()),loose_electron_th2d.GetYaxis().GetBinCenter(loose_electron_th2d.GetYaxis().GetNbins()),weight)
+            else:
+                loose_electron_th2d.Fill(abs(electron_tree.electron_4mom.Eta()),electron_tree.electron_4mom.Pt(),weight)
+#    loose_electron_th2d.Fill(electron_tree.electron_4mom.Eta(),electron_tree.electron_4mom.Pt())
+
+
 #    if electron_tree.pass_full_electron_id:
 #        tight_electron_th2d.Fill(electron_tree.electron_4mom.Eta(),electron_tree.electron_4mom.Pt())  
 
@@ -360,8 +369,6 @@ if options.finelectronmcname != None:
         if electron_mc_tree.ptjetaway < 30:
             continue
 
-        if not (electron_mc_tree.flags & LepLooseSelectionV2):
-            continue
 
         if abs(electron_mc_tree.electron_4mom.Eta()) > 2.5:
             continue
@@ -371,17 +378,24 @@ if options.finelectronmcname != None:
         if electron_mc_tree.gen_weight < 0:
             weight = -weight         
 
-        if electron_mc_tree.electron_4mom.Pt() > loose_electron_th2d.GetYaxis().GetBinUpEdge(loose_electron_th2d.GetYaxis().GetNbins()):
-            loose_electron_th2d.Fill(abs(electron_mc_tree.electron_4mom.Eta()),loose_electron_th2d.GetYaxis().GetBinCenter(loose_electron_th2d.GetYaxis().GetNbins()),-weight)
-        else:
-            loose_electron_th2d.Fill(abs(electron_mc_tree.electron_4mom.Eta()),electron_mc_tree.electron_4mom.Pt(),-weight)
-
+        if not (electron_mc_tree.flags & PassTriggerV1):
+            continue
 
         if (electron_mc_tree.flags & LepTightSelectionV5):
+
             if electron_mc_tree.electron_4mom.Pt() > tight_electron_th2d.GetYaxis().GetBinUpEdge(tight_electron_th2d.GetYaxis().GetNbins()):
                 tight_electron_th2d.Fill(abs(electron_mc_tree.electron_4mom.Eta()),tight_electron_th2d.GetYaxis().GetBinCenter(tight_electron_th2d.GetYaxis().GetNbins()),-weight)
             else:    
                 tight_electron_th2d.Fill(abs(electron_mc_tree.electron_4mom.Eta()),electron_mc_tree.electron_4mom.Pt(),-weight)
+        elif (electron_mc_tree.flags & LepLooseSelectionV2):
+
+            if electron_mc_tree.electron_4mom.Pt() > loose_electron_th2d.GetYaxis().GetBinUpEdge(loose_electron_th2d.GetYaxis().GetNbins()):
+                loose_electron_th2d.Fill(abs(electron_mc_tree.electron_4mom.Eta()),loose_electron_th2d.GetYaxis().GetBinCenter(loose_electron_th2d.GetYaxis().GetNbins()),-weight)
+            else:
+                loose_electron_th2d.Fill(abs(electron_mc_tree.electron_4mom.Eta()),electron_mc_tree.electron_4mom.Pt(),-weight)
+
+
+
 
 
 fout.cd()
@@ -391,6 +405,8 @@ if options.finmuondataname != None or options.finmuonmcname != None:
     tight_muon_th2d.Clone().Write()
     loose_muon_th2d.Clone().Write()
 
+    loose_muon_th2d.Add(tight_muon_th2d)
+
     tight_muon_th2d.Divide(loose_muon_th2d)
     tight_muon_th2d.Clone("muon_frs").Write()
 
@@ -398,6 +414,8 @@ if options.finelectrondataname != None or options.finelectronmcname != None:
 
     tight_electron_th2d.Clone().Write()
     loose_electron_th2d.Clone().Write()
+
+    loose_electron_th2d.Add(tight_electron_th2d)
     
     tight_electron_th2d.Divide(loose_electron_th2d)
 #tight_electron_th2d.Draw("lego")

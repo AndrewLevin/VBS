@@ -150,16 +150,16 @@ draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,fake,"fake","f")
 #j=j+1
 #draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,zjets,"z+jets","f")
 j=j+1
-draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wzjj,"wzjj ewk+qcd","f")
+draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wzjj,"WZJJ","f")
 #j=j+1
 #draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wjwjdps,"wjwj dps","f")
 #j=j+1
 #draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjqcd,"wpwpjj qcd","f")
 
 j=j+1
-draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wgjets,"wgjj ewk+qcd","f")
+draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wgjets,"WGJJ","f")
 j=j+1
-draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjewkqcd,"wpwpjj ewk+qcd","l")
+draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjewkqcd,"WWJJ","l")
 #j=j+1
 #draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,data,"data","lp")
 

@@ -7,6 +7,8 @@ parser = optparse.OptionParser()
 parser.add_option('--lumi',dest='lumi')
 
 parser.add_option('-i',dest='inputfile')
+parser.add_option('--xaxislabel',dest='xaxislabel',default='m_{jj}')
+
 
 (options,args) = parser.parse_args()
 
@@ -120,6 +122,7 @@ hsum.Scale(0.0)
 hstack.Add(fake)
 #hstack.Add(zjets)
 hstack.Add(wpwpjjqcd)
+hstack.Add(wpwpjjewk)
 #hstack.Add(wjwjdps)
 #hstack.Add(ttbar)
 hstack.Add(wzjjewk)
@@ -129,13 +132,14 @@ hstack.Add(wgjets)
 hsum.Add(fake)
 #hsum.Add(zjets)
 hsum.Add(wpwpjjqcd)
+hsum.Add(wpwpjjewk)
 #hsum.Add(wjwjdps)
 #hsum.Add(ttbar)
 hsum.Add(wzjjewk)
 hsum.Add(wzjjqcd)
 hsum.Add(wgjets)
 
-ymax = max(hstack.GetMaximum(),wpwpjjewk.GetMaximum())
+ymax = max(hstack.GetMaximum(),data.GetMaximum())
 
 hstack.SetMaximum(1.55 * ymax)
 
@@ -159,7 +163,7 @@ cmslabel.Draw ("same")
 
 lumilabel.Draw("same")
 
-wpwpjjewk.Draw("same")
+#wpwpjjewk.Draw("same")
 
 j=0
 draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,fake,"fake","f")
@@ -172,13 +176,13 @@ draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjqcd,"WWJJ QCD","f")
 j=j+1
 draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wgjets,"WGJJ","f")
 j=j+1
-draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjewk,"WWJJ","l")
+draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjewk,"WWJJ","f")
 j=j+1
 draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,data,"data","lp")
 
 data.Draw("same")
 
-set_axis_fonts(hstack,"x","m_{jj} (GeV)")
+set_axis_fonts(hstack,"x",options.xaxislabel)
 #set_axis_fonts(hstack,"x","|\eta_{jj}|")
 #set_axis_fonts(hstack,"x","pt_{l}^{max} (GeV)")
 set_axis_fonts(hstack,"y","Events / bin")

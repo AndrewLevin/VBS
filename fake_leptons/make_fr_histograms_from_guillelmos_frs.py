@@ -44,5 +44,8 @@ electron_frs.Print("all")
 
 f=TFile("frs_guillelmo_v1.root","recreate")
 
+muon_frs.SetStats(0)
+electron_frs.SetStats(0)
+
 muon_frs.Write()
 electron_frs.Write()

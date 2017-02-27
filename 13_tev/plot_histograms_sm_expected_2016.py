@@ -5,6 +5,7 @@ import optparse
 parser = optparse.OptionParser()
 
 parser.add_option('--lumi',dest='lumi')
+parser.add_option('--xaxislabel',dest='xaxislabel',default='m_{jj}')
 
 parser.add_option('-i',dest='inputfile')
 
@@ -149,7 +150,8 @@ lumilabel.SetTextSize (0.040)
 
 hstack.Draw("hist")
 
-cmslabel = TLatex (0.18, 0.93, "#bf{CMS} (Unpublished)")
+#cmslabel = TLatex (0.18, 0.93, "#bf{CMS} (Unpublished)")
+cmslabel = TLatex (0.18, 0.93, "")
 cmslabel.SetNDC ()
 cmslabel.SetTextAlign (10)
 cmslabel.SetTextFont (42)
@@ -181,8 +183,9 @@ draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjewk,"WWJJ","l")
 
 #data.Draw("same")
 
-set_axis_fonts(hstack,"x","m_{jj} (GeV)")
-#set_axis_fonts(hstack,"x","|\eta_{jj}|")
+#set_axis_fonts(hstack,"x","m_{ll} (GeV)")
+#set_axis_fonts(hstack,"x","|\Delta \eta_{jj}|")
+set_axis_fonts(hstack,"x",options.xaxislabel)
 #set_axis_fonts(hstack,"x","pt_{l}^{max} (GeV)")
 set_axis_fonts(hstack,"y","Events / bin")
 

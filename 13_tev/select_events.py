@@ -54,13 +54,15 @@ if cfg["variable"] == "mjj":
             binning=array('f',[0,100,200,300,400,500,700,1100,1600,2000])
             hist = TH1F('mjj', 'mjj',9, binning )
     elif cfg["mode"] == "produce_histograms":
-        binning=array('f',[500,700,1100,1600,2000])
-        hist = TH1F('mjj', 'mjj',4, binning )
-        #binning=array('f',[0,100,200,300,400,500,700,1100,1600,2000])
-        #hist = TH1F('mjj', 'mjj',9, binning )        
+        #binning=array('f',[500,700,1100,1600,2000])
+        #hist = TH1F('mjj', 'mjj',4, binning )
+        binning=array('f',[0,100,200,300,400,500,700,1100,1600,2000])
+        hist = TH1F('mjj', 'mjj',9, binning )        
     else:
         #hist = TH1F('mjj', 'mjj', 4, 100., 500 )        
-        binning=array('f',[500,700,1100,1600,2000])
+        #binning=array('f',[500,700,1100,1600,2000])
+        binning=array('f',[500,800,1100,1500,2000])
+        #binning=array('f',[500,800,1200,1700,2000])
         hist = TH1F('mjj', 'mjj',4, binning )
     #hist = TH1F('mjj', 'mjj', 35, 0., 200 )
     #hist = TH1F('mjj', 'mjj', 35, 0., 3000 )
@@ -77,9 +79,11 @@ elif cfg["variable"] == "mll":
     #hist = TH1F('mll', 'mll', 35, 0., 5000)
     hist.GetXaxis().SetTitle("m_{ll} (GeV)")
 elif cfg["variable"] == "met":
-    hist = TH1F('met', 'met', 35, 0., 200 )
+    hist = TH1F('met', 'met', 18 , 20., 200 )
+elif cfg["variable"] == "mlljj":
+    hist = TH1F('mlljj', 'mlljj', 15 , 500., 2000 )    
 elif cfg["variable"] == "detajj":
-    hist = TH1F('detajj', 'detajj', 35, 0., 5 )
+    hist = TH1F('detajj', 'detajj', 10, 2.5, 7.5 )
 elif cfg["variable"] == "maxbtagevent":
     hist = TH1F('maxbtagevent', 'maxbtagevent', 35, -1., 1 )
 elif cfg["variable"] == "jet2btag":
@@ -99,7 +103,7 @@ backgrounds = []
 
 hist.Sumw2()
 
-assert(cfg["which_selection"] == "relaxed" or cfg["which_selection"] == "full" or cfg["which_selection"] == "full_novbs" or cfg["which_selection"] == "relaxed_btagged")
+assert(cfg["which_selection"] == "relaxed" or cfg["which_selection"] == "full" or cfg["which_selection"] == "full_novbs" or cfg["which_selection"] == "relaxed_btagged" or cfg["which_selection"] == "full_btagged")
 
 if cfg["mode"] == "reweighted_v1" or cfg["mode"] == "reweighted_v2":
     if "datacard" in cfg:
@@ -302,7 +306,11 @@ if cfg["mode"] == "sm_low_mjj_control_region":
     #hist_signal=hist.Clone()
     
     #signal_fname=cfg["signal_file"]
-    backgrounds_info=cfg["background_file"]
+
+    if "background_file" in cfg:
+        backgrounds_info=cfg["background_file"]
+    else:
+        backgrounds_info = []
 
     c=TCanvas("c", "c",0,0,600,500)
     c.Range(0,0,1,1)
@@ -310,6 +318,8 @@ if cfg["mode"] == "sm_low_mjj_control_region":
     #f_signal=TFile(signal_fname)
 
     #tree_signal=f_signal.Get("events")
+
+    hist_background=hist.Clone()
 
     #signal=histogram_fillers.fillHistogram(cfg,tree_signal,hist_signal)
     for background_info in backgrounds_info:
@@ -329,7 +339,7 @@ if cfg["mode"] == "sm_low_mjj_control_region":
     data_fname=cfg["data_file"]
     f_data = TFile(data_fname)
     tree_data = f_data.Get("events")
-    data=histogram_fillers.fillHistogram(cfg,tree_data,hist_data,is_data=True)
+    data=histogram_fillers.fillHistogram(cfg,tree_data,hist_data,is_data=True,debug=True)
 
     fake_muons = hist.Clone()
     fake_electrons = hist.Clone()
@@ -376,6 +386,11 @@ if cfg["mode"] == "produce_histograms":
     else:
         fake_samples_info = []
 
+    if "fakeratemc_sample_file" in cfg:
+        fakeratemc_samples_info=cfg["fakeratemc_sample_file"]
+    else:
+        fakeratemc_samples_info = []        
+
     if "data_sample_file" in cfg:
         data_samples_info=cfg["data_sample_file"]    
     else:
@@ -389,6 +404,23 @@ if cfg["mode"] == "produce_histograms":
     data_samples = []    
 
     fake_samples = []
+
+    fakeratemc_samples = []
+
+
+    for fakeratemc_sample_info in fakeratemc_samples_info:
+        f_fakeratemc_sample=TFile(fakeratemc_sample_info[0])
+        gROOT.cd() #without this, hist_background gets written into a file that goes out of scope
+
+        tree_fakeratemc_sample=f_fakeratemc_sample.Get("events")
+        hist_fakeratemc_sample=hist.Clone()
+        
+        fake_muons = hist.Clone()
+        fake_electrons = hist.Clone()
+
+        return_hists=histogram_fillers.fillHistogramFake(cfg,tree_fakeratemc_sample,hist_fakeratemc_sample,fake_muons,fake_electrons,applying_to_ttbar_mc=True)
+
+        fakeratemc_samples.append(return_hists)
 
     for fake_sample_info in fake_samples_info:
         f_fake_sample=TFile(fake_sample_info[0])
@@ -410,7 +442,7 @@ if cfg["mode"] == "produce_histograms":
         tree_mc_sample=f_mc_sample.Get("events")
         hist_mc_sample=hist.Clone()
 
-        return_hists = histogram_fillers.fillHistogram(cfg,tree_mc_sample,hist_mc_sample)
+        return_hists = histogram_fillers.fillHistogram(cfg,tree_mc_sample,hist_mc_sample,debug=True)
 
         mc_samples.append(return_hists)
 
@@ -424,6 +456,6 @@ if cfg["mode"] == "produce_histograms":
 
         data_samples.append(return_hists)
 
-    write_results.write_produce_histograms(cfg,hist,mc_samples,mc_samples_info,fake_samples, data_samples)
+    write_results.write_produce_histograms(cfg,hist,mc_samples,mc_samples_info,fake_samples, data_samples,fakeratemc_samples)
 
 

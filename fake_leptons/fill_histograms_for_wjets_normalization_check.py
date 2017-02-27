@@ -97,7 +97,10 @@ if options.finmuondataname != None:
 if options.finmuonmcname != None:
 
     #mu17_lumi = 182.88/1000.0
-    mu17_lumi = 100.00/1000.0
+    #mu17_lumi = 100.00/1000.0
+
+    #mu17_lumi = 36*0.007
+    mu17_lumi = 35.9
     
     finmuonmc = TFile(options.finmuonmcname)
     muon_mc_tree=finmuonmc.Get("loose_muons")
@@ -124,7 +127,7 @@ if options.finmuonmcname != None:
         #if mt > 30:
         #    continue
 
-        if not (muon_mc_tree.flags & LepTightSelectionV5):
+        if not (muon_mc_tree.flags & LepTightSelectionV1):
             continue
 
         if abs(muon_mc_tree.muon_4mom.Eta()) > 2.5:
@@ -183,7 +186,9 @@ if options.finelectrondataname != None:
 
 if options.finelectronmcname != None:
 
-    ele12_lumi = 5/1000.0
+    #ele12_lumi = 35.9
+    ele12_lumi = 35.9 * 0.0005
+    #ele12_lumi = 5/1000.0
     #ele33_lumi = 4.98/1000.0
     
     finelectronmc = TFile(options.finelectronmcname)

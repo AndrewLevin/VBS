@@ -749,10 +749,16 @@ def write_fr_closure_test(cfg,ttbar,ttbar_qcd_fr):
     
     ttbar_qcd_fr["hist_central"].Clone("ttbar_qcd_fr").Write()
 
-def write_produce_histograms(cfg,hist,mc_samples,mc_samples_info,fake_samples, data_samples):
+def write_produce_histograms(cfg,hist,mc_samples,mc_samples_info,fake_samples, data_samples,fakeratemc_samples):
     outfile=TFile(cfg["outfile"],"recreate")
 
     outfile.cd()
+
+    for i in range(0,len(fakeratemc_samples)):
+
+        if "cutflow_histograms" in fakeratemc_samples[i]:
+            for j in range(0,len(fakeratemc_samples[i]["cutflow_histograms"])):
+                fakeratemc_samples[i]["cutflow_histograms"][j].Clone("fakeratemc_sample"+str(i)+"_cut"+str(j)).Write()
 
     for i in range(0,len(mc_samples)):
         if "cutflow_histograms" in mc_samples[i]:

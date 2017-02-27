@@ -80,7 +80,7 @@ def passSelectionExceptLeptonIDs(t,cfg):
     else:
         mask = mask | (1 << 4)
 
-    if (t.lep1+t.lep2).mass() < 50:
+    if (t.lep1+t.lep2).mass() < 20:
         p=False
     else:
         mask = mask | (1 << 5)
@@ -95,16 +95,31 @@ def passSelectionExceptLeptonIDs(t,cfg):
     else:
         mask = mask | (1 << 7)
 
-    #print t.maxbtagevent
-
-    #if t.maxbtagevent > 0.45:
-    if t.maxbtagevent > 0.5426:
-    #if t.maxbtagevent > 0.56:
-    #if t.maxbtagevent > 0.8:
-    #if False:        
+    #if (t.flags & WLLJJVetoV5):
+    if False:        
         p=False
     else:
-        mask = mask | (1 << 8)
+        mask = mask | (1 << 12)
+
+    #
+
+    if  cfg["which_selection"] == "full_btagged":
+        if not (t.maxbtagevent > 0.8484 or (t.flags & WLLJJVetoV5)):
+            p=False
+        else:
+            mask = mask | (1 << 8)
+    else:        
+        if (t.maxbtagevent > 0.8484 or (t.flags & WLLJJVetoV5)):
+            p=False
+        else:
+            mask = mask | (1 << 8)            
+    if (t.maxbtagevent > 0.8484 or (t.flags & WLLJJVetoV5)):
+    #if t.maxbtagevent < 0.8484:        
+    #if t.maxbtagevent > 0.5426:
+    #if t.maxbtagevent > 0.56:
+    #if t.maxbtagevent > 0.7:
+    #if False:        
+
 
     if (t.flags & WLLJJVetoV10):
 #    if (t.flags & WLLJJVetoV1):
@@ -128,14 +143,13 @@ def passSelectionExceptLeptonIDs(t,cfg):
     else:
         mask = mask | (1 << 11)
 
-    if (t.flags & WLLJJVetoV5):
-    #if False:        
-        p=False
-    else:
-        mask = mask | (1 << 12)
 
     if cfg["mode"] == "sm_low_mjj_control_region":
         if (t.jet1+t.jet2).M() > 500:
+            p=False
+        if abs(t.jet1.Eta() - t.jet2.Eta()) < 2.5:
+            p=False
+        if max(abs(t.lep1.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta()),abs(t.lep2.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta())) > 0.75:
             p=False
     elif cfg["mode"] == "fr_closure_test":
         if cfg["which_selection"] == "full":
@@ -149,18 +163,23 @@ def passSelectionExceptLeptonIDs(t,cfg):
         else:
             assert(0)
     else:
-        if (t.jet1+t.jet2).M() < 500:
-            p=False
-        else:
-            mask = mask | (1 << 13) 
-        if abs(t.jet1.Eta() - t.jet2.Eta()) < 2.5:
-            p=False
-        else:
+        if cfg["which_selection"] == "full_novbs":
+            mask = mask | (1 << 13)
             mask = mask | (1 << 14)
-        if max(abs(t.lep1.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta()),abs(t.lep2.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta())) > 0.75:
-            p=False
+            mask = mask | (1 << 15) 
         else:
-            mask = mask | (1 << 15)
+            if (t.jet1+t.jet2).M() < 500:
+                p=False
+            else:
+                mask = mask | (1 << 13) 
+            if abs(t.jet1.Eta() - t.jet2.Eta()) < 2.5:
+                p=False
+            else:
+                mask = mask | (1 << 14)
+            if max(abs(t.lep1.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta()),abs(t.lep2.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta())) > 0.75:
+                p=False
+            else:
+                mask = mask | (1 << 15)
 
     if (t.flags & WLLJJVetoV9):
     #if False:        
@@ -170,9 +189,9 @@ def passSelectionExceptLeptonIDs(t,cfg):
 
     #if not (t.flags & PassTriggerV6):
     #if not (t.flags & PassTriggerV3):
-    if not (t.flags & PassTriggerV2):
+    #if not (t.flags & PassTriggerV2):
     #if not (t.flags & PassTriggerV1):
-    #if False:        
+    if False:        
         p=False
     else:
         mask = mask | (1 << 17)        
