@@ -23,7 +23,7 @@ data_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/run2016_v42_ss.root
 
 lumi=36.15
 
-variable=lep2pt
+variable=mjj
 
 outfile=histograms_2016.root
 

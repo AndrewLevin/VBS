@@ -1,24 +1,19 @@
 mode=sm_low_mjj_control_region
 
-fr_fname=/home/anlevin/VBS/fake_leptons/frs_v300_subtract_wjets.root
+#fr_fname=/home/anlevin/VBS/fake_leptons/frs_v800_subtract_wjets.root
+fr_fname=/home/anlevin/VBS/fake_leptons/frs_guillelmo_v1.root
 
 which_selection=full
 
-#background_file=filename,process name,qcd uncertainty mode, pdf uncertainty mode
-#background_file=/data/blue/anlevin/ntuples/wpwpjj_qcd_v101.root,wpwpjjqcd,none
-#background_file=/data/blue/anlevin/ntuples/wpwpjj_qcd_v15.root,wpwpjjqcd,syscalc
-background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wzjj_highmll_nominal_v10.root,wzjj,syscalc
-#background_file=/data/blue/anlevin/ntuples/ttbar_v25.root,ttbar,none
-#background_file=/data/blue/anlevin/ntuples/wjwj-dps_v101.root,wjwjdps,none
-background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wgjets_v6.root,wgjets,none
-#background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wgjj_nominal_v10.root,wgjets,syscalc
-background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_ewk_qcd_v6.root,wpwpjjewkqcd,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wlljj_ewk_nominal_80x_v20.root,wzjj-ewk,syscalc
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wz_inclusive_powheg_80X_v20.root,wzjj-qcd,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wgjets_v20.root,wgjets,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_qcd_nominal_80x_v20.root,wpwpjjqcd,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_ewk_nominal_80x_v20.root,wpwpjjewk,none
 
-#signal_file=/data/blue/anlevin/ntuples/wpwpjj_ewk_qcd_v200.root
+data_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/run2016_v42_ss.root
 
-data_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/run2016_v10_ss.root
-
-lumi=12.9
+lumi=36.15
 
 variable=mjj
 
@@ -26,6 +21,6 @@ outfile=histograms.root
 
 datacard_base=datacard_2016
 
-channel=em
+channel=all
 
 charge=both
