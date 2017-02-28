@@ -113,7 +113,7 @@ def passSelectionExceptLeptonIDs(t,cfg):
             p=False
         else:
             mask = mask | (1 << 8)            
-    if (t.maxbtagevent > 0.8484 or (t.flags & WLLJJVetoV5)):
+    #if (t.maxbtagevent > 0.8484 or (t.flags & WLLJJVetoV5)):
     #if t.maxbtagevent < 0.8484:        
     #if t.maxbtagevent > 0.5426:
     #if t.maxbtagevent > 0.56:
