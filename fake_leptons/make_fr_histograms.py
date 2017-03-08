@@ -141,7 +141,10 @@ if options.finmuondataname != None:
         if options.debug:
             print "andrew debug "+str(muon_tree.run)+" "+str(muon_tree.lumi)+" "+str(muon_tree.event)+" "+str(bool(muon_tree.flags & LepTightSelectionV1))
 
-        weight = 1
+        if type(muon_tree.GetListOfBranches().FindObject("xsWeight")) == TBranch:
+            weight = muon_tree.xsWeight
+        else:
+            weight = 1
         #corrected_pt = muon_tree.muon_4mom.Pt() * (1 + max5~(0,(muon_tree.iso - 0.15)))
         corrected_pt = muon_tree.muon_4mom.Pt() 
 
@@ -302,7 +305,10 @@ if options.finelectrondataname != None:
         if abs(electron_tree.electron_4mom.Eta()) > 2.5:
             continue
 
-        weight = 1
+        if type(electron_tree.GetListOfBranches().FindObject("xsWeight")) == TBranch:
+            weight = electron_tree.xsWeight
+        else:
+            weight = 1
 
         if not (electron_tree.flags & PassTriggerV1):
             continue

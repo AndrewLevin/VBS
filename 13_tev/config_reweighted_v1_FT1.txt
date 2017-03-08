@@ -1,19 +1,26 @@
 mode=reweighted_v1
 
-fr_fname=/home/anlevin/VBS/fake_leptons/frs_v300_subtract_wjets.root
+fr_fname=/home/anlevin/VBS/fake_leptons/frs_guillelmo_v1.root
 
 which_selection=full
 
-background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wzjj_highmll_v1.root,wzjj,none
-background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wgjj_v1.root,wgjets,none
 
-data_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/run2016_v6_ss.root
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wlljj_ewk_nominal_80x_v20.root,wzjjewk,syscalc
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wz_inclusive_powheg_80X_v20.root,wzjjqcd,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_qcd_nominal_80x_v20.root,wpwpjjqcd,syscalc
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wjwj-dps_v20.root,wjwjdps,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wgjj_nominal_v20.root,wgjets,syscalc
 
-reweighted_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_ewk_qcd_dim8_v3.root
+#background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wzjj_highmll_v1.root,wzjj,none
+#background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wgjj_v1.root,wgjets,none
+
+data_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/run2016_v42_ss.root
+
+reweighted_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_ewk_dim8_v20.root
 
 reweighted_output_fname=dim8_FT1_scaling.root
 
-lumi=12.9
+lumi=36.15
 
 variable=mll
 

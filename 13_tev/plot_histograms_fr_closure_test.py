@@ -57,8 +57,8 @@ gROOT.cd()
 
 c1 = TCanvas("c1", "c1",5,50,500,500);
 
-ttbar = hist_file.Get("ttbar").Clone()
-ttbar_qcd_fr = hist_file.Get("ttbar_qcd_fr").Clone()
+ttbar = hist_file.Get("ttbar_cut17").Clone()
+ttbar_qcd_fr = hist_file.Get("fakeratemc_sample0_cut17").Clone()
 
 ttbar.SetLineColor(kBlack)
 ttbar_qcd_fr.SetLineColor(kMagenta)
@@ -77,7 +77,7 @@ ttbar.SetStats(kFALSE)
 
 ttbar.Draw()
 
-s="2.22 fb^{-1} (13 TeV)"
+s="36.15 fb^{-1} (13 TeV)"
 lumilabel = TLatex (0.95, 0.93, s)
 lumilabel.SetNDC ()
 lumilabel.SetTextAlign (30)

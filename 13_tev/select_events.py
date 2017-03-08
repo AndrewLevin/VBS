@@ -191,7 +191,7 @@ if cfg["mode"] == "reweighted_v1" or cfg["mode"] == "reweighted_v2":
     #scale each of the parameter values so that they are in units of TeV^-4
     for i in range(0,len(oneD_grid_points)):
         oneD_grid_points[i] = oneD_grid_points[i]*pow(10,int(cfg["units_conversion_exponent"]))
-        
+
     for i in range(0,len(oneD_grid_points)):
         if oneD_grid_points[i] == 0:
             sm_lhe_weight = i

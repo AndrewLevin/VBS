@@ -134,8 +134,10 @@ def write_reweighted_mode_v1(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,
 
     outfile.cd()
 
-    for background in backgrounds:
-        background["hist_central"].Write()
+    fake["hist_central"].Clone("fake").Write()
+
+    for i in range(0,len(backgrounds)):
+        backgrounds[i]["hist_central"].Write(backgrounds_info[i][1])
 
     for i in range(0,len(aqgc_histos)):
         aqgc_histos[i].Write()

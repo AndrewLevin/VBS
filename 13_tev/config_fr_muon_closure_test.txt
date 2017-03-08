@@ -1,6 +1,6 @@
 mode=fr_closure_test
 
-which_selection=relaxed_btagged
+which_selection=full_novbs
 
 ttbar_fname=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/ttbar_v2_ss.root
 

@@ -339,9 +339,9 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
 
     gROOT.cd()
 
-    ncuts = 17
+    ncuts = 18
     cutflow_histograms = []
-    for i in range(0,17):
+    for i in range(0,18):
         cutflow_histograms.append(hist.Clone())
 
     #these need to be accessed in the muonfakerate and electronfakerate functions

@@ -1,11 +1,16 @@
 from ROOT import *
 
+
+
 f = TFile("histograms_2016.root","read")
 
-n_expected_signal_no_cuts=0.05004*2.215*1000
-n_expected_wzjj_no_cuts=0.5049*2.215*1000
-n_expected_wgjets_no_cuts=5.661*2.215*1000
-#n_expected_ttbar_no_cuts=700*2.215*1000
+
+lumi = 36.15*1000
+
+n_expected_signal_no_cuts=0.05004*lumi
+n_expected_wzjj_no_cuts=0.5049*lumi
+n_expected_wgjets_no_cuts=5.661*lumi
+#n_expected_ttbar_no_cuts=700*lumi
 
 n_expected_signal_no_cuts_str="%.2f" % n_expected_signal_no_cuts
 n_expected_wzjj_no_cuts_str="%.2f" % n_expected_wzjj_no_cuts
@@ -24,10 +29,15 @@ print "\\hline"
 
 print "\\hline"
 
-
 print "no cuts & "+n_expected_signal_no_cuts_str + " & "+n_expected_wzjj_no_cuts_str + " & "+n_expected_wgjets_no_cuts_str + " & " + "\\\\"
 
-for i in range(0,15):
+cut_names = ["" , "" , ""  , "lepton selections" , "trigger" , "lepton $p_T$","$m_{ll} > 20$" , "MET" ,  "lepton charge",   "anti-b-tagging"  ,  "extra electron"  , "extra muon, $|m_{mm} - m_Z| < 15$", "extra electron, $|m_{ee} - m_{Z}| < 15$",  "$\\tau_h$"  ,  "$|m_{ee} - m_{Z}| < 15$" ,  "$m_{jj}$"  , "$|\\Delta \\eta_{jj}|$", "$\\left.\\text{max}\\left(\\left| \\eta^{l_1} - \\frac{\\eta^{j_2} + \\eta^{j_2}}{2}\\right| ,\\left|  \\eta^{l_2} - \\frac{\\eta^{j_2} + \\eta^{j_2}}{2} \\right|  \\right) \\right/\\left|\\Delta \\eta_{jj} \\right| $ "  ]
+
+for i in range(0,18):
+
+    if i == 0 or i == 1 or i == 2:
+        continue
+    
     h_signal=f.Get("signal_cut"+str(i))
     h_wzjj=f.Get("wzjjewk_cut"+str(i))
     h_wgjets=f.Get("wgjets_cut"+str(i))
@@ -39,7 +49,7 @@ for i in range(0,15):
     wgjets="%.2f" % h_wgjets.Integral(0,5)
     #ttbar="%.2f" % h_ttbar.Integral(0,5)
     fake ="%.2f" % h_fake.Integral(0,5)
-    print "cut "+str(i)+" & "+signal+" & "+wzjj +" & " + wgjets+ " & " + fake + " \\\\"
+    print cut_names[i]+" & "+signal+" & "+wzjj +" & " + wgjets+ " & " + fake + " \\\\"
 
 print "\hline"
 
