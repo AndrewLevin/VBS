@@ -1,5 +1,9 @@
 import selection
 
+import eff_scale_factor
+
+import sys
+
 import parse_reweight_info
 
 from ROOT import *
@@ -17,8 +21,8 @@ pass_mask =  (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (
 
 pass_mask_w_o_lepton_ids =   (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7) | (1 << 8) | (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13) | (1 << 14) | (1 << 15) | (1 << 16) | (1 << 17)
 
-lep2_tight_electron_mask = Lep2TightSelectionV5
-lep1_tight_electron_mask = Lep1TightSelectionV5
+lep2_tight_electron_mask = Lep2TightSelectionV4
+lep1_tight_electron_mask = Lep1TightSelectionV4
 
 #lep1_loose_muon_mask = Lep1LooseSelectionV4
 #lep2_loose_muon_mask = Lep2LooseSelectionV4
@@ -42,7 +46,7 @@ def muonfakerate(eta,pt,syst):
 
     myeta  = min(abs(eta),2.4999)
     #mypt   = min(pt,69.999)
-    mypt   = min(pt,34.999)
+    mypt   = min(pt,44.999)
 
     etabin = muon_fr_hist.GetXaxis().FindFixBin(myeta)
     ptbin = muon_fr_hist.GetYaxis().FindFixBin(mypt)
@@ -62,7 +66,7 @@ def muonfakerate(eta,pt,syst):
 def electronfakerate(eta,pt,syst):
 
     myeta  = min(abs(eta),2.4999)
-    mypt   = min(pt,34.999)
+    mypt   = min(pt,44.999)
 
     etabin = electron_fr_hist.GetXaxis().FindFixBin(myeta)
     ptbin = electron_fr_hist.GetYaxis().FindFixBin(mypt)
@@ -81,7 +85,9 @@ def electronfakerate(eta,pt,syst):
 
 
 def getVariable(cfg,t):
-    if cfg["variable"] == "mjj":
+    if cfg["variable"] == "mllmjj":
+        return [(t.jet1+t.jet2).M(),(t.lep1+t.lep2).M()]        
+    elif cfg["variable"] == "mjj":
         return (t.jet1+t.jet2).M()
     elif cfg["variable"] == "mll":
         return (t.lep1+t.lep2).M()
@@ -173,8 +179,8 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
         if entry % 100000 == 0:
             print "entry = " + str(entry)
 
-#        if t.lumi != 1021 or t.event != 126029:
-#            continue
+        #if t.lumi != 1177 or t.event != 145389:
+        #    continue
 
         #if is_data:
         #    if not pass_json(t.run,t.lumi):
@@ -233,7 +239,7 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
         #mask = mask | (1 << 0)
 
         if p and debug:
-            #print "eventEvent.eventNum eventEvent.lumiNum eventEvent.runNum " +str(t.event)+" "+str(t.lumi)+" "+str(t.run)
+            print "eventEvent.eventNum eventEvent.lumiNum eventEvent.runNum " +str(t.event)+" "+str(t.lumi)+" "+str(t.run)
 
             if t.lep1.pt() > t.lep2.pt():
                 s=str(t.run)+" "+str(t.lumi)+" "+str(t.event)+" "+str(t.lep1id)+" "+str(t.lep2id)+" "+str(t.lep1.pt())+" "+str(t.lep1.eta())+" "+str(t.lep2.pt())+" "+str(t.lep2.eta())
@@ -254,17 +260,38 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
 
             if t.gen_weight < 0:
                 w = -w
+
+            if abs(t.lep1id) == 11:
+                w = w*eff_scale_factor.electron_efficiency_scale_factor(t.lep1.pt(),t.lep1.eta())
+
+            if abs(t.lep2id) == 11:
+                w = w*eff_scale_factor.electron_efficiency_scale_factor(t.lep2.pt(),t.lep2.eta())
+
+            if abs(t.lep1id) == 13:
+                w = w*eff_scale_factor.muon_efficiency_scale_factor(t.lep1.pt(),t.lep1.eta())
+
+            if abs(t.lep2id) == 13:
+                w = w*eff_scale_factor.muon_efficiency_scale_factor(t.lep2.pt(),t.lep2.eta())                                
+                
+                
             #w = w*pu_weight_hist.GetBinContent(pu_weight_hist.FindFixBin(t.n_pu_interactions))
 
         var=getVariable(cfg,t)
 
-        #if var > 500:
-        #    print "["+str(t.event)+","+str(t.lumi)+","+str(t.run)+"],"
+        if cfg["variable"] == "mllmjj":
+            if var[0] > return_hist.GetXaxis().GetBinLowEdge(return_hist.GetNbinsX()):
+                var[0] = return_hist.GetXaxis().GetBinCenter(return_hist.GetNbinsX())
+            if var[1] > return_hist.GetYaxis().GetBinLowEdge(return_hist.GetNbinsY()):
+                var[1] = return_hist.GetYaxis().GetBinCenter(return_hist.GetNbinsY())
 
         if var > 500 and cfg["variable"] == "mjj" and cfg["blind_high_mjj"] == True:
             continue
 
-        if cfg["mode"] == "non-sm" and use_lhe_weight == True:
+        if cfg["variable"] == "mllmjj":
+            if p:
+                return_hist.Fill(var[0],var[1],w)
+
+        elif cfg["mode"] == "non-sm" and use_lhe_weight == True:
             if var > return_hist.GetBinLowEdge(return_hist.GetNbinsX()):
                 return_hist.Fill(return_hist.GetBinCenter(return_hist.GetNbinsX()),w*t.lhe_weights[int(options.which_lhe_weight)]/t.lhe_weight_orig)
             else:
@@ -282,58 +309,96 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
 
         if syscalc:
 
-            for i in range(0,100):
-                if var > histos[i].GetBinLowEdge(histos[i].GetNbinsX()):
+            if cfg["variable"] == "mllmjj":
+                for i in range(0,100):
                     if p:
-                        histos[i].Fill(histos[i].GetBinCenter(histos[i].GetNbinsX()),w*t.pdf_weights[i]/t.qcd_pdf_weight_orig)
+                        histos[i].Fill(var[0],var[1],w*t.pdf_weights[i]/t.qcd_pdf_weight_orig)
+                        
+                if p:
+                    return_hist_qcd_up.Fill(var[0],var[1],w*t.qcd_weight_mur2muf2/t.qcd_pdf_weight_orig)
+                    return_hist_qcd_down.Fill(var[0],var[1],w*t.qcd_weight_mur0p5muf0p5/t.qcd_pdf_weight_orig)
+
+            else:
+
+                for i in range(0,100):
+                    if var > histos[i].GetBinLowEdge(histos[i].GetNbinsX()):
+                        if p:
+                            histos[i].Fill(histos[i].GetBinCenter(histos[i].GetNbinsX()),w*t.pdf_weights[i]/t.qcd_pdf_weight_orig)
+                    else:
+                        if p:
+                            histos[i].Fill(var,w*t.pdf_weights[i]/t.qcd_pdf_weight_orig)
+
+                if var > return_hist_qcd_up.GetBinLowEdge(return_hist_qcd_up.GetNbinsX()):
+                    if p:
+                        return_hist_qcd_up.Fill(return_hist_qcd_up.GetBinCenter(return_hist_qcd_up.GetNbinsX()),w*t.qcd_weight_mur2muf2/t.qcd_pdf_weight_orig)
                 else:
                     if p:
-                        histos[i].Fill(var,w*t.pdf_weights[i]/t.qcd_pdf_weight_orig)
+                        return_hist_qcd_up.Fill(var,w*t.qcd_weight_mur2muf2/t.qcd_pdf_weight_orig)
 
-            if var > return_hist_qcd_up.GetBinLowEdge(return_hist_qcd_up.GetNbinsX()):
-                if p:
-                    return_hist_qcd_up.Fill(return_hist_qcd_up.GetBinCenter(return_hist_qcd_up.GetNbinsX()),w*t.qcd_weight_mur2muf2/t.qcd_pdf_weight_orig)
-            else:
-                if p:
-                    return_hist_qcd_up.Fill(var,w*t.qcd_weight_mur2muf2/t.qcd_pdf_weight_orig)
-
-            if var > return_hist_qcd_down.GetBinLowEdge(return_hist_qcd_down.GetNbinsX()):
-                if p:
-                    return_hist_qcd_down.Fill(return_hist_qcd_down.GetBinCenter(return_hist_qcd_down.GetNbinsX()),w*t.qcd_weight_mur0p5muf0p5/t.qcd_pdf_weight_orig)
-            else:
-                if p:
-                    return_hist_qcd_down.Fill(var,w*t.qcd_weight_mur0p5muf0p5/t.qcd_pdf_weight_orig)
-    
+                if var > return_hist_qcd_down.GetBinLowEdge(return_hist_qcd_down.GetNbinsX()):
+                    if p:
+                        return_hist_qcd_down.Fill(return_hist_qcd_down.GetBinCenter(return_hist_qcd_down.GetNbinsX()),w*t.qcd_weight_mur0p5muf0p5/t.qcd_pdf_weight_orig)
+                else:
+                    if p:
+                        return_hist_qcd_down.Fill(var,w*t.qcd_weight_mur0p5muf0p5/t.qcd_pdf_weight_orig)
 
     if syscalc:
-        for i in range(1,hist.GetNbinsX()+1):
-            yields = []
         
-            for j in range(0,100):            
-                yields.append(histos[j].GetBinContent(i))
+        if cfg["variable"] == "mllmjj":
 
-            mean = 0.0    
+            for i in range(1,hist.GetNbinsX()+1):
+                for j in range(1,hist.GetNbinsY()+1):
+                    yields = []
+        
+                    for j in range(0,100):            
+                        yields.append(histos[j].GetBinContent(i,j))
 
-            for j in range(0,len(yields)):
-                mean = mean + yields[j]
+                    mean = 0.0   
 
-            mean = mean/len(yields)
+                    for j in range(0,len(yields)):
+                        mean = mean + yields[j]
 
-            stdev = 0.0
+                    mean = mean/len(yields)
 
-            for j in range(0,len(yields)):
-                stdev = stdev+(yields[j] - mean)*(yields[j] - mean)
+                    stdev = 0.0
 
-            stdev = sqrt(stdev/(len(yields) -1))
+                    for j in range(0,len(yields)):
+                        stdev = stdev+(yields[j] - mean)*(yields[j] - mean)
 
-            return_hist_pdf_up.SetBinContent(i,return_hist.GetBinContent(i)+stdev)
+                    stdev = sqrt(stdev/(len(yields) -1))
+
+                    return_hist_pdf_up.SetBinContent(i,return_hist.GetBinContent(i,j)+stdev)                    
+
+        else:
+        
+            for i in range(1,hist.GetNbinsX()+1):
+                yields = []
+        
+                for j in range(0,100):            
+                    yields.append(histos[j].GetBinContent(i))
+
+                mean = 0.0    
+
+                for j in range(0,len(yields)):
+                    mean = mean + yields[j]
+
+                mean = mean/len(yields)
+
+                stdev = 0.0
+
+                for j in range(0,len(yields)):
+                    stdev = stdev+(yields[j] - mean)*(yields[j] - mean)
+
+                stdev = sqrt(stdev/(len(yields) -1))
+
+                return_hist_pdf_up.SetBinContent(i,return_hist.GetBinContent(i)+stdev)
 
     if syscalc:
         return {"hist_central" : return_hist , "hist_pdf_up" : return_hist_pdf_up  , "hist_qcd_up" : return_hist_qcd_up, "hist_qcd_down" : return_hist_qcd_down, "cutflow_histograms" : cutflow_histograms }
     else:
         return {"hist_central" : return_hist , "cutflow_histograms" : cutflow_histograms}
 
-def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=False,debug=True):
+def fillHistogramFake(cfg,t,real_lepton_trees,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=False,debug=True):
 
     fr_file=TFile(cfg["fr_fname"])
 
@@ -431,10 +496,15 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
 
         var=getVariable(cfg,t)
 
-        if var > 500 and cfg["variable"] == "mjj" and cfg["blind_high_mjj"] == True:
+        if cfg["variable"] == "mjj" and  var > 500 and cfg["blind_high_mjj"] == True:
             continue
 
-        if var > return_hist.GetBinLowEdge(return_hist.GetNbinsX()):
+        if cfg["variable"] == "mllmjj":
+            if var[0] > return_hist.GetXaxis().GetBinLowEdge(return_hist.GetNbinsX()):
+                var[0] = return_hist.GetXaxis().GetBinCenter(return_hist.GetNbinsX())
+            if var[1] > return_hist.GetYaxis().GetBinLowEdge(return_hist.GetNbinsY()):
+                var[1] = return_hist.GetYaxis().GetBinCenter(return_hist.GetNbinsY())                
+        elif var > return_hist.GetBinLowEdge(return_hist.GetNbinsX()):
             var = return_hist.GetBinCenter(return_hist.GetNbinsX())
         
         loose_but_not_tight=True
@@ -499,7 +569,10 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
         #    print t.maxbtagevent
         #    print w
 
-        if cfg["mode"] == "non-sm" and use_lhe_weight == True:
+        if cfg["variable"] == "mllmjj":
+            if p:
+                return_hist.Fill(var[0],var[1],w)
+        elif cfg["mode"] == "non-sm" and use_lhe_weight == True:
             if var > return_hist.GetBinLowEdge(return_hist.GetNbinsX()):
                 return_hist.Fill(return_hist.GetBinCenter(return_hist.GetNbinsX()),w*t.lhe_weights[int(options.which_lhe_weight)]/t.lhe_weight_orig)
             else:
@@ -530,6 +603,172 @@ def fillHistogramFake(cfg,t,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=
                         fake_muons.Fill(var)                        
                 
                     return_hist.Fill(var,w)
+
+
+    for t in real_lepton_trees:
+        for entry in range(t.GetEntries()):
+            t.GetEntry(entry)
+
+            if entry % 100000 == 0:
+                print "entry = " + str(entry)
+
+        #if not pass_json(t.run,t.lumi):
+        #    continue
+
+            if cfg["charge"] == "+":
+                if t.lep1id > 0:
+                    continue
+            elif cfg["charge"] == "-":
+                if t.lep1id < 0:
+                    continue
+            else:
+                assert(cfg["charge"] == "both")
+            
+            if (abs(t.lep1id) == 13 and abs(t.lep2id) == 11) or (abs(t.lep1id) == 11 and abs(t.lep2id) == 13) :
+                channel="em"
+            elif abs(t.lep1id) == 13 and abs(t.lep2id) == 13:
+                channel = "mm"
+            elif abs(t.lep1id) == 11 and abs(t.lep2id) == 11:
+                channel = "ee"
+            else:
+                assert(0)
+            
+            if cfg["channel"] != channel and cfg["channel"] !="all":
+                continue
+
+            [p,mask] = selection.passSelectionExceptLeptonIDs(t,cfg)
+
+            if cfg["which_selection"] == "relaxed" or cfg["which_selection"] == "relaxed_btagged":
+            #in this case the mask has useless information
+                p = True
+                if not selection.passRelaxedSelectionExceptLeptonIDs(t,cfg):
+                    p = False
+
+            if abs(t.lep1id) == 13:
+                lep1passlooseid = bool((t.lepton_selection_flags & lep1_loose_muon_mask) == lep1_loose_muon_mask)
+                lep1passtightid = bool(t.lepton_selection_flags & lep1_tight_muon_mask)
+            else:
+                lep1passlooseid = bool(t.lepton_selection_flags & lep1_loose_electron_mask)
+                lep1passtightid = bool(t.lepton_selection_flags & lep1_tight_electron_mask)
+            if abs(t.lep2id) == 13:
+                lep2passlooseid = bool((t.lepton_selection_flags & lep2_loose_muon_mask) == lep2_loose_muon_mask)
+                lep2passtightid = bool(t.lepton_selection_flags & lep2_tight_muon_mask)
+            else:
+                lep2passlooseid = bool(t.lepton_selection_flags & lep2_loose_electron_mask)
+                lep2passtightid = bool(t.lepton_selection_flags & lep2_tight_electron_mask)
+
+            w=-t.xsWeight*float(cfg["lumi"])
+
+
+            var=getVariable(cfg,t)
+
+            if cfg["variable"] == "mjj" and  var > 500 and cfg["blind_high_mjj"] == True:
+                continue
+
+            if cfg["variable"] == "mllmjj":
+                if var[0] > return_hist.GetXaxis().GetBinLowEdge(return_hist.GetNbinsX()):
+                    var[0] = return_hist.GetXaxis().GetBinCenter(return_hist.GetNbinsX())
+                if var[1] > return_hist.GetYaxis().GetBinLowEdge(return_hist.GetNbinsY()):
+                    var[1] = return_hist.GetYaxis().GetBinCenter(return_hist.GetNbinsY())                
+            elif var > return_hist.GetBinLowEdge(return_hist.GetNbinsX()):
+                var = return_hist.GetBinCenter(return_hist.GetNbinsX())
+        
+            loose_but_not_tight=True
+        
+            if (not lep1passtightid) and lep1passlooseid:
+
+               #if applying_to_ttbar_mc:
+               #     if t.lep1_matching_real_gen_lepton_pdgid != 0:
+               #         continue
+            
+                if abs(t.lep1id) == 13:
+                    fake_lepton_abs_pdg_id = 13
+                #muon_corrected_pt = t.lep1.Pt() * (1 + max(0,t.lep1iso - 0.15))
+                    muon_corrected_pt = t.lep1.Pt() 
+                #print "fake muon event "+str((t.jet1 + t.jet2).mass())+ " "+ str(muon_corrected_pt)+" "+str(t.lep1.Eta())
+                    w = w * muonfakerate(t.lep1.Eta(), muon_corrected_pt,fake_rate_syst)
+                elif abs(t.lep1id) == 11:
+                    fake_lepton_abs_pdg_id = 11
+                #print "fake electron event "+str((t.jet1 + t.jet2).mass())+ " "+ str(t.lep1.Pt())+" "+str(t.lep1.Eta())
+                    w = w * electronfakerate(t.lep1.Eta(), t.lep1.Pt(),fake_rate_syst)
+                else:
+                    print "unknown lepton flavor"
+                    sys.exit(0)
+                
+            if (not lep2passtightid) and lep2passlooseid:
+
+                #if applying_to_ttbar_mc:
+                #    if t.lep2_matching_real_gen_lepton_pdgid != 0:
+                #        continue
+
+                if abs(t.lep2id) == 13:
+                    fake_lepton_abs_pdg_id = 13
+                #muon_corrected_pt = t.lep2.Pt() * (1 + max(0,t.lep2iso - 0.15))
+                    muon_corrected_pt = t.lep2.Pt() 
+                #print "fake muon event "+str((t.jet1 + t.jet2).mass())+ " "+ str(muon_corrected_pt)+" "+str(t.lep2.Eta())
+                    w = w * muonfakerate(t.lep2.Eta(), muon_corrected_pt,fake_rate_syst)
+                elif abs(t.lep2id) == 11:
+                    fake_lepton_abs_pdg_id = 11
+
+                #print "fake electron event " +str((t.jet1 + t.jet2).mass())+ " "+ str(t.lep2.Pt())+" "+str(t.lep2.Eta())
+                    w = w * electronfakerate(t.lep2.Eta(), t.lep2.Pt(),fake_rate_syst)
+                else:
+                    print "unknown lepton flavor"
+                    sys.exit(0)
+                
+
+        
+            if ((not lep1passtightid) and lep1passlooseid and lep2passtightid) or ((not lep2passtightid) and lep2passlooseid and lep1passtightid):
+                mask = mask | (1 << 0)
+            elif (not lep1passtightid) and lep1passlooseid and (not lep2passtightid) and lep2passlooseid:
+                mask = mask | (1 << 0)
+                w = -w
+            else:
+                p=False
+
+            if p and debug and (t.jet1 + t.jet2).mass() > 1600:
+                print "eventNum lumiNum runNum " +str(t.event)+" "+str(t.lumi)+" "+str(t.run)+" "+str(w)
+
+            assert(w != 0)
+
+        #if (t.jet1 + t.jet2).mass() > 1100 and (t.jet1 + t.jet2).mass() < 1600:
+        #    print t.maxbtagevent
+        #    print w
+
+            if cfg["variable"] == "mllmjj":
+                if p:
+                    return_hist.Fill(var[0],var[1],w)
+            elif cfg["mode"] == "non-sm" and use_lhe_weight == True:
+                if var > return_hist.GetBinLowEdge(return_hist.GetNbinsX()):
+                    return_hist.Fill(return_hist.GetBinCenter(return_hist.GetNbinsX()),w*t.lhe_weights[int(options.which_lhe_weight)]/t.lhe_weight_orig)
+                else:
+                    return_hist.Fill(var,w*t.lhe_weights[int(options.which_lhe_weight)]/t.lhe_weight_orig)
+            else:
+
+                if var > return_hist.GetBinLowEdge(return_hist.GetNbinsX()):
+                    fill_histograms_cut_mask(cutflow_histograms,return_hist.GetBinCenter(return_hist.GetNbinsX()),w,mask)
+                    if p:
+
+                        assert("fake_lepton_abs_pdg_id" in vars() and fake_lepton_abs_pdg_id != -1)
+
+                        if fake_lepton_abs_pdg_id == 11:
+                            fake_electrons.Fill(var)
+                        else:
+                            fake_muons.Fill(var)                        
+
+                        return_hist.Fill(return_hist.GetBinCenter(return_hist.GetNbinsX()),w)
+                else:
+                    fill_histograms_cut_mask(cutflow_histograms,var,w,mask)
+                    if p:
+
+                        assert("fake_lepton_abs_pdg_id" in vars() and fake_lepton_abs_pdg_id != -1)
+                    
+                        if fake_lepton_abs_pdg_id == 11:
+                            fake_electrons.Fill(var)
+                        else:
+                            fake_muons.Fill(var)                        
+                
+                        return_hist.Fill(var,w)
 
     return {"hist_central" : return_hist , "cutflow_histograms" : cutflow_histograms}
 

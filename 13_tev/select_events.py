@@ -36,7 +36,12 @@ if  cfg["mode"] != "sm" and cfg["mode"] != "non-sm" and cfg["mode"] != "sm-pdf" 
     sys.exit(1)
 
 gROOT.cd()
-if cfg["variable"] == "mjj":
+
+if cfg["variable"] == "mllmjj":
+    binningmjj=array('f',[500,800,1100,1500,2000])
+    binningmll=array('f',[20,100,200,300])
+    hist = TH2F('mllmjj', 'mllmjj',len(binningmjj)-1, binningmjj,len(binningmll)-1, binningmll )
+elif cfg["variable"] == "mjj":
     if cfg["mode"] == "sm_low_mjj_control_region":
         hist = TH1F('mjj', 'mjj', 4, 100., 500 )
     elif cfg["mode"] == "fr_closure_test":
@@ -228,6 +233,9 @@ if cfg["mode"] == "reweighted_v1" or cfg["mode"] == "reweighted_v2":
 
     print aqgc_histos
 
+    
+
+
     histogram_fillers.fillHistogramsWithReweight(cfg,tree_reweighted,aqgc_histos,mgreweight_weight_index)
 
     fake=histogram_fillers.fillHistogramFake(cfg,tree_data,hist_fake,fake_muons,fake_electrons)
@@ -285,8 +293,17 @@ if cfg["mode"] == "sm_mc_fake":
 
     fake_muons = hist.Clone()
     fake_electrons = hist.Clone()
+
+    mc_trees_for_fake_histogram_filler = []
     
-    fake=histogram_fillers.fillHistogramFake(cfg,tree_data,hist_fake,fake_muons,fake_electrons,debug=True)
+    for background_info in backgrounds_info:
+        tree_background=f_background.Get("events")
+        mc_trees_for_fake_histogram_filler.append(tree_background)
+
+    tree_signal=f_signal.Get("events")
+    mc_trees_for_fake_histogram_filler.append(tree_signal)        
+    
+    fake=histogram_fillers.fillHistogramFake(cfg,tree_data,mc_trees_for_fake_histogram_filler,hist_fake,fake_muons,fake_electrons,debug=True)
 
     data = None
 
