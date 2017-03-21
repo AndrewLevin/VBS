@@ -536,6 +536,177 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
     fake_muons.Clone("fake_muons").Write()
     fake_electrons.Clone("fake_electrons").Write()
 
+    if cfg["variable"] == "mllmjj":
+        for ix in range(1,signal["hist_central"].GetNbinsX()+1):
+            for iy in range(1,signal["hist_central"].GetNbinsY()+1):            
+
+                dcard = open(cfg["datacard_base"] + "_xbin"+str(ix)+"_ybin"+str(iy)+".txt",'w')
+
+                print >> dcard, "imax 1 number of channels"
+                print >> dcard, "jmax * number of background"
+                print >> dcard, "kmax * number of nuisance parameters"
+
+                if cfg["blind_high_mjj"] == False:
+                    print >> dcard, "Observation "+str(data["hist_central"].GetBinContent(ix,iy))
+                else:
+                    print >> dcard, "Observation 0"
+                dcard.write("bin")
+                dcard.write(" bin1")
+        
+                for background in backgrounds:
+                    dcard.write(" bin1")
+
+                if cfg["mode"] == "sm_mc_fake":
+                    dcard.write(" bin1")
+            
+                dcard.write('\n')    
+        
+                dcard.write("process")
+                dcard.write(" WWjj")
+        
+                for background_info in backgrounds_info:
+                    dcard.write(" " + background_info[1])
+
+                if cfg["mode"] == "sm_mc_fake":
+                    dcard.write(" fake")
+
+            
+                dcard.write('\n')    
+                dcard.write("process")
+                dcard.write(" 0")
+        
+                for j in range(1,len(backgrounds)+1):
+                    dcard.write(" " + str(j))
+            
+                if cfg["mode"] == "sm_mc_fake":
+                    dcard.write(" " + str(len(backgrounds)+1))
+            
+                dcard.write('\n')    
+                dcard.write('rate')
+                dcard.write(' '+str(signal["hist_central"].GetBinContent(ix,iy)))
+                for background in backgrounds:
+                    dcard.write(" "+ str(background["hist_central"].GetBinContent(ix,iy)))
+
+                if cfg["mode"] == "sm_mc_fake":    
+                    dcard.write(" " + str(fake["hist_central"].GetBinContent(ix,iy)))
+            
+                dcard.write('\n')    
+
+        
+        #print >> dcard, "process WWjj WWqcd ttbar"
+        #print >> dcard, "process 0 1"
+                bkg_yield=max(hist_sum_background.GetBinContent(ix,ix),0.001)
+        #print >> dcard, "rate "+str(signal["hist_central"].GetBinContent(i))+" "+str(bkg_yield)
+
+                dcard.write("lumi_13tev lnN")
+
+                dcard.write(" 1.024")
+
+                for background in backgrounds:
+                    dcard.write(" 1.024")
+
+                if cfg["mode"] == "sm_mc_fake":
+                    dcard.write(" 1.024")
+
+                dcard.write('\n')    
+
+                dcard.write("fake_sys lnN")
+
+                dcard.write(" -")
+
+                for background in backgrounds:
+                    dcard.write(" -")
+
+                if cfg["mode"] == "sm_mc_fake":
+                    dcard.write(" 1.4")            
+
+                dcard.write('\n')    
+
+                if signal["hist_central"].GetBinContent(ix,iy) > 0:
+                    dcard.write("mcstat_signal lnN "+str(1+signal["hist_central"].GetBinError(ix,iy)/signal["hist_central"].GetBinContent(ix,iy)))
+                    for j in range(0,len(backgrounds)):
+                        dcard.write(" -")
+                
+                    if cfg["mode"] == "sm_mc_fake":
+                        dcard.write(" -")
+                
+                    dcard.write("\n")    
+            
+        
+                for j in range(0,len(backgrounds)):
+                    if backgrounds[j]["hist_central"].GetBinContent(ix,iy) > 0:
+                        dcard.write("mcstat_"+backgrounds_info[j][1]+"_xbin_"+str(ix)+"_ybin"+str(iy)+" lnN -")
+                        for k in range(0,len(backgrounds)):
+                            if j != k:
+                                dcard.write(" -")
+                            else:    
+                                dcard.write(" " + str(1+backgrounds[j]["hist_central"].GetBinError(ix,iy)/backgrounds[j]["hist_central"].GetBinContent(ix,iy)))
+
+                        if cfg["mode"] == "sm_mc_fake":
+                            dcard.write(" -")
+                        
+                        dcard.write('\n')        
+
+                if cfg["mode"] == "sm_mc_fake" and fake["hist_central"].GetBinContent(ix,iy) > 0:
+
+                    dcard.write("fake_stat_xbin"+str(ix)+"_ybin"+str(iy)+" lnN -")
+
+                    for j in range(0,len(backgrounds)):
+                        dcard.write(" -")
+
+                    dcard.write(" " + str(1+fake["hist_central"].GetBinError(ix,iy)/fake["hist_central"].GetBinContent(ix,iy)))
+
+                    dcard.write('\n')
+
+                at_least_one_syscalc=False        
+                for j in range(0,len(backgrounds)):
+                    if backgrounds[j]["hist_central"].GetBinContent(ix,iy) > 0 and backgrounds_info[j][2] == "syscalc":
+                        at_least_one_syscalc=True
+
+                if signal_info[2] == "syscalc":
+                    at_least_one_syscalc = True
+
+
+                if at_least_one_syscalc:
+                    dcard.write("pdf lnN")
+
+
+                    if signal_info[2] == "syscalc":
+                        dcard.write(" "+str(signal["hist_pdf_up"].GetBinContent(ix,iy)/signal["hist_central"].GetBinContent(ix,iy)))
+                    else:
+                        dcard.write(" -")
+            
+                    for j in range(0,len(backgrounds)):
+                        if backgrounds[j]["hist_central"].GetBinContent(ix,iy) > 0 and backgrounds_info[j][2] == "syscalc":
+                            dcard.write(" "+str(backgrounds[j]["hist_pdf_up"].GetBinContent(ix,iy)/backgrounds[j]["hist_central"].GetBinContent(ix,iy)))
+                        else:
+                            dcard.write(" -")
+
+            #for the fake background
+                    dcard.write(" -")
+
+                    dcard.write('\n')        
+
+                    dcard.write("qcd_scale lnN")
+
+                    if signal_info[2] == "syscalc":
+                        dcard.write(" "+str(signal["hist_qcd_down"].GetBinContent(ix,iy)/signal["hist_central"].GetBinContent(ix,iy)) +"/"+str(signal["hist_qcd_up"].GetBinContent(ix,iy)/signal["hist_central"].GetBinContent(ix,iy)))
+                    else:
+                        dcard.write(" -")
+
+                    for j in range(0,len(backgrounds)):
+                        if backgrounds[j]["hist_central"].GetBinContent(ix,iy) > 0 and backgrounds_info[j][2] == "syscalc":
+                            dcard.write(" "+str(backgrounds[j]["hist_qcd_down"].GetBinContent(ix,iy)/backgrounds[j]["hist_central"].GetBinContent(ix,iy)) +"/"+str(backgrounds[j]["hist_qcd_up"].GetBinContent(ix,iy)/backgrounds[j]["hist_central"].GetBinContent(ix,iy)))
+                        else:
+                            dcard.write(" -")
+                    
+            #for the fake background
+                    dcard.write(" -")
+
+                    dcard.write('\n')        
+
+        return
+
     for i in range(1,signal["hist_central"].GetNbinsX()+1):
 
         dcard = open(cfg["datacard_base"] + "_bin"+str(i)+".txt",'w')

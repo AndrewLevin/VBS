@@ -29,8 +29,10 @@ lep1_tight_electron_mask = Lep1TightSelectionV4
 
 #lep1_loose_muon_mask = Lep1LooseSelectionV4 | Lep2LooseSelectionV5
 #lep2_loose_muon_mask = Lep2LooseSelectionV4 | Lep2LooseSelectionV5
-lep1_loose_muon_mask = Lep2LooseSelectionV5
-lep2_loose_muon_mask = Lep2LooseSelectionV5
+
+
+lep1_loose_muon_mask = Lep1LooseSelectionV3
+lep2_loose_muon_mask = Lep2LooseSelectionV3
 
 lep1_tight_muon_mask = Lep1TightSelectionV1
 lep2_tight_muon_mask = Lep2TightSelectionV1
@@ -151,6 +153,8 @@ def fill_histograms_cut_mask(histograms,var, weight, mask):
 
 def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False, fill_cutflow_histograms = False,debug = False):
 
+
+
     print "t.GetEntries() = " + str(t.GetEntries())
 
     return_hist = hist.Clone()
@@ -179,8 +183,10 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
         if entry % 100000 == 0:
             print "entry = " + str(entry)
 
-        #if t.lumi != 1177 or t.event != 145389:
-        #    continue
+#        if t.lumi != 89 or t.event != 139875961:
+#            continue
+
+#        print "andrew debug 1000"
 
         #if is_data:
         #    if not pass_json(t.run,t.lumi):
@@ -194,7 +200,7 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
                 continue
         else:
             assert(cfg["charge"] == "both")
-            
+
         if (abs(t.lep1id) == 13 and abs(t.lep2id) == 11) or (abs(t.lep1id) == 11 and abs(t.lep2id) == 13) :
             channel="em"
         elif abs(t.lep1id) == 13 and abs(t.lep2id) == 13:
@@ -238,7 +244,7 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
 
         #mask = mask | (1 << 0)
 
-        if p and debug:
+        if p and debug :
             print "eventEvent.eventNum eventEvent.lumiNum eventEvent.runNum " +str(t.event)+" "+str(t.lumi)+" "+str(t.run)
 
             if t.lep1.pt() > t.lep2.pt():
@@ -398,7 +404,7 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
     else:
         return {"hist_central" : return_hist , "cutflow_histograms" : cutflow_histograms}
 
-def fillHistogramFake(cfg,t,real_lepton_trees,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=False,debug=True):
+def fillHistogramFake(cfg,t,real_lepton_trees,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=False,debug=False):
 
     fr_file=TFile(cfg["fr_fname"])
 
@@ -437,12 +443,17 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,fake_muons,fake_electrons,app
     print "t.GetEntries() = " + str(t.GetEntries())
 
     return_hist = hist.Clone()
-    
+
     for entry in range(t.GetEntries()):
         t.GetEntry(entry)
 
         if entry % 100000 == 0:
             print "entry = " + str(entry)
+
+#        if t.lumi != 89 or t.event != 139875961:
+#            continue
+
+#        print "andrew debug 1000"
 
         #if not pass_json(t.run,t.lumi):
         #    continue
@@ -560,8 +571,8 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,fake_muons,fake_electrons,app
         else:
             p=False
 
-        if p and debug and (t.jet1 + t.jet2).mass() > 1600:
-            print "eventNum lumiNum runNum " +str(t.event)+" "+str(t.lumi)+" "+str(t.run)+" "+str(w)
+#        if p and debug and ((t.lep1+t.lep2).M() < 100 and (t.jet1 + t.jet2).M() > 1500):
+#            print "eventNum lumiNum runNum " +str(t.event)+" "+str(t.lumi)+" "+str(t.run)+" "+str(w)
 
         assert(w != 0)
 
@@ -604,8 +615,11 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,fake_muons,fake_electrons,app
                 
                     return_hist.Fill(var,w)
 
+    
 
     for t in real_lepton_trees:
+
+        print "t.GetEntries() = " + str(t.GetEntries())
         for entry in range(t.GetEntries()):
             t.GetEntry(entry)
 
@@ -658,6 +672,18 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,fake_muons,fake_electrons,app
                 lep2passtightid = bool(t.lepton_selection_flags & lep2_tight_electron_mask)
 
             w=-t.xsWeight*float(cfg["lumi"])
+
+            if abs(t.lep1id) == 11:
+                w = w*eff_scale_factor.electron_efficiency_scale_factor(t.lep1.pt(),t.lep1.eta())
+
+            if abs(t.lep2id) == 11:
+                w = w*eff_scale_factor.electron_efficiency_scale_factor(t.lep2.pt(),t.lep2.eta())
+
+            if abs(t.lep1id) == 13:
+                w = w*eff_scale_factor.muon_efficiency_scale_factor(t.lep1.pt(),t.lep1.eta())
+
+            if abs(t.lep2id) == 13:
+                w = w*eff_scale_factor.muon_efficiency_scale_factor(t.lep2.pt(),t.lep2.eta())                                
 
 
             var=getVariable(cfg,t)
@@ -727,7 +753,7 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,fake_muons,fake_electrons,app
                 p=False
 
             if p and debug and (t.jet1 + t.jet2).mass() > 1600:
-                print "eventNum lumiNum runNum " +str(t.event)+" "+str(t.lumi)+" "+str(t.run)+" "+str(w)
+                print "eventNum lumiNum runNum " +str(t.event)+" "+str(t.lumi)+" "+str(t.run)+" "+str(w)                
 
             assert(w != 0)
 

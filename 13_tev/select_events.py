@@ -273,10 +273,20 @@ if cfg["mode"] == "sm_mc_fake":
         assert(signal_info[2] == "none")
         signal=histogram_fillers.fillHistogram(cfg,tree_signal,hist_signal,fill_cutflow_histograms=True)
 
+    mc_trees_for_fake_histogram_filler = []
+
     for background_info in backgrounds_info:
+
         f_background=TFile(background_info[0])
+
         gROOT.cd() #without this, hist_background gets written into a file that goes out of scope
-        tree_background=f_background.Get("events")
+
+        tree_background=f_background.Get("events").CloneTree()
+
+        #tree_background.SetDirectory(0)
+
+        mc_trees_for_fake_histogram_filler.append(tree_background)
+
         hist_background=hist.Clone()
 
         if background_info[2] == "syscalc":
@@ -294,21 +304,28 @@ if cfg["mode"] == "sm_mc_fake":
     fake_muons = hist.Clone()
     fake_electrons = hist.Clone()
 
-    mc_trees_for_fake_histogram_filler = []
-    
-    for background_info in backgrounds_info:
-        tree_background=f_background.Get("events")
-        mc_trees_for_fake_histogram_filler.append(tree_background)
+#    for background_info in backgrounds_info:
+#        print background_info[0]
+#        f_background=TFile(background_info[0])
+#        gROOT.cd()
+#        tree_background=f_background.Get("events")
+#        print type(tree_background)
+#        mc_trees_for_fake_histogram_filler.append(tree_background)
+#        break
 
-    tree_signal=f_signal.Get("events")
+#    f_signal=TFile(signal_info[0])
+#    gROOT.cd()    
+#    tree_signal=f_signal.Get("events")
+#    print type(tree_signal)
+
     mc_trees_for_fake_histogram_filler.append(tree_signal)        
-    
-    fake=histogram_fillers.fillHistogramFake(cfg,tree_data,mc_trees_for_fake_histogram_filler,hist_fake,fake_muons,fake_electrons,debug=True)
+
+    fake=histogram_fillers.fillHistogramFake(cfg,tree_data,mc_trees_for_fake_histogram_filler,hist_fake,fake_muons,fake_electrons)
 
     data = None
 
     if not cfg["blind_high_mjj"]:
-        data=histogram_fillers.fillHistogram(cfg,tree_data,hist_data,is_data=True,debug=False)
+        data=histogram_fillers.fillHistogram(cfg,tree_data,hist_data,is_data=True)
     
     write_results.write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,backgrounds_info,signal,signal_info,fake_muons,fake_electrons,fake,data)
 
@@ -356,7 +373,7 @@ if cfg["mode"] == "sm_low_mjj_control_region":
     data_fname=cfg["data_file"]
     f_data = TFile(data_fname)
     tree_data = f_data.Get("events")
-    data=histogram_fillers.fillHistogram(cfg,tree_data,hist_data,is_data=True,debug=True)
+    data=histogram_fillers.fillHistogram(cfg,tree_data,hist_data,is_data=True)
 
     fake_muons = hist.Clone()
     fake_electrons = hist.Clone()
