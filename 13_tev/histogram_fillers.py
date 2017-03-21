@@ -356,24 +356,24 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
                 for j in range(1,hist.GetNbinsY()+1):
                     yields = []
         
-                    for j in range(0,100):            
-                        yields.append(histos[j].GetBinContent(i,j))
+                    for k in range(0,100):            
+                        yields.append(histos[k].GetBinContent(i,j))
 
                     mean = 0.0   
 
-                    for j in range(0,len(yields)):
-                        mean = mean + yields[j]
+                    for k in range(0,len(yields)):
+                        mean = mean + yields[k]
 
                     mean = mean/len(yields)
 
                     stdev = 0.0
 
-                    for j in range(0,len(yields)):
-                        stdev = stdev+(yields[j] - mean)*(yields[j] - mean)
+                    for k in range(0,len(yields)):
+                        stdev = stdev+(yields[k] - mean)*(yields[k] - mean)
 
                     stdev = sqrt(stdev/(len(yields) -1))
-
-                    return_hist_pdf_up.SetBinContent(i,return_hist.GetBinContent(i,j)+stdev)                    
+                    
+                    return_hist_pdf_up.SetBinContent(i,j,return_hist.GetBinContent(i,j)+stdev)                    
 
         else:
         
