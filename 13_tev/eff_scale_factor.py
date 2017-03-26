@@ -32,10 +32,12 @@ muon_id_sf = muon_id_sf_file.Get("MC_NUM_TightID_DEN_genTracks_PAR_pt_eta/abseta
 
 
 def electron_efficiency_scale_factor(pt,eta):
+
     #the reoc 2D histogram is really a 1D histogram
     return electron_id_sf.GetBinContent(electron_id_sf.GetXaxis().FindFixBin(eta),electron_id_sf.GetYaxis().FindFixBin(pt))* electron_reco_sf.GetBinContent(electron_reco_sf.GetXaxis().FindFixBin(eta),1)
 
 def muon_efficiency_scale_factor(pt,eta):
-    return muon_iso_sf.GetBinContent(muon_iso_sf.GetXaxis().FindFixBin(abs(eta)),muon_iso_sf.GetYaxis().FindFixBin(pt))*muon_id_sf.GetBinContent(muon_id_sf.GetXaxis().FindFixBin(abs(eta)),muon_id_sf.GetYaxis().FindFixBin(pt))
+
+    return muon_iso_sf.GetBinContent(muon_iso_sf.GetXaxis().FindFixBin(abs(eta)),muon_iso_sf.GetYaxis().FindFixBin(min(pt,muon_iso_sf.GetYaxis().GetBinCenter(muon_id_sf.GetNbinsY()))))*muon_id_sf.GetBinContent(muon_id_sf.GetXaxis().FindFixBin(abs(eta)),muon_id_sf.GetYaxis().FindFixBin(min(pt,muon_id_sf.GetYaxis().GetBinCenter(muon_id_sf.GetNbinsY()))))
 
 #print electron_efficiency_scale_factor(25,0.7)

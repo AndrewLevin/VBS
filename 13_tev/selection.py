@@ -69,8 +69,8 @@ def passSelectionExceptLeptonIDs(t,cfg):
     else:
         mask = mask | (1 << 2)
 
-    #if (t.flags & WLLJJVetoV5):
-    if False:        
+    if (t.flags & WLLJJVetoV4):
+    #if False:        
         p=False
     else:
         mask = mask | (1 << 3)
@@ -79,9 +79,9 @@ def passSelectionExceptLeptonIDs(t,cfg):
 
     #if not (t.flags & PassTriggerV6):
     #if not (t.flags & PassTriggerV3):
-    #if not (t.flags & PassTriggerV2):
+    if not (t.flags & PassTriggerV2):
     #if not (t.flags & PassTriggerV1):
-    if False:        
+    #if False:        
         p=False
     else:
         mask = mask | (1 << 4)        
@@ -135,9 +135,9 @@ def passSelectionExceptLeptonIDs(t,cfg):
     #if False:        
 
     #third muon z veto
-    if (t.flags & WLLJJVetoV10):
+#    if (t.flags & WLLJJVetoV10):
 #    if (t.flags & WLLJJVetoV1):
-    #if False:        
+    if False:        
         p=False
     else:
         mask = mask | (1 << 11)       
@@ -164,8 +164,6 @@ def passSelectionExceptLeptonIDs(t,cfg):
         p=False
     else:
         mask = mask | (1 << 14)
-
-
 
     if cfg["mode"] == "sm_low_mjj_control_region":
         if (t.jet1+t.jet2).M() > 500:
