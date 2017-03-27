@@ -37,73 +37,47 @@ if  cfg["mode"] != "sm" and cfg["mode"] != "non-sm" and cfg["mode"] != "sm-pdf" 
 
 gROOT.cd()
 
-if cfg["variable"] == "mllmjj":
+if cfg["significance_variable"] == "mllmjj":
     binningmjj=array('f',[500,800,1100,1500,2000])
     binningmll=array('f',[20,100,200,300])
     hist = TH2F('mllmjj', 'mllmjj',len(binningmjj)-1, binningmjj,len(binningmll)-1, binningmll )
-elif cfg["variable"] == "mjj":
-    if cfg["mode"] == "sm_low_mjj_control_region":
-        hist = TH1F('mjj', 'mjj', 4, 100., 500 )
-    elif cfg["mode"] == "fr_closure_test":
-        if cfg["which_selection"] == "full":
-            #hist = TH1F('mjj', 'mjj', 4, 100., 500 )
-            binning=array('f',[500,700,1100,1600,2000])
-            hist = TH1F('mjj', 'mjj',4, binning )
-        elif cfg["which_selection"] == "full_novbs":
-            binning=array('f',[0,100,200,300,400,500,700,1100,1600,2000])
-            hist = TH1F('mjj', 'mjj',9, binning )
-        elif cfg["which_selection"] == "relaxed_btag":
-            binning=array('f',[0,100,200,300,400,500,700,1100,1600,2000])
-            hist = TH1F('mjj', 'mjj',9, binning )                        
-        else:
-            binning=array('f',[0,100,200,300,400,500,700,1100,1600,2000])
-            hist = TH1F('mjj', 'mjj',9, binning )
-    elif cfg["mode"] == "produce_histograms":
-        #binning=array('f',[500,700,1100,1600,2000])
-        #hist = TH1F('mjj', 'mjj',4, binning )
-        binning=array('f',[0,100,200,300,400,500,700,1100,1600,2000])
-        hist = TH1F('mjj', 'mjj',9, binning )        
-    else:
-        #hist = TH1F('mjj', 'mjj', 4, 100., 500 )        
-        #binning=array('f',[500,700,1100,1600,2000])
-        binning=array('f',[500,800,1100,1500,2000])
-        #binning=array('f',[500,800,1200,1700,2000])
-        hist = TH1F('mjj', 'mjj',4, binning )
-    #hist = TH1F('mjj', 'mjj', 35, 0., 200 )
-    #hist = TH1F('mjj', 'mjj', 35, 0., 3000 )
-    hist.GetXaxis().SetTitle("m_{jj} (GeV)")
-elif cfg["variable"] == "mll":
-    if cfg["mode"] == "sm_low_mjj_control_region":
-        hist = TH1F('mll', 'mll', 15, 0., 150)
-    else:
-        #hist = TH1F('mll', 'mll', 15, 0., 150)
-        #hist = TH1F('mll', 'mll', 5, 0., 50 )
-        binning = array('f',[50,100,200,300,500])
-        hist = TH1F('mll', 'mll',4, binning )
-    #hist = TH1F('mll', 'mll', 35, 0., 500)
-    #hist = TH1F('mll', 'mll', 35, 0., 5000)
-    hist.GetXaxis().SetTitle("m_{ll} (GeV)")
-elif cfg["variable"] == "met":
-    hist = TH1F('met', 'met', 18 , 20., 200 )
-elif cfg["variable"] == "mlljj":
-    hist = TH1F('mlljj', 'mlljj', 15 , 500., 2000 )    
-elif cfg["variable"] == "detajj":
-    hist = TH1F('detajj', 'detajj', 10, 2.5, 7.5 )
-elif cfg["variable"] == "maxbtagevent":
-    hist = TH1F('maxbtagevent', 'maxbtagevent', 35, -1., 1 )
-elif cfg["variable"] == "jet2btag":
-    hist = TH1F('jet2btag', 'jet2btag', 35, -1., 1 )
-elif cfg["variable"] == "nvtx":
-    hist = TH1F('nvtx', 'nvtx', 35, 0., 60 )
-elif cfg["variable"] == "lep1pt":
-    hist = TH1F('lep1pt', 'lep1pt', 35, 0., 100 )
-elif cfg["variable"] == "lep2pt":
-    hist = TH1F('lep2pt', 'lep2pt', 35, 0., 100 )
-elif cfg["variable"] == "zeppenfeld":
-    hist = TH1F('zeppenfeld','zeppenfeld',35,0,5)
+
 else:
     assert(0)
 
+plots_templates = {}
+if cfg["plot_variable"] == "all":
+    binningmjj=array('f',[500,800,1100,1500,2000])
+    histmjj = TH1F('mjj', 'mjj',4, binningmjj )
+    binningmll = array('f',[50,100,200,300,500])
+    histmll = TH1F('mll', 'mll',4, binningmll )    
+    histmet = TH1F('met', 'met', 18 , 20., 200 )
+    histmlljj = TH1F('mlljj', 'mlljj', 15 , 500., 2000 )    
+    histdetajj = TH1F('detajj', 'detajj', 10, 2.5, 7.5 )
+    histlep1pt = TH1F('lep1pt', 'lep1pt', 20, 0., 100 )
+    histlep2pt = TH1F('lep2pt', 'lep2pt', 20, 0., 100 )
+    histjet1pt = TH1F('jet1pt', 'jet1pt', 20, 0., 100 )
+    histjet2pt = TH1F('jet2pt', 'jet2pt', 20, 0., 100 )
+    histlep1eta = TH1F('lep1eta', 'lep1eta', 10, -2.5, 2.5 )
+    histlep2eta = TH1F('lep2eta', 'lep2eta', 10, -2.5, 2.5 )
+    histjet1eta = TH1F('jet1eta', 'jet1eta', 10, -5., 5 )
+    histjet2eta = TH1F('jet2eta', 'jet1eta', 10, -5., 5 )        
+    plots_templates["mjj"] = histmjj
+    plots_templates["mll"] = histmll
+    plots_templates["mlljj"] = histmlljj    
+    plots_templates["met"] = histmet
+    plots_templates["detajj"] = histdetajj
+    plots_templates["lep1pt"] = histlep1pt
+    plots_templates["lep2pt"] = histlep2pt
+    plots_templates["lep1eta"] = histlep1eta
+    plots_templates["lep2eta"] = histlep2eta    
+    plots_templates["jet1pt"] = histjet1pt
+    plots_templates["jet2pt"] = histjet2pt
+    plots_templates["jet1eta"] = histjet1eta
+    plots_templates["jet2eta"] = histjet2eta            
+else:
+    assert(0)
+    
 backgrounds = []
 
 hist.Sumw2()
@@ -254,6 +228,23 @@ if cfg["mode"] == "sm_mc_fake":
     signal_info=cfg["signal_file"]
     backgrounds_info=cfg["background_file"]
 
+    plots = {}
+
+    plots_data = {}
+
+    for plots_template_key in plots_templates.keys():
+        plots_data[plots_template_key] = plots_templates[plots_template_key].Clone()
+
+    plots_fake = {}
+
+    for plots_template_key in plots_templates.keys():
+        plots_fake[plots_template_key] = plots_templates[plots_template_key].Clone()
+
+    plots_signal = {}
+
+    for plots_template_key in plots_templates.keys():
+        plots_signal[plots_template_key] = plots_templates[plots_template_key].Clone()                
+
     hist_data=hist.Clone()
 
     hist_fake=hist.Clone()
@@ -268,10 +259,10 @@ if cfg["mode"] == "sm_mc_fake":
     tree_signal=f_signal.Get("events")
 
     if signal_info[2] == "syscalc":
-        signal=histogram_fillers.fillHistogram(cfg,tree_signal,hist_signal,syscalc=True)
+        signal=histogram_fillers.fillHistogram(cfg,tree_signal,hist_signal,plots_signal,syscalc=True)
     else:
         assert(signal_info[2] == "none")
-        signal=histogram_fillers.fillHistogram(cfg,tree_signal,hist_signal,fill_cutflow_histograms=True)
+        signal=histogram_fillers.fillHistogram(cfg,tree_signal,hist_signal,plots_signal,fill_cutflow_histograms=True)
 
     mc_trees_for_fake_histogram_filler = []
 
@@ -289,13 +280,20 @@ if cfg["mode"] == "sm_mc_fake":
 
         hist_background=hist.Clone()
 
+        plots_background = {}
+
+        for plots_template_key in plots_templates.keys():
+            plots_background[plots_template_key] = plots_templates[plots_template_key].Clone()                
+
         if background_info[2] == "syscalc":
-            return_hists = histogram_fillers.fillHistogram(cfg,tree_background,hist_background,syscalc=True)
+            return_hists = histogram_fillers.fillHistogram(cfg,tree_background,hist_background,plots_background,syscalc=True)
             backgrounds.append(return_hists)
         else:
             assert(background_info[2] == "none")
-            return_hists = histogram_fillers.fillHistogram(cfg,tree_background,hist_background)
+            return_hists = histogram_fillers.fillHistogram(cfg,tree_background,hist_background, plots_background)
             backgrounds.append(return_hists)
+
+        plots[background_info[1]] = plots_background
 
     data_fname=cfg["data_file"]
     f_data = TFile(data_fname)
@@ -303,6 +301,7 @@ if cfg["mode"] == "sm_mc_fake":
 
     fake_muons = hist.Clone()
     fake_electrons = hist.Clone()
+
 
 #    for background_info in backgrounds_info:
 #        print background_info[0]
@@ -320,14 +319,20 @@ if cfg["mode"] == "sm_mc_fake":
 
     mc_trees_for_fake_histogram_filler.append(tree_signal)        
 
-    fake=histogram_fillers.fillHistogramFake(cfg,tree_data,mc_trees_for_fake_histogram_filler,hist_fake,fake_muons,fake_electrons)
+    plots["signal"] = plots_signal
+    plots["fake"] = plots_fake
+    plots["data"] = plots_data        
+
+    fake=histogram_fillers.fillHistogramFake(cfg,tree_data,mc_trees_for_fake_histogram_filler,hist_fake,plots_fake,fake_muons,fake_electrons)
 
     data = None
 
     if not cfg["blind_high_mjj"]:
-        data=histogram_fillers.fillHistogram(cfg,tree_data,hist_data,is_data=True)
+        data=histogram_fillers.fillHistogram(cfg,tree_data,hist_data,plots_data,is_data=True)
+
+
     
-    write_results.write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,backgrounds_info,signal,signal_info,fake_muons,fake_electrons,fake,data)
+    write_results.write_sm_mc_fake(cfg,hist,hist_signal,hist_background,plots,backgrounds,backgrounds_info,signal,signal_info,fake_muons,fake_electrons,fake,data)
 
 if cfg["mode"] == "sm_low_mjj_control_region":
 

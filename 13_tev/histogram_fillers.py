@@ -85,32 +85,41 @@ def electronfakerate(eta,pt,syst):
 
     return prob/(1-prob)
 
+def getSignificanceVariable(variable,t):
+    if variable == "mllmjj":
+        return [(t.jet1+t.jet2).M(),(t.lep1+t.lep2).M()]
+    else:
+        return
 
-def getVariable(cfg,t):
-    if cfg["variable"] == "mllmjj":
-        return [(t.jet1+t.jet2).M(),(t.lep1+t.lep2).M()]        
-    elif cfg["variable"] == "mjj":
+def getVariable(variable,t):
+    if variable == "mjj":
         return (t.jet1+t.jet2).M()
-    elif cfg["variable"] == "mll":
+    elif variable == "mll":
         return (t.lep1+t.lep2).M()
-    elif cfg["variable"] == "mlljj":
+    elif variable == "mlljj":
         return (t.lep1+t.lep2+t.jet1+t.jet2).M()
-    elif cfg["variable"] == "met":
+    elif variable == "met":
         return t.metpt
-    elif cfg["variable"] == "detajj":
+    elif variable == "detajj":
         return abs(t.jet1.Eta() - t.jet2.Eta())
-    elif cfg["variable"] == "maxbtagevent":
+    elif variable == "maxbtagevent":
         return t.maxbtagevent
-    elif cfg["variable"] == "jet2btag":
-        return t.jet2btag
-    elif cfg["variable"] == "nvtx":
-        return t.nvtx
-    elif cfg["variable"] == "lep1pt":
-        return t.lep1.pt()
-    elif cfg["variable"] == "lep2pt":
-        return t.lep2.pt()
-    elif cfg["variable"] == "zeppenfeld":
-        return max(abs(t.lep1.Eta() - (t.jet1.Eta() + t.jet2.Eta())/2.0),abs(t.lep2.Eta() - (t.jet1.Eta() + t.jet2.Eta())/2.0))
+    elif variable == "lep1pt":
+        return max(t.lep1.Pt(),t.lep2.Pt())
+    elif variable == "lep2pt":
+        return min(t.lep1.Pt(),t.lep2.Pt())
+    elif variable == "jet1pt":
+        return max(t.jet1.Pt(),t.jet2.Pt())
+    elif variable == "jet2pt":
+        return min(t.jet1.Pt(),t.jet2.Pt())    
+    elif variable == "lep1eta":
+        return t.lep1.Eta()
+    elif variable == "lep2eta":
+        return t.lep2.Eta()
+    elif variable == "jet1eta":
+        return t.jet1.Eta()
+    elif variable == "jet2eta":
+        return t.jet2.Eta()        
     else:
         assert(0)    
 
@@ -151,7 +160,7 @@ def fill_histograms_cut_mask(histograms,var, weight, mask):
             histograms[i].Fill(var, weight)
 
 
-def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False, fill_cutflow_histograms = False,debug = False):
+def fillHistogram(cfg,t,hist,plots,use_lhe_weight = False,is_data=False, syscalc=False, fill_cutflow_histograms = False,debug = False):
 
 
 
@@ -282,18 +291,25 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
                 
             #w = w*pu_weight_hist.GetBinContent(pu_weight_hist.FindFixBin(t.n_pu_interactions))
 
-        var=getVariable(cfg,t)
+        for variable in plots.keys():
+            plotvar = getVariable(variable,t)
+            if plotvar > plots[variable].GetBinLowEdge(plots[variable].GetNbinsX()):
+                plotvar =plots[variable].GetBinCenter(plots[variable].GetNbinsX())
+            if p:
+                plots[variable].Fill(plotvar,w)
 
-        if cfg["variable"] == "mllmjj":
+        var=getSignificanceVariable(cfg["significance_variable"],t)
+
+        if cfg["significance_variable"] == "mllmjj":
             if var[0] > return_hist.GetXaxis().GetBinLowEdge(return_hist.GetNbinsX()):
                 var[0] = return_hist.GetXaxis().GetBinCenter(return_hist.GetNbinsX())
             if var[1] > return_hist.GetYaxis().GetBinLowEdge(return_hist.GetNbinsY()):
                 var[1] = return_hist.GetYaxis().GetBinCenter(return_hist.GetNbinsY())
 
-        if var > 500 and cfg["variable"] == "mjj" and cfg["blind_high_mjj"] == True:
-            continue
+        #if var > 500 and  cfg["blind_high_mjj"] == True:
+        #    continue
 
-        if cfg["variable"] == "mllmjj":
+        if cfg["significance_variable"] == "mllmjj":
             if p:
                 return_hist.Fill(var[0],var[1],w)
 
@@ -315,7 +331,7 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
 
         if syscalc:
 
-            if cfg["variable"] == "mllmjj":
+            if cfg["significance_variable"] == "mllmjj":
                 for i in range(0,100):
                     if p:
                         histos[i].Fill(var[0],var[1],w*t.pdf_weights[i]/t.qcd_pdf_weight_orig)
@@ -350,7 +366,7 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
 
     if syscalc:
         
-        if cfg["variable"] == "mllmjj":
+        if cfg["significance_variable"] == "mllmjj":
 
             for i in range(1,hist.GetNbinsX()+1):
                 for j in range(1,hist.GetNbinsY()+1):
@@ -404,7 +420,7 @@ def fillHistogram(cfg,t,hist,use_lhe_weight = False,is_data=False, syscalc=False
     else:
         return {"hist_central" : return_hist , "cutflow_histograms" : cutflow_histograms}
 
-def fillHistogramFake(cfg,t,real_lepton_trees,hist,fake_muons,fake_electrons,applying_to_ttbar_mc=False,debug=False):
+def fillHistogramFake(cfg,t,real_lepton_trees,hist,plots,fake_muons,fake_electrons,applying_to_ttbar_mc=False,debug=False):
 
     fr_file=TFile(cfg["fr_fname"])
 
@@ -505,12 +521,12 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,fake_muons,fake_electrons,app
         else:
             w= 1
 
-        var=getVariable(cfg,t)
+        var=getSignificanceVariable(cfg["significance_variable"],t)
 
-        if cfg["variable"] == "mjj" and  var > 500 and cfg["blind_high_mjj"] == True:
-            continue
+        #if cfg["variable"] == "mjj" and  var > 500 and cfg["blind_high_mjj"] == True:
+        #    continue
 
-        if cfg["variable"] == "mllmjj":
+        if cfg["significance_variable"] == "mllmjj":
             if var[0] > return_hist.GetXaxis().GetBinLowEdge(return_hist.GetNbinsX()):
                 var[0] = return_hist.GetXaxis().GetBinCenter(return_hist.GetNbinsX())
             if var[1] > return_hist.GetYaxis().GetBinLowEdge(return_hist.GetNbinsY()):
@@ -580,7 +596,14 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,fake_muons,fake_electrons,app
         #    print t.maxbtagevent
         #    print w
 
-        if cfg["variable"] == "mllmjj":
+        for variable in plots.keys():
+            plotvar = getVariable(variable,t)
+            if plotvar > plots[variable].GetBinLowEdge(plots[variable].GetNbinsX()):
+                plotvar =plots[variable].GetBinCenter(plots[variable].GetNbinsX())
+            if p:
+                plots[variable].Fill(plotvar,w)
+
+        if cfg["significance_variable"] == "mllmjj":
             if p:
                 return_hist.Fill(var[0],var[1],w)
         elif cfg["mode"] == "non-sm" and use_lhe_weight == True:
@@ -685,13 +708,12 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,fake_muons,fake_electrons,app
             if abs(t.lep2id) == 13:
                 w = w*eff_scale_factor.muon_efficiency_scale_factor(t.lep2.pt(),t.lep2.eta())                                
 
+            var=getSignificanceVariable(cfg["significance_variable"],t)
 
-            var=getVariable(cfg,t)
+            #if cfg["variable"] == "mjj" and  var > 500 and cfg["blind_high_mjj"] == True:
+            #    continue
 
-            if cfg["variable"] == "mjj" and  var > 500 and cfg["blind_high_mjj"] == True:
-                continue
-
-            if cfg["variable"] == "mllmjj":
+            if cfg["significance_variable"] == "mllmjj":
                 if var[0] > return_hist.GetXaxis().GetBinLowEdge(return_hist.GetNbinsX()):
                     var[0] = return_hist.GetXaxis().GetBinCenter(return_hist.GetNbinsX())
                 if var[1] > return_hist.GetYaxis().GetBinLowEdge(return_hist.GetNbinsY()):
@@ -761,7 +783,14 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,fake_muons,fake_electrons,app
         #    print t.maxbtagevent
         #    print w
 
-            if cfg["variable"] == "mllmjj":
+            for variable in plots.keys():
+                plotvar = getVariable(variable,t)
+                if plotvar > plots[variable].GetBinLowEdge(plots[variable].GetNbinsX()):
+                    plotvar =plots[variable].GetBinCenter(plots[variable].GetNbinsX())
+                if p:
+                    plots[variable].Fill(plotvar,w)
+
+            if cfg["significance_variable"] == "mllmjj":
                 if p:
                     return_hist.Fill(var[0],var[1],w)
             elif cfg["mode"] == "non-sm" and use_lhe_weight == True:
