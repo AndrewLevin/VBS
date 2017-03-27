@@ -37,6 +37,8 @@ if  cfg["mode"] != "sm" and cfg["mode"] != "non-sm" and cfg["mode"] != "sm-pdf" 
 
 gROOT.cd()
 
+assert(cfg["which_selection"] == "relaxed" or cfg["which_selection"] == "full" or cfg["which_selection"] == "full_novbs" or cfg["which_selection"] == "relaxed_btagged" or cfg["which_selection"] == "full_btagged" or cfg["which_selection"] == "full_lowmjj1" or cfg["which_selection"] == "full_lowmjj2")
+
 if cfg["significance_variable"] == "mllmjj":
     binningmjj=array('f',[500,800,1100,1500,2000])
     binningmll=array('f',[20,100,200,300])
@@ -47,8 +49,17 @@ else:
 
 plots_templates = {}
 if cfg["plot_variable"] == "all":
-    binningmjj=array('f',[500,800,1100,1500,2000])
-    histmjj = TH1F('mjj', 'mjj',4, binningmjj )
+
+    charge_flavor_permuations = ["mm_plus","mm_minus","em_plus","em_minus","ee_plus","ee_minus","mm_both","em_both","ee_both"]
+
+    if cfg["which_selection"] == "full" or cfg["which_selection"] == "full_btagged":
+        binningmjj=array('f',[500,800,1100,1500,2000])
+        histmjj = TH1F('mjj', 'mjj',4, binningmjj )        
+    elif cfg["which_selection"] == "full_lowmjj1" or cfg["which_selection"] == "full_lowmjj2":
+        histmjj = TH1F('mjj', 'mjj', 4, 100., 500 )
+    else:
+        assert(0)
+
     binningmll = array('f',[50,100,200,300,500])
     histmll = TH1F('mll', 'mll',4, binningmll )    
     histmet = TH1F('met', 'met', 18 , 20., 200 )
@@ -61,7 +72,21 @@ if cfg["plot_variable"] == "all":
     histlep1eta = TH1F('lep1eta', 'lep1eta', 10, -2.5, 2.5 )
     histlep2eta = TH1F('lep2eta', 'lep2eta', 10, -2.5, 2.5 )
     histjet1eta = TH1F('jet1eta', 'jet1eta', 10, -5., 5 )
-    histjet2eta = TH1F('jet2eta', 'jet1eta', 10, -5., 5 )        
+    histjet2eta = TH1F('jet2eta', 'jet1eta', 10, -5., 5 )
+
+    histmll.Sumw2()
+    histmet.Sumw2()
+    histmlljj.Sumw2()
+    histdetajj.Sumw2()
+    histlep1pt.Sumw2()
+    histlep2pt.Sumw2()
+    histjet1pt.Sumw2()
+    histjet2pt.Sumw2()
+    histlep1eta.Sumw2()
+    histlep2eta.Sumw2()
+    histjet1eta.Sumw2()
+    histjet2eta.Sumw2()
+
     plots_templates["mjj"] = histmjj
     plots_templates["mll"] = histmll
     plots_templates["mlljj"] = histmlljj    
@@ -74,7 +99,19 @@ if cfg["plot_variable"] == "all":
     plots_templates["jet1pt"] = histjet1pt
     plots_templates["jet2pt"] = histjet2pt
     plots_templates["jet1eta"] = histjet1eta
-    plots_templates["jet2eta"] = histjet2eta            
+    plots_templates["jet2eta"] = histjet2eta
+
+    for charge_flavor_permutation in charge_flavor_permuations:
+        if cfg["which_selection"] == "full" or cfg["which_selection"] == "full_btagged":
+            histmjjchargeflavorpermuation = TH1F('mjj_'+charge_flavor_permutation, 'mjj_'+charge_flavor_permutation,4, binningmjj )
+        elif cfg["which_selection"] == "full_lowmjj1" or cfg["which_selection"] == "full_lowmjj2":
+            histmjjchargeflavorpermutation = TH1F('mjj_'+charge_flavor_permutation, 'mjj_'+charge_flavor_permutation, 4, 100., 500 )
+        else:
+            assert(0)
+
+        histmjjchargeflavorpermutation.Sumw2()
+        plots_templates["mjj_"+charge_flavor_permutation] = histmjjchargeflavorpermutation
+    
 else:
     assert(0)
     
@@ -82,7 +119,7 @@ backgrounds = []
 
 hist.Sumw2()
 
-assert(cfg["which_selection"] == "relaxed" or cfg["which_selection"] == "full" or cfg["which_selection"] == "full_novbs" or cfg["which_selection"] == "relaxed_btagged" or cfg["which_selection"] == "full_btagged")
+
 
 if cfg["mode"] == "reweighted_v1" or cfg["mode"] == "reweighted_v2":
     if "datacard" in cfg:

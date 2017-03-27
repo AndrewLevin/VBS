@@ -165,14 +165,14 @@ def passSelectionExceptLeptonIDs(t,cfg):
     else:
         mask = mask | (1 << 14)
 
-    if cfg["mode"] == "sm_low_mjj_control_region":
-        if (t.jet1+t.jet2).M() > 500:
-            p=False
-        if abs(t.jet1.Eta() - t.jet2.Eta()) < 2.5:
-            p=False
-        if max(abs(t.lep1.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta()),abs(t.lep2.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta())) > 0.75:
-            p=False
-    elif cfg["mode"] == "fr_closure_test":
+    #if cfg["mode"] == "sm_low_mjj_control_region":
+    #    if (t.jet1+t.jet2).M() > 500:
+    #        p=False
+    #    if abs(t.jet1.Eta() - t.jet2.Eta()) < 2.5:
+    #        p=False
+    #    if max(abs(t.lep1.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta()),abs(t.lep2.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta())) > 0.75:
+    #        p=False
+    if cfg["mode"] == "fr_closure_test":
         if cfg["which_selection"] == "full":
             if (t.jet1+t.jet2).M() > 500:
                 p=False
@@ -187,7 +187,17 @@ def passSelectionExceptLeptonIDs(t,cfg):
         if cfg["which_selection"] == "full_novbs":
             mask = mask | (1 << 15)
             mask = mask | (1 << 16)
-            mask = mask | (1 << 17) 
+            mask = mask | (1 << 17)
+        elif cfg["which_selection"] == "full_lowmjj1":
+            if (t.jet1+t.jet2).M() > 500:
+                p=False
+            if abs(t.jet1.Eta() - t.jet2.Eta()) < 2.5:
+                p=False
+            if max(abs(t.lep1.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta()),abs(t.lep2.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta())) > 0.75:
+                p=False
+        elif cfg["which_selection"] == "full_lowmjj2":
+            if (t.jet1+t.jet2).M() > 500:
+                p=False
         else:
             if (t.jet1+t.jet2).M() < 500:
                 p=False

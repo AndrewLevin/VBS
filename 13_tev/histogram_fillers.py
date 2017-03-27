@@ -43,6 +43,20 @@ lep2_loose_electron_mask = Lep2LooseSelectionV2
 #these will be initialized later
 #muon_fr_hist=None
 #electron_fr_hist=None
+
+def passChargeFlavor(variable,charge,flavor_combination):
+    split_variable=variable.split('_')
+    if len(split_variable) == 1:
+        return True
+    else:
+        assert(len(split_variable) == 3)
+
+    if (split_variable[1] == flavor_combination) and ((split_variable[2] == charge) or (split_variable[2] == "both")):
+        return True
+    else:
+        return False
+
+    
         
 def muonfakerate(eta,pt,syst):
 
@@ -91,7 +105,14 @@ def getSignificanceVariable(variable,t):
     else:
         return
 
-def getVariable(variable,t):
+def getPlotVariable(variable,t):
+
+    #for different charge flavor combinations
+    if len(variable.split('_')) == 3:
+        variable = variable.split('_')[0]
+    else:
+        assert(len(variable.split('_')) == 1)
+    
     if variable == "mjj":
         return (t.jet1+t.jet2).M()
     elif variable == "mll":
@@ -201,27 +222,6 @@ def fillHistogram(cfg,t,hist,plots,use_lhe_weight = False,is_data=False, syscalc
         #    if not pass_json(t.run,t.lumi):
         #        continue
 
-        if cfg["charge"] == "+":
-            if t.lep1id > 0:
-                continue
-        elif cfg["charge"] == "-":
-            if t.lep1id < 0:
-                continue
-        else:
-            assert(cfg["charge"] == "both")
-
-        if (abs(t.lep1id) == 13 and abs(t.lep2id) == 11) or (abs(t.lep1id) == 11 and abs(t.lep2id) == 13) :
-            channel="em"
-        elif abs(t.lep1id) == 13 and abs(t.lep2id) == 13:
-            channel = "mm"
-        elif abs(t.lep1id) == 11 and abs(t.lep2id) == 11:
-            channel = "ee"
-        else:
-            assert(0)
-
-        if cfg["channel"] != channel and cfg["channel"] !="all":
-            continue
-
         [p,mask] = selection.passSelectionExceptLeptonIDs(t,cfg)
 
         if cfg["which_selection"] == "relaxed" or cfg["which_selection"] == "relaxed_btagged":
@@ -289,14 +289,45 @@ def fillHistogram(cfg,t,hist,plots,use_lhe_weight = False,is_data=False, syscalc
                 w = w*eff_scale_factor.muon_efficiency_scale_factor(t.lep2.pt(),t.lep2.eta())                                
                 
                 
+
+
             #w = w*pu_weight_hist.GetBinContent(pu_weight_hist.FindFixBin(t.n_pu_interactions))
 
+        if t.lep1id < 0:
+            charge = "plus"
+        elif t.lep1id > 0:
+            charge = "minus"
+        else:
+            assert(0)
+
+        if (abs(t.lep1id) == 13 and abs(t.lep2id) == 11) or (abs(t.lep1id) == 11 and abs(t.lep2id) == 13) :
+            channel="em"
+        elif abs(t.lep1id) == 13 and abs(t.lep2id) == 13:
+            channel = "mm"
+        elif abs(t.lep1id) == 11 and abs(t.lep2id) == 11:
+            channel = "ee"
+        else:
+            assert(0)
+
         for variable in plots.keys():
-            plotvar = getVariable(variable,t)
+            plotvar = getPlotVariable(variable,t)
             if plotvar > plots[variable].GetBinLowEdge(plots[variable].GetNbinsX()):
                 plotvar =plots[variable].GetBinCenter(plots[variable].GetNbinsX())
-            if p:
+            if p and passChargeFlavor(variable,charge,channel):
                 plots[variable].Fill(plotvar,w)
+                
+        if cfg["charge"] == "+":
+            if charge == "minus":
+                continue
+        elif cfg["charge"] == "-":
+            if charge == "plus":
+                continue
+        else:
+            assert(cfg["charge"] == "both")
+
+
+        if cfg["channel"] != channel and cfg["channel"] !="all":
+            continue
 
         var=getSignificanceVariable(cfg["significance_variable"],t)
 
@@ -474,27 +505,6 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,plots,fake_muons,fake_electro
         #if not pass_json(t.run,t.lumi):
         #    continue
 
-        if cfg["charge"] == "+":
-            if t.lep1id > 0:
-                continue
-        elif cfg["charge"] == "-":
-            if t.lep1id < 0:
-                continue
-        else:
-            assert(cfg["charge"] == "both")
-            
-        if (abs(t.lep1id) == 13 and abs(t.lep2id) == 11) or (abs(t.lep1id) == 11 and abs(t.lep2id) == 13) :
-            channel="em"
-        elif abs(t.lep1id) == 13 and abs(t.lep2id) == 13:
-            channel = "mm"
-        elif abs(t.lep1id) == 11 and abs(t.lep2id) == 11:
-            channel = "ee"
-        else:
-            assert(0)
-            
-        if cfg["channel"] != channel and cfg["channel"] !="all":
-            continue
-
         [p,mask] = selection.passSelectionExceptLeptonIDs(t,cfg)
 
         if cfg["which_selection"] == "relaxed" or cfg["which_selection"] == "relaxed_btagged":
@@ -596,12 +606,40 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,plots,fake_muons,fake_electro
         #    print t.maxbtagevent
         #    print w
 
+        if t.lep1id < 0:
+            charge = "plus"
+        elif t.lep1id > 0:
+            charge = "minus"
+        else:
+            assert(0)
+
+        if (abs(t.lep1id) == 13 and abs(t.lep2id) == 11) or (abs(t.lep1id) == 11 and abs(t.lep2id) == 13) :
+            channel="em"
+        elif abs(t.lep1id) == 13 and abs(t.lep2id) == 13:
+            channel = "mm"
+        elif abs(t.lep1id) == 11 and abs(t.lep2id) == 11:
+            channel = "ee"
+        else:
+            assert(0)
+
         for variable in plots.keys():
-            plotvar = getVariable(variable,t)
+            plotvar = getPlotVariable(variable,t)
             if plotvar > plots[variable].GetBinLowEdge(plots[variable].GetNbinsX()):
                 plotvar =plots[variable].GetBinCenter(plots[variable].GetNbinsX())
-            if p:
+            if p and passChargeFlavor(variable,charge,channel):
                 plots[variable].Fill(plotvar,w)
+
+        if cfg["charge"] == "+":
+            if charge == "minus":
+                continue
+        elif cfg["charge"] == "-":
+            if charge == "plus":
+                continue
+        else:
+            assert(cfg["charge"] == "both")
+
+        if cfg["channel"] != channel and cfg["channel"] !="all":
+            continue
 
         if cfg["significance_variable"] == "mllmjj":
             if p:
@@ -651,27 +689,6 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,plots,fake_muons,fake_electro
 
         #if not pass_json(t.run,t.lumi):
         #    continue
-
-            if cfg["charge"] == "+":
-                if t.lep1id > 0:
-                    continue
-            elif cfg["charge"] == "-":
-                if t.lep1id < 0:
-                    continue
-            else:
-                assert(cfg["charge"] == "both")
-            
-            if (abs(t.lep1id) == 13 and abs(t.lep2id) == 11) or (abs(t.lep1id) == 11 and abs(t.lep2id) == 13) :
-                channel="em"
-            elif abs(t.lep1id) == 13 and abs(t.lep2id) == 13:
-                channel = "mm"
-            elif abs(t.lep1id) == 11 and abs(t.lep2id) == 11:
-                channel = "ee"
-            else:
-                assert(0)
-            
-            if cfg["channel"] != channel and cfg["channel"] !="all":
-                continue
 
             [p,mask] = selection.passSelectionExceptLeptonIDs(t,cfg)
 
@@ -783,12 +800,40 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,plots,fake_muons,fake_electro
         #    print t.maxbtagevent
         #    print w
 
+            if t.lep1id < 0:
+                charge = "plus"
+            elif t.lep1id > 0:
+                charge = "minus"
+            else:
+                assert(0)
+
+            if (abs(t.lep1id) == 13 and abs(t.lep2id) == 11) or (abs(t.lep1id) == 11 and abs(t.lep2id) == 13) :
+                channel="em"
+            elif abs(t.lep1id) == 13 and abs(t.lep2id) == 13:
+                channel = "mm"
+            elif abs(t.lep1id) == 11 and abs(t.lep2id) == 11:
+                channel = "ee"
+            else:
+                assert(0)
+
             for variable in plots.keys():
-                plotvar = getVariable(variable,t)
+                plotvar = getPlotVariable(variable,t)
                 if plotvar > plots[variable].GetBinLowEdge(plots[variable].GetNbinsX()):
                     plotvar =plots[variable].GetBinCenter(plots[variable].GetNbinsX())
-                if p:
+                if p and passChargeFlavor(variable,charge,channel):
                     plots[variable].Fill(plotvar,w)
+
+            if cfg["charge"] == "+":
+                if charge == "minus":
+                    continue
+            elif cfg["charge"] == "-":
+                if charge == "plus":
+                    continue
+            else:
+                assert(cfg["charge"] == "both")
+
+        if cfg["channel"] != channel and cfg["channel"] !="all":
+            continue
 
             if cfg["significance_variable"] == "mllmjj":
                 if p:
