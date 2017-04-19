@@ -31,7 +31,7 @@ from ROOT import *
 
 from array import array
 
-if  cfg["mode"] != "sm" and cfg["mode"] != "non-sm" and cfg["mode"] != "sm-pdf" and cfg["mode"] != "sm-qcd" and cfg["mode"] != "gm" and cfg["mode"] != "reweighted_v1" and cfg["mode"] != "reweighted_v2" and cfg["mode"] != "sm_low_mjj_control_region" and cfg["mode"] != "sm_mc" and cfg["mode"] != "sm_mc_fake" and cfg["mode"] != "fr_closure_test" and cfg["mode"] != "produce_histograms":
+if  cfg["mode"] != "sm" and cfg["mode"] != "non-sm" and cfg["mode"] != "sm-pdf" and cfg["mode"] != "sm-qcd" and cfg["mode"] != "gm" and cfg["mode"] != "reweighted_v1" and cfg["mode"] != "reweighted_v2" and cfg["mode"] != "sm_low_mjj_control_region" and cfg["mode"] != "sm_mc" and cfg["mode"] != "sm_mc_fake" and cfg["mode"] != "fr_closure_test" and cfg["mode"] != "produce_histograms" and cfg["mode"] != "sm_mc_fake_wz":
     print "unrecognized mode, exiting"
     sys.exit(1)
 
@@ -41,22 +41,33 @@ assert(cfg["which_selection"] == "relaxed" or cfg["which_selection"] == "full" o
 
 if cfg["significance_variable"] == "mllmjj":
     binningmjj=array('f',[500,800,1100,1500,2000])
-    binningmll=array('f',[20,100,200,300])
-    hist = TH2F('mllmjj', 'mllmjj',len(binningmjj)-1, binningmjj,len(binningmll)-1, binningmll )
+    binningmll=array('f',[20,100,180,300,400])
+    hist = TH2F('mllmjj_for_significance', 'mllmjj_for_significance',len(binningmjj)-1, binningmjj,len(binningmll)-1, binningmll )
 
+elif cfg["significance_variable"] == "mjj":
+    binningmjj=array('f',[500,800,1100,1500,2000])
+    hist = TH1F('mjj_for_significance', 'mjj_for_significance',len(binningmjj) - 1, binningmjj )        
 else:
     assert(0)
 
 plots_templates = {}
 if cfg["plot_variable"] == "all":
 
-    charge_flavor_permuations = ["mm_plus","mm_minus","em_plus","em_minus","ee_plus","ee_minus","mm_both","em_both","ee_both"]
+    if cfg["mode"] == "sm_mc_fake_wz":
+        charge_flavor_permuations = ["mmm","eee","eem","emm"]
+    else:
+        assert(cfg["mode"] == "sm_mc_fake")
+        charge_flavor_permuations = ["mm_plus","mm_minus","em_plus","em_minus","ee_plus","ee_minus","mm_both","em_both","ee_both"]
+
 
     if cfg["which_selection"] == "full" or cfg["which_selection"] == "full_btagged":
         binningmjj=array('f',[500,800,1100,1500,2000])
         histmjj = TH1F('mjj', 'mjj',4, binningmjj )        
     elif cfg["which_selection"] == "full_lowmjj1" or cfg["which_selection"] == "full_lowmjj2":
         histmjj = TH1F('mjj', 'mjj', 4, 100., 500 )
+    elif cfg["which_selection"] == "full_novbs":
+        binningmjj=array('f',[100,200,300,400,500,800,1100,1500,2000])
+        histmjj = TH1F('mjj', 'mjj',8, binningmjj )                
     else:
         assert(0)
 
@@ -103,9 +114,11 @@ if cfg["plot_variable"] == "all":
 
     for charge_flavor_permutation in charge_flavor_permuations:
         if cfg["which_selection"] == "full" or cfg["which_selection"] == "full_btagged":
-            histmjjchargeflavorpermuation = TH1F('mjj_'+charge_flavor_permutation, 'mjj_'+charge_flavor_permutation,4, binningmjj )
+            histmjjchargeflavorpermutation = TH1F('mjj_'+charge_flavor_permutation, 'mjj_'+charge_flavor_permutation,len(binningmjj) - 1, binningmjj )
         elif cfg["which_selection"] == "full_lowmjj1" or cfg["which_selection"] == "full_lowmjj2":
             histmjjchargeflavorpermutation = TH1F('mjj_'+charge_flavor_permutation, 'mjj_'+charge_flavor_permutation, 4, 100., 500 )
+        elif cfg["which_selection"] == "full_novbs":
+            histmjjchargeflavorpermutation = TH1F('mjj_'+charge_flavor_permutation, 'mjj_'+charge_flavor_permutation,len(binningmjj) -1 , binningmjj )            
         else:
             assert(0)
 
@@ -118,8 +131,6 @@ else:
 backgrounds = []
 
 hist.Sumw2()
-
-
 
 if cfg["mode"] == "reweighted_v1" or cfg["mode"] == "reweighted_v2":
     if "datacard" in cfg:
@@ -175,6 +186,7 @@ if cfg["mode"] == "reweighted_v1":
     if "atgcroostats_config_fname" in cfg:
         print "atgcroostats_config_fname should not be used in reweighted_v1, exiting"
         sys.exit(1)        
+
 
 
 if cfg["mode"] == "reweighted_v1" or cfg["mode"] == "reweighted_v2":
@@ -257,6 +269,7 @@ if cfg["mode"] == "reweighted_v1" or cfg["mode"] == "reweighted_v2":
         write_results.write_reweighted_mode_v2(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,fake_muons,fake_electrons,sm_lhe_weight,backgrounds_info,fake)
     else:
         assert(0)
+
 
 if cfg["mode"] == "sm_mc_fake":
 
@@ -365,11 +378,126 @@ if cfg["mode"] == "sm_mc_fake":
     data = None
 
     if not cfg["blind_high_mjj"]:
-        data=histogram_fillers.fillHistogram(cfg,tree_data,hist_data,plots_data,is_data=True)
+        data=histogram_fillers.fillHistogram(cfg,tree_data,hist_data,plots_data,is_data=True,debug=True)
 
 
     
     write_results.write_sm_mc_fake(cfg,hist,hist_signal,hist_background,plots,backgrounds,backgrounds_info,signal,signal_info,fake_muons,fake_electrons,fake,data)
+
+if cfg["mode"] == "sm_mc_fake_wz":
+
+    assert(cfg["channel"] == "all" or cfg["channel"] == "ee" or cfg["channel"] == "em" or cfg["channel"] == "mm")
+
+    signal_info=cfg["signal_file"]
+    backgrounds_info=cfg["background_file"]
+
+    plots = {}
+
+    plots_data = {}
+
+    for plots_template_key in plots_templates.keys():
+        plots_data[plots_template_key] = plots_templates[plots_template_key].Clone()
+
+    plots_fake = {}
+
+    for plots_template_key in plots_templates.keys():
+        plots_fake[plots_template_key] = plots_templates[plots_template_key].Clone()
+
+    plots_signal = {}
+
+    for plots_template_key in plots_templates.keys():
+        plots_signal[plots_template_key] = plots_templates[plots_template_key].Clone()                
+
+    hist_data=hist.Clone()
+
+    hist_fake=hist.Clone()
+
+    hist_signal=hist.Clone()
+
+    c=TCanvas("c", "c",0,0,600,500)
+    c.Range(0,0,1,1)
+
+    f_signal=TFile(signal_info[0])
+
+    tree_signal=f_signal.Get("events")
+
+    if signal_info[2] == "syscalc":
+        signal=histogram_fillers.fillHistogramWZ(cfg,tree_signal,hist_signal,plots_signal,syscalc=True,debug=False)
+    else:
+        assert(signal_info[2] == "none")
+        signal=histogram_fillers.fillHistogramWZ(cfg,tree_signal,hist_signal,plots_signal,fill_cutflow_histograms=True,debug=False)
+
+    mc_trees_for_fake_histogram_filler = []
+
+    for background_info in backgrounds_info:
+
+        f_background=TFile(background_info[0])
+
+        gROOT.cd() #without this, hist_background gets written into a file that goes out of scope
+
+        tree_background=f_background.Get("events").CloneTree()
+
+        #tree_background.SetDirectory(0)
+
+        mc_trees_for_fake_histogram_filler.append(tree_background)
+
+
+        hist_background=hist.Clone()
+
+        plots_background = {}
+
+        for plots_template_key in plots_templates.keys():
+            plots_background[plots_template_key] = plots_templates[plots_template_key].Clone()                
+
+        if background_info[2] == "syscalc":
+            return_hists = histogram_fillers.fillHistogramWZ(cfg,tree_background,hist_background,plots_background,syscalc=True)
+            backgrounds.append(return_hists)
+        else:
+            assert(background_info[2] == "none")
+            return_hists = histogram_fillers.fillHistogramWZ(cfg,tree_background,hist_background, plots_background)
+            backgrounds.append(return_hists)
+
+        plots[background_info[1]] = plots_background
+
+    data_fname=cfg["data_file"]
+    f_data = TFile(data_fname)
+    tree_data = f_data.Get("events")
+
+    fake_muons = hist.Clone()
+    fake_electrons = hist.Clone()
+
+
+#    for background_info in backgrounds_info:
+#        print background_info[0]
+#        f_background=TFile(background_info[0])
+#        gROOT.cd()
+#        tree_background=f_background.Get("events")
+#        print type(tree_background)
+#        mc_trees_for_fake_histogram_filler.append(tree_background)
+#        break
+
+#    f_signal=TFile(signal_info[0])
+#    gROOT.cd()    
+#    tree_signal=f_signal.Get("events")
+#    print type(tree_signal)
+
+    mc_trees_for_fake_histogram_filler.append(tree_signal)        
+
+    plots["signal"] = plots_signal
+    plots["fake"] = plots_fake
+    plots["data"] = plots_data        
+
+#    mc_trees_for_fake_histogram_filler = []
+
+    fake=histogram_fillers.fillHistogramFakeWZ(cfg,tree_data,mc_trees_for_fake_histogram_filler,hist_fake,plots_fake,fake_muons,fake_electrons)
+
+    data = None
+
+    if not cfg["blind_high_mjj"]:
+        data=histogram_fillers.fillHistogramWZ(cfg,tree_data,hist_data,plots_data,is_data=True,debug=True)
+    
+    write_results.write_sm_mc_fake(cfg,hist,hist_signal,hist_background,plots,backgrounds,backgrounds_info,signal,signal_info,fake_muons,fake_electrons,fake,data)
+    
 
 if cfg["mode"] == "sm_low_mjj_control_region":
 
@@ -424,7 +552,6 @@ if cfg["mode"] == "sm_low_mjj_control_region":
     
     write_results.write_sm_low_mjj_control_region(cfg,hist,hist_background,backgrounds,backgrounds_info,fake_muons,fake_electrons,fake,data)
 
-
 if cfg["mode"] == "fr_closure_test":
 
     hist_ttbar=hist.Clone()
@@ -450,8 +577,11 @@ if cfg["mode"] == "fr_closure_test":
 
 if cfg["mode"] == "produce_histograms":
 
+
     assert(cfg["channel"] == "all" or cfg["channel"] == "ee" or cfg["channel"] == "em" or cfg["channel"] == "mm")
 
+    print "andrew debug 1"
+    
     if "mc_sample_file" in cfg:
         mc_samples_info=cfg["mc_sample_file"]
     else:
@@ -481,12 +611,21 @@ if cfg["mode"] == "produce_histograms":
 
     fake_samples = []
 
+    plots = {}
+
     fakeratemc_samples = []
 
+    
 
+    i = 0
     for fakeratemc_sample_info in fakeratemc_samples_info:
         f_fakeratemc_sample=TFile(fakeratemc_sample_info[0])
         gROOT.cd() #without this, hist_background gets written into a file that goes out of scope
+
+        plots_fakeratemc = {}
+
+        for plots_template_key in plots_templates.keys():
+            plots_fakeratemc[plots_template_key] = plots_templates[plots_template_key].Clone()                
 
         tree_fakeratemc_sample=f_fakeratemc_sample.Get("events")
         hist_fakeratemc_sample=hist.Clone()
@@ -494,10 +633,17 @@ if cfg["mode"] == "produce_histograms":
         fake_muons = hist.Clone()
         fake_electrons = hist.Clone()
 
-        return_hists=histogram_fillers.fillHistogramFake(cfg,tree_fakeratemc_sample,hist_fakeratemc_sample,fake_muons,fake_electrons,applying_to_ttbar_mc=True)
+        mc_trees_for_fake_histogram_filler = []
+
+        return_hists=histogram_fillers.fillHistogramFake(cfg,tree_fakeratemc_sample,mc_trees_for_fake_histogram_filler,hist_fakeratemc_sample,plots_fakeratemc,fake_muons,fake_electrons,applying_to_ttbar_mc=True)
+
+        plots["fakeratemc_sample"+str(i)] = plots_fakeratemc
 
         fakeratemc_samples.append(return_hists)
+        i = i + 1
 
+
+    i = 0    
     for fake_sample_info in fake_samples_info:
         f_fake_sample=TFile(fake_sample_info[0])
         gROOT.cd() #without this, hist_background gets written into a file that goes out of scope
@@ -508,30 +654,59 @@ if cfg["mode"] == "produce_histograms":
         fake_muons = hist.Clone()
         fake_electrons = hist.Clone()
 
-        return_hists=histogram_fillers.fillHistogramFake(cfg,tree_fake_sample,hist_fake_sample,fake_muons,fake_electrons)
+        plots_fake = {}
+
+        for plots_template_key in plots_templates.keys():
+            plots_fake[plots_template_key] = plots_templates[plots_template_key].Clone()                
+
+        return_hists=histogram_fillers.fillHistogramFake(cfg,tree_fake_sample,mc_trees_for_fake_histogram_filler,hist_fake_sample,plots_fake,fake_muons,fake_electrons)
 
         fake_samples.append(return_hists)
 
+        plots["fake_sample"+str(i)] = plots_fake
+        
+        i = i +1
+        
+
+    i = 0    
     for mc_sample_info in mc_samples_info:
         f_mc_sample=TFile(mc_sample_info[0])
         gROOT.cd() #without this, hist_background gets written into a file that goes out of scope
         tree_mc_sample=f_mc_sample.Get("events")
         hist_mc_sample=hist.Clone()
 
-        return_hists = histogram_fillers.fillHistogram(cfg,tree_mc_sample,hist_mc_sample,debug=True)
+        plots_mc_sample = {}
+
+        for plots_template_key in plots_templates.keys():
+            plots_mc_sample[plots_template_key] = plots_templates[plots_template_key].Clone()                
+
+        #set apply_eff_scale_factors to False to use for the fake rate method closure test    
+        return_hists = histogram_fillers.fillHistogram(cfg,tree_mc_sample,hist_mc_sample,plots_mc_sample,debug=False,apply_eff_scale_factors = False)
 
         mc_samples.append(return_hists)
 
+        plots["mc_sample"+str(i)] = plots_mc_sample
+        
+        i = i+1
+
+    i = 0    
     for data_sample_info in data_samples_info:
         f_data_sample=TFile(data_sample_info[0])
         gROOT.cd() #without this, hist_background gets written into a file that goes out of scope
         tree_data_sample=f_data_sample.Get("events")
         hist_data_sample=hist.Clone()
 
-        return_hists = histogram_fillers.fillHistogram(cfg,tree_data_sample,hist_data_sample, is_data=True, debug=True)
+        plots_data = {}
+
+        for plots_template_key in plots_templates.keys():
+            plots_data[plots_template_key] = plots_templates[plots_template_key].Clone()                
+
+        return_hists = histogram_fillers.fillHistogram(cfg,tree_data_sample,hist_data_sample,plots_data, is_data=True, debug=True)
 
         data_samples.append(return_hists)
 
-    write_results.write_produce_histograms(cfg,hist,mc_samples,mc_samples_info,fake_samples, data_samples,fakeratemc_samples)
+        plots["data_sample"+str(i)] = plots_data
+        
+        i=i+1
 
-
+    write_results.write_produce_histograms(cfg,hist,mc_samples,mc_samples_info,fake_samples, data_samples,fakeratemc_samples, plots)

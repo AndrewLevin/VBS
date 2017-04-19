@@ -20,10 +20,17 @@ yoffsetstart = 0.0;
 xoffset = 0.20;
 yoffset = 0.05;
 
-xpositions = [0.60,0.60,0.60,0.60,0.60,0.60,0.40,0.40,0.40]
-ypositions = [0,1,2,3,4,5,0,1,2]
+xpositions = [0.60,0.60,0.60,0.60,0.60,0.60,0.40,0.40,0.40,0.40,0.40,0.40,0.20,0.20,0.20,0.20,0.20,0.20]
+ypositions = [0,1,2,3,4,5,0,1,2,3,4,5,0,1,2,3,4,5]
 
 style.GoodStyle().cd()
+
+def get_max_bin_content_plus_bin_error(hist):
+    max_bin_content_plus_bin_error = hist.GetBinContent(1)+hist.GetBinError(1)
+    for i in range(2,hist.GetNbinsX()+1):
+        if hist.GetBinContent(i)+hist.GetBinError(i) > max_bin_content_plus_bin_error:
+            max_bin_content_plus_bin_error = hist.GetBinContent(i)+hist.GetBinError(i)
+    return max_bin_content_plus_bin_error
 
 def set_axis_fonts(thstack, coordinate, title):
 
@@ -62,6 +69,10 @@ def draw_legend(x1,y1,hist,label,options):
     #otherwise the legend goes out of scope and is deleted once the function finishes
     hist.label = legend
 
+#region = "btagged"
+region = "signal"
+#region = "wz"
+
 hist_file = TFile.Open(str(options.inputfile))
 
 gROOT.cd()
@@ -71,46 +82,146 @@ c1 = TCanvas("c1", "c1",5,50,500,500);
 #variable = "mjj"
 
 data = hist_file.Get("data_"+options.variable).Clone()
-fake = hist_file.Get("fake_"+options.variable).Clone()
-zjets = hist_file.Get("zjets_"+options.variable).Clone()
-wpwpjjewk = hist_file.Get("signal_"+options.variable).Clone()
-wpwpjjqcd = hist_file.Get("wpwpjjqcd_"+options.variable).Clone()
-#ttbar = hist_file.Get("ttbar").Clone()
-wjwjdps = hist_file.Get("wjwjdps_"+options.variable).Clone()
-wzjjewk = hist_file.Get("wz_"+options.variable).Clone()
-#wzjjqcd = hist_file.Get("wzjjqcd").Clone()
-wgjets = hist_file.Get("wgamma_"+options.variable).Clone()
 
-data.SetLineColor(kBlack)
-fake.SetLineColor(kMagenta)
-zjets.SetLineColor(kBlue+1)
-wpwpjjqcd.SetLineColor(kYellow)
-wpwpjjewk.SetLineColor(kOrange)
-#ttbar.SetLineColor(kGreen+2)
-wjwjdps.SetLineColor(kAzure-2)
-wzjjewk.SetLineColor(kRed)
-#zjjqcd.SetLineColor(kRed)
-wgjets.SetLineColor(kGreen+2)
 
-fake.SetFillStyle(1001)
-zjets.SetFillStyle(1001)
-wpwpjjqcd.SetFillStyle(1001)
-wpwpjjewk.SetFillStyle(1001)
-#ttbar.SetFillStyle(1001)
-wjwjdps.SetFillStyle(1001)
-wgjets.SetFillStyle(1001)
-wzjjewk.SetFillStyle(1001)
-#wzjjqcd.SetFillStyle(1001)
+if region == "btagged":
+    ttbar = hist_file.Get("ttbar_"+options.variable).Clone()
+    tzq = hist_file.Get("tZq_"+options.variable).Clone()
+    ttw = hist_file.Get("ttW_"+options.variable).Clone()
+    ttz = hist_file.Get("ttZ_"+options.variable).Clone()
+    ttg = hist_file.Get("ttg_"+options.variable).Clone()
+    fake = hist_file.Get("fake_"+options.variable).Clone()
+    zjets = hist_file.Get("zjets_"+options.variable).Clone()
+    wpwpjjewk = hist_file.Get("signal_"+options.variable).Clone()
+    wpwpjjqcd = hist_file.Get("wpwpjjqcd_"+options.variable).Clone()
+    wjwjdps = hist_file.Get("wjwjdps_"+options.variable).Clone()
+    wzjjewk = hist_file.Get("wz_"+options.variable).Clone()
+    wgjets = hist_file.Get("wgamma_"+options.variable).Clone()
 
-fake.SetFillColor(kMagenta)
-zjets.SetFillColor(kBlue+1)
-wpwpjjqcd.SetFillColor(kYellow)
-wpwpjjewk.SetFillColor(kOrange)
-#ttbar.SetFillColor(kGreen+2)
-wjwjdps.SetFillColor(kAzure-2)
-wzjjewk.SetFillColor(kRed)
-#wzjjqcd.SetFillColor(kRed)
-wgjets.SetFillColor(kGreen+2)
+if region == "wz":
+    #wpwpjjewk = hist_file.Get("signal_"+options.variable).Clone()
+    wzjjewk = hist_file.Get("wz_"+options.variable).Clone()    
+    fake = hist_file.Get("fake_"+options.variable).Clone()    
+    tzq = hist_file.Get("tzq_"+options.variable).Clone()
+    ttw = hist_file.Get("ttw_"+options.variable).Clone()
+    ttz = hist_file.Get("ttz_"+options.variable).Clone()
+    www = hist_file.Get("www_"+options.variable).Clone()
+    wwz = hist_file.Get("wwz_"+options.variable).Clone()    
+
+if region == "signal":
+    fake = hist_file.Get("fake_"+options.variable).Clone()
+    zjets = hist_file.Get("zjets_"+options.variable).Clone()
+    wpwpjjewk = hist_file.Get("signal_"+options.variable).Clone()
+    wpwpjjqcd = hist_file.Get("wpwpjjqcd_"+options.variable).Clone()
+    wjwjdps = hist_file.Get("wjwjdps_"+options.variable).Clone()
+    wzjjewk = hist_file.Get("wz_"+options.variable).Clone()
+    wgjets = hist_file.Get("wgamma_"+options.variable).Clone()
+
+
+
+if region == "btagged":
+    ttbar.SetLineColor(kBlue-2)
+    tzq.SetLineColor(842)
+    ttw.SetLineColor(832)
+    ttz.SetLineColor(798)
+    ttg.SetLineColor(kViolet-9)
+    data.SetLineColor(kBlack)
+    fake.SetLineColor(kMagenta)
+    zjets.SetLineColor(kBlue+1)
+    wpwpjjqcd.SetLineColor(kYellow)
+    wpwpjjewk.SetLineColor(kOrange)
+    wjwjdps.SetLineColor(kAzure-2)
+    wzjjewk.SetLineColor(kRed)
+    wgjets.SetLineColor(kGreen+2)
+
+if region == "signal":
+    data.SetLineColor(kBlack)
+    fake.SetLineColor(kMagenta)
+    zjets.SetLineColor(kBlue+1)
+    wpwpjjqcd.SetLineColor(kYellow)
+    wpwpjjewk.SetLineColor(kOrange)
+    wjwjdps.SetLineColor(kAzure-2)
+    wzjjewk.SetLineColor(kRed)
+    wgjets.SetLineColor(kGreen+2)
+
+if region == "wz":
+    data.SetLineColor(kBlack)
+    fake.SetLineColor(kMagenta)    
+    tzq.SetLineColor(842)
+    ttw.SetLineColor(832)
+    ttz.SetLineColor(798)
+    wzjjewk.SetLineColor(kRed)
+    www.SetLineColor(kAzure-2)
+    wwz.SetLineColor(kGreen+2)
+    #wpwpjjewk.SetLineColor(kOrange)    
+
+if region == "btagged":
+    ttbar.SetFillStyle(1001)
+    tzq.SetFillStyle(1001)
+    ttw.SetFillStyle(1001)
+    ttz.SetFillStyle(1001)
+    ttg.SetFillStyle(1001)
+    fake.SetFillStyle(1001)
+    zjets.SetFillStyle(1001)
+    wpwpjjqcd.SetFillStyle(1001)
+    wpwpjjewk.SetFillStyle(1001)
+    wjwjdps.SetFillStyle(1001)
+    wgjets.SetFillStyle(1001)
+    wzjjewk.SetFillStyle(1001)
+
+if region == "signal":
+    fake.SetFillStyle(1001)
+    zjets.SetFillStyle(1001)
+    wpwpjjqcd.SetFillStyle(1001)
+    wpwpjjewk.SetFillStyle(1001)
+    wjwjdps.SetFillStyle(1001)
+    wgjets.SetFillStyle(1001)
+    wzjjewk.SetFillStyle(1001)
+
+if region == "wz":
+    fake.SetFillStyle(1001)
+    tzq.SetFillStyle(1001)
+    ttw.SetFillStyle(1001)
+    ttz.SetFillStyle(1001)
+    wzjjewk.SetFillStyle(1001)    
+    #wpwpjjewk.SetFillStyle(1001)
+    www.SetFillStyle(1001)
+    wwz.SetFillStyle(1001)    
+
+if region == "signal":
+    fake.SetFillColor(kMagenta)
+    zjets.SetFillColor(kBlue+1)
+    wpwpjjqcd.SetFillColor(kYellow)
+    wpwpjjewk.SetFillColor(kOrange)
+    wjwjdps.SetFillColor(kAzure-2)
+    wzjjewk.SetFillColor(kRed)
+    #wzjjqcd.SetFillColor(kRed)
+    wgjets.SetFillColor(kGreen+2)
+    
+if region == "btagged":
+    ttbar.SetFillColor(kBlue-2)
+    tzq.SetFillColor(842)
+    ttw.SetFillColor(832)
+    ttz.SetFillColor(798)
+    ttg.SetFillColor(kViolet-9)
+    fake.SetFillColor(kMagenta)
+    zjets.SetFillColor(kBlue+1)
+    wpwpjjqcd.SetFillColor(kYellow)
+    wpwpjjewk.SetFillColor(kOrange)
+    wjwjdps.SetFillColor(kAzure-2)
+    wzjjewk.SetFillColor(kRed)
+    #wzjjqcd.SetFillColor(kRed)
+    wgjets.SetFillColor(kGreen+2)
+
+if region == "wz":
+    tzq.SetFillColor(842)
+    ttw.SetFillColor(832)
+    ttz.SetFillColor(798)
+    wzjjewk.SetFillColor(kRed)
+    fake.SetFillColor(kMagenta)
+    #wpwpjjewk.SetFillColor(kOrange)    
+    www.SetFillColor(kAzure-2)
+    wwz.SetFillColor(kGreen+2)
 
 data.SetMarkerStyle(kFullCircle);
 
@@ -121,28 +232,74 @@ hstack = THStack()
 hsum = fake.Clone()
 hsum.Scale(0.0)
 
-hstack.Add(fake)
-hstack.Add(zjets)
-hstack.Add(wpwpjjqcd)
-hstack.Add(wjwjdps)
-#hstack.Add(ttbar)
-hstack.Add(wzjjewk)
-#hstack.Add(wzjjqcd)
-hstack.Add(wgjets)
-hstack.Add(wpwpjjewk)
+if region == "btagged":
+    hstack.Add(fake)
+    hstack.Add(zjets)
+    hstack.Add(wpwpjjqcd)
+    hstack.Add(wjwjdps)
+    hstack.Add(wzjjewk)
+    hstack.Add(wgjets)
+    hstack.Add(wpwpjjewk)
+    hstack.Add(ttbar)
+    hstack.Add(tzq)
+    hstack.Add(ttz)
+    hstack.Add(ttw)
+    hstack.Add(ttg)
 
-hsum.Add(fake)
-hsum.Add(zjets)
-hsum.Add(wpwpjjqcd)
 
-hsum.Add(wjwjdps)
-#hsum.Add(ttbar)
-hsum.Add(wzjjewk)
-#hsum.Add(wzjjqcd)
-hsum.Add(wgjets)
-hsum.Add(wpwpjjewk)
+if region == "signal":
+    hstack.Add(fake)
+    hstack.Add(zjets)
+    hstack.Add(wpwpjjqcd)
+    hstack.Add(wjwjdps)
+    hstack.Add(wzjjewk)
+    hstack.Add(wgjets)
+    hstack.Add(wpwpjjewk)
 
-ymax = max(hsum.GetMaximum(),data.GetMaximum())
+if region == "wz":
+    hstack.Add(wzjjewk)
+    hstack.Add(fake)
+    hstack.Add(tzq)
+    hstack.Add(ttz)
+    hstack.Add(ttw)
+    hstack.Add(www)
+    hstack.Add(wwz)
+    #hstack.Add(wpwpjjewk)
+
+if region == "btagged":
+    hsum.Add(fake)
+    hsum.Add(zjets)
+    hsum.Add(wpwpjjqcd)
+    hsum.Add(wjwjdps)
+    hsum.Add(wzjjewk)
+    hsum.Add(wgjets)
+    hsum.Add(wpwpjjewk)
+    hsum.Add(ttbar)
+    hsum.Add(ttz)
+    hsum.Add(ttw)
+    hsum.Add(ttg)
+    hsum.Add(tzq)
+
+if region == "signal":
+    hsum.Add(fake)
+    hsum.Add(zjets)
+    hsum.Add(wpwpjjqcd)
+    hsum.Add(wjwjdps)
+    hsum.Add(wzjjewk)
+    hsum.Add(wgjets)
+    hsum.Add(wpwpjjewk)
+
+if region == "wz":
+    hsum.Add(fake)
+    hsum.Add(wzjjewk)
+    hsum.Add(tzq)
+    hsum.Add(ttz)
+    hsum.Add(ttw)
+    hsum.Add(www)
+    hsum.Add(wwz)
+    #hsum.Add(wpwpjjewk)
+    
+ymax = max(get_max_bin_content_plus_bin_error(hsum),get_max_bin_content_plus_bin_error(data))
 
 hstack.SetMaximum(1.55 * ymax)
 
@@ -169,22 +326,63 @@ lumilabel.Draw("same")
 
 #wpwpjjewk.Draw("same")
 
-j=0
-draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,fake,"fake","f")
-j=j+1
-draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,zjets,"Z+jets","f")
-j=j+1
-draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wzjjewk,"WZ+jets","f")
-#j=j+1
-#draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wzjjqcd,"WZ+jets","f")
-j=j+1
-draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjqcd,"WWJJ QCD","f")
+
+if region == "btagged":
+    j=0
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,fake,"fake","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,zjets,"Z+jets","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wzjjewk,"WZ+jets","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjqcd,"WWJJ QCD","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wgjets,"WGJJ","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,ttw,"TTW","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,ttz,"TTZ","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,ttg,"TTG","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,tzq,"TZQ","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,ttbar,"ttbar fl","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjewk,"WWJJ","f")
 
 
-j=j+1
-draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wgjets,"WGJJ","f")
-j=j+1
-draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjewk,"WWJJ","f")
+if region == "signal":
+    j=0
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,fake,"fake","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,zjets,"Z+jets","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wzjjewk,"WZ+jets","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjqcd,"WWJJ QCD","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wgjets,"WGJJ","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjewk,"WWJJ","f")
+
+if region == "wz":
+    j=0
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,fake,"fake","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wzjjewk,"WZ+jets","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,ttw,"TTW","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,ttz,"TTZ","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,tzq,"TZQ","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wwz,"WWW","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,www,"WWZ","f")    
+
+
 j=j+1
 draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,data,"data","lp")
 

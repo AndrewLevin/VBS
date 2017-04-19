@@ -420,10 +420,10 @@ def write_gm():
 
         dcard.write("lumi_13tev lnN")
 
-        dcard.write(" 1.024")
+        dcard.write(" 1.025")
 
         for background in backgrounds:
-            dcard.write(" 1.024")
+            dcard.write(" 1.025")
 
         dcard.write('\n')    
 
@@ -481,7 +481,7 @@ def write_gm():
 
         #print >> dcard, "lumi_8tev lnN 1.024 1.024"    
 
-def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,backgrounds_info,signal,signal_info,fake_muons,fake_electrons,fake,data):
+def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,plots,backgrounds,backgrounds_info,signal,signal_info,fake_muons,fake_electrons,fake,data):
     hist_signal.SetLineWidth(3)
     hist_background.SetLineWidth(3)
 
@@ -500,6 +500,9 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
     for i in range(0,len(signal["cutflow_histograms"])):
         signal["cutflow_histograms"][i].Clone("signal_cut"+str(i)).Write()
 
+    for process in plots.keys():
+        for variable in plots[process].keys():
+            plots[process][variable].Clone(str(process)+"_"+str(variable)).Write()
         
     for i in range(0,len(backgrounds)):
         if "cutflow_histograms" in backgrounds[i]:
@@ -536,7 +539,7 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
     fake_muons.Clone("fake_muons").Write()
     fake_electrons.Clone("fake_electrons").Write()
 
-    if cfg["variable"] == "mllmjj":
+    if cfg["significance_variable"] == "mllmjj":
         for ix in range(1,signal["hist_central"].GetNbinsX()+1):
             for iy in range(1,signal["hist_central"].GetNbinsY()+1):            
 
@@ -600,13 +603,13 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
 
                 dcard.write("lumi_13tev lnN")
 
-                dcard.write(" 1.024")
+                dcard.write(" 1.025")
 
                 for background in backgrounds:
-                    dcard.write(" 1.024")
+                    dcard.write(" 1.025")
 
                 if cfg["mode"] == "sm_mc_fake":
-                    dcard.write(" 1.024")
+                    dcard.write(" -")
 
                 dcard.write('\n')    
 
@@ -618,7 +621,7 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
                     dcard.write(" -")
 
                 if cfg["mode"] == "sm_mc_fake":
-                    dcard.write(" 1.4")            
+                    dcard.write(" 1.3")            
 
                 dcard.write('\n')    
 
@@ -663,7 +666,7 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
                     if backgrounds[j]["hist_central"].GetBinContent(ix,iy) > 0 and backgrounds_info[j][2] == "syscalc":
                         at_least_one_syscalc=True
 
-                if signal_info[2] == "syscalc":
+                if signal_info[2] == "syscalc" and signal["hist_central"].GetBinContent(ix,iy) > 0:
                     at_least_one_syscalc = True
 
 
@@ -671,7 +674,7 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
                     dcard.write("pdf lnN")
 
 
-                    if signal_info[2] == "syscalc":
+                    if signal_info[2] == "syscalc" and signal["hist_central"].GetBinContent(ix,iy) > 0:
                         dcard.write(" "+str(signal["hist_pdf_up"].GetBinContent(ix,iy)/signal["hist_central"].GetBinContent(ix,iy)))
                     else:
                         dcard.write(" -")
@@ -689,7 +692,7 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
 
                     dcard.write("qcd_scale lnN")
 
-                    if signal_info[2] == "syscalc":
+                    if signal_info[2] == "syscalc" and signal["hist_central"].GetBinContent(ix,iy) > 0:
                         dcard.write(" "+str(signal["hist_qcd_down"].GetBinContent(ix,iy)/signal["hist_central"].GetBinContent(ix,iy)) +"/"+str(signal["hist_qcd_up"].GetBinContent(ix,iy)/signal["hist_central"].GetBinContent(ix,iy)))
                     else:
                         dcard.write(" -")
@@ -769,13 +772,13 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
 
         dcard.write("lumi_13tev lnN")
 
-        dcard.write(" 1.024")
+        dcard.write(" 1.025")
 
         for background in backgrounds:
-            dcard.write(" 1.024")
+            dcard.write(" 1.025")
 
         if cfg["mode"] == "sm_mc_fake":
-            dcard.write(" 1.024")
+            dcard.write(" 1.025")
 
         dcard.write('\n')    
 
@@ -787,7 +790,7 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,backgrounds,background
             dcard.write(" -")
 
         if cfg["mode"] == "sm_mc_fake":
-            dcard.write(" 1.4")            
+            dcard.write(" 1.3")            
 
         dcard.write('\n')    
 
@@ -922,10 +925,14 @@ def write_fr_closure_test(cfg,ttbar,ttbar_qcd_fr):
     
     ttbar_qcd_fr["hist_central"].Clone("ttbar_qcd_fr").Write()
 
-def write_produce_histograms(cfg,hist,mc_samples,mc_samples_info,fake_samples, data_samples,fakeratemc_samples):
+def write_produce_histograms(cfg,hist,mc_samples,mc_samples_info,fake_samples, data_samples,fakeratemc_samples,plots):
     outfile=TFile(cfg["outfile"],"recreate")
 
     outfile.cd()
+
+    for process in plots.keys():
+        for variable in plots[process].keys():
+            plots[process][variable].Clone(str(process)+"_"+str(variable)).Write()
 
     for i in range(0,len(fakeratemc_samples)):
 

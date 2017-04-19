@@ -1,32 +1,27 @@
 mode=sm_mc_fake
 
 #fr_fname=/home/anlevin/VBS/fake_leptons/frs_v800_subtract_wjets.root
-fr_fname=/home/anlevin/VBS/fake_leptons/frs_guillelmo_v5.root
+fr_fname=/home/anlevin/VBS/fake_leptons/frs_guillelmo_v20.root
 
 blind_high_mjj=False
 
 which_selection=full
 
-background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/zjets_v30_ss.root,zjets,none
-background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wjwj-dps_v30.root,wjwjdps,none
-background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_qcd_nominal_80x_v30.root,wpwpjjqcd,none
-background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wz_v30_ss.root,wz,syscalc
-background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wgjj_v30_ss.root,wgamma,syscalc
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/ttg_v60_ss.root,ttg,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/ttW_v60_ss.root,ttW,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/ttZ_v60_ss.root,ttZ,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/tZq_v60_ss.root,tZq,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/ttbar_fl_v60_ss.root,ttbar,none
 
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/zjets_v60_ss.root,zjets,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wjwj-dps_v60.root,wjwjdps,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_qcd_nominal_80x_v60.root,wpwpjjqcd,none
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wz_v60_ss.root,wz,syscalc
+background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wgjj_v60_ss.root,wgamma,syscalc
 
-#background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_ewk_nominal_80x_v30.root,wz,syscalc
-#background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wzjj_qcd_v30.root,wzjjqcd,syscalc
-#background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wz_inclusive_powheg_80X_v20.root,wzjjqcd,none
+signal_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_ewk_nominal_80x_v60.root,wpwpjjewk,syscalc
 
-
-
-#background_file=/data/blue/anlevin/ntuples/zjets_v201_skim.root,zjets,none
-#background_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wgjj_nominal_v20.root,wgjets,syscalc
-
-signal_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_ewk_nominal_80x_v30.root,wpwpjjewk,none
-#signal_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/wpwpjj_ewk_nominal_80x_v3.root,wpwpjjewk,none
-
-data_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/run2016_v50_ss.root
+data_file=/afs/cern.ch/work/a/anlevin/data/flattish_ntuples/run2016_v60_ss.root
 
 lumi=35.9
 
