@@ -601,7 +601,7 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,plots,backgrounds,back
                 bkg_yield=max(hist_sum_background.GetBinContent(ix,ix),0.001)
         #print >> dcard, "rate "+str(signal["hist_central"].GetBinContent(i))+" "+str(bkg_yield)
 
-                dcard.write("lumi_13tev lnN")
+                dcard.write("lumi lnN")
 
                 dcard.write(" 1.025")
 
@@ -612,6 +612,54 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,plots,backgrounds,back
                     dcard.write(" -")
 
                 dcard.write('\n')    
+
+                dcard.write("electron_efficiency_SF lnN")
+
+                dcard.write(" 1.02")
+
+                for background in backgrounds:
+                    dcard.write(" 1.02")
+
+                if cfg["mode"] == "sm_mc_fake":
+                    dcard.write(" -")                    
+
+                dcard.write('\n')
+
+                dcard.write("muon_efficiency_SF lnN")
+
+                dcard.write(" 1.02")
+
+                for background in backgrounds:
+                    dcard.write(" 1.02")
+
+                if cfg["mode"] == "sm_mc_fake":
+                    dcard.write(" -")                    
+
+                dcard.write('\n')                    
+
+                dcard.write("muon_energy_scale lnN")
+
+                dcard.write(" 1.01")
+
+                for background in backgrounds:
+                    dcard.write(" 1.01")
+
+                if cfg["mode"] == "sm_mc_fake":
+                    dcard.write(" -")                    
+
+                dcard.write('\n')                    
+
+                dcard.write("electron_energy_scale lnN")
+
+                dcard.write(" 1.01")
+
+                for background in backgrounds:
+                    dcard.write(" 1.01")
+
+                if cfg["mode"] == "sm_mc_fake":
+                    dcard.write(" -")                    
+
+                dcard.write('\n')                    
 
                 dcard.write("fake_sys lnN")
 
@@ -650,7 +698,11 @@ def write_sm_mc_fake(cfg,hist,hist_signal,hist_background,plots,backgrounds,back
                         
                         dcard.write('\n')        
 
-                if cfg["mode"] == "sm_mc_fake" and fake["hist_central"].GetBinContent(ix,iy) > 0:
+                if cfg["mode"] == "sm_mc_fake" and fake["hist_central"].GetBinContent(ix,iy) < 0:
+                    print "warning, fake lepton estimate less than 0 in xbin "+str(ix)+" ybin "+str(iy)+": "+ str(fake["hist_central"].GetBinContent(ix,iy))+ " +/- " + str(fake["hist_central"].GetBinError(ix,iy))
+                    
+
+                if cfg["mode"] == "sm_mc_fake" and fake["hist_central"].GetBinContent(ix,iy) != 0:
 
                     dcard.write("fake_stat_xbin"+str(ix)+"_ybin"+str(iy)+" lnN -")
 
