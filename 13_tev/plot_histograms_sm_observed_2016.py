@@ -6,6 +6,8 @@ parser = optparse.OptionParser()
 
 parser.add_option('--lumi',dest='lumi')
 parser.add_option('--variable',dest='variable')
+parser.add_option('--reweighted_index',dest='reweighted_index')
+parser.add_option('--reweighted_label',dest='reweighted_label')
 parser.add_option('--xaxislabel',dest='xaxislabel',default='m_{jj}')
 
 parser.add_option('-i',dest='inputfile')
@@ -20,8 +22,18 @@ yoffsetstart = 0.0;
 xoffset = 0.20;
 yoffset = 0.05;
 
-xpositions = [0.60,0.60,0.60,0.60,0.60,0.60,0.40,0.40,0.40,0.40,0.40,0.40,0.20,0.20,0.20,0.20,0.20,0.20]
-ypositions = [0,1,2,3,4,5,0,1,2,3,4,5,0,1,2,3,4,5]
+#region = "btagged"
+#region = "signal"
+region = "reweighted"
+#region = "wz"
+
+if region == "reweighted":
+    xpositions = [0.40,0.40,0.40,0.40,0.40,0.40,0.40,0.40,0.40]
+    ypositions = [0,1,2,3,4,5,6,7,8]
+
+if region == "signal" or region == "wz" or region == "b-tagged":
+    xpositions = [0.60,0.60,0.60,0.60,0.60,0.60,0.40,0.40,0.40,0.40,0.40,0.40,0.20,0.20,0.20,0.20,0.20,0.20]
+    ypositions = [0,1,2,3,4,5,0,1,2,3,4,5,0,1,2,3,4,5]
 
 style.GoodStyle().cd()
 
@@ -69,9 +81,7 @@ def draw_legend(x1,y1,hist,label,options):
     #otherwise the legend goes out of scope and is deleted once the function finishes
     hist.label = legend
 
-#region = "btagged"
-region = "signal"
-#region = "wz"
+
 
 hist_file = TFile.Open(str(options.inputfile))
 
@@ -117,6 +127,11 @@ if region == "signal":
     wzjjewk = hist_file.Get("wz_"+options.variable).Clone()
     wgjets = hist_file.Get("wgamma_"+options.variable).Clone()
 
+if region == "reweighted":
+    fake = hist_file.Get("fake_"+options.variable).Clone()
+    wg = hist_file.Get("wgjj_"+options.variable).Clone()
+    wz = hist_file.Get("wz_"+options.variable).Clone()
+    reweighted = hist_file.Get("reweighted_"+options.variable+"_mgreweightedindex"+str(options.reweighted_index)).Clone()
 
 
 if region == "btagged":
@@ -153,7 +168,14 @@ if region == "wz":
     wzjjewk.SetLineColor(kRed)
     www.SetLineColor(kAzure-2)
     wwz.SetLineColor(kGreen+2)
-    #wpwpjjewk.SetLineColor(kOrange)    
+    #wpwpjjewk.SetLineColor(kOrange)
+
+if region == "reweighted":
+    data.SetLineColor(kBlack)
+    fake.SetLineColor(kMagenta)    
+    wz.SetLineColor(kRed)
+    wg.SetLineColor(kGreen+2)
+    reweighted.SetLineColor(kOrange)
 
 if region == "btagged":
     ttbar.SetFillStyle(1001)
@@ -187,6 +209,12 @@ if region == "wz":
     #wpwpjjewk.SetFillStyle(1001)
     www.SetFillStyle(1001)
     wwz.SetFillStyle(1001)    
+
+if region == "reweighted":
+    fake.SetFillStyle(1001)
+    wz.SetFillStyle(1001)
+    wg.SetFillStyle(1001)
+    reweighted.SetFillStyle(1001)
 
 if region == "signal":
     fake.SetFillColor(kMagenta)
@@ -222,6 +250,14 @@ if region == "wz":
     #wpwpjjewk.SetFillColor(kOrange)    
     www.SetFillColor(kAzure-2)
     wwz.SetFillColor(kGreen+2)
+
+if region == "reweighted":
+    data.SetFillColor(kBlack)
+    fake.SetFillColor(kMagenta)    
+    wz.SetFillColor(kRed)
+    wg.SetFillColor(kGreen+2)
+    reweighted.SetFillColor(kOrange)
+
 
 data.SetMarkerStyle(kFullCircle);
 
@@ -266,6 +302,12 @@ if region == "wz":
     hstack.Add(wwz)
     #hstack.Add(wpwpjjewk)
 
+if region == "reweighted":
+    hstack.Add(fake)
+    hstack.Add(wz)
+    hstack.Add(wg)
+    hstack.Add(reweighted)
+
 if region == "btagged":
     hsum.Add(fake)
     hsum.Add(zjets)
@@ -298,6 +340,12 @@ if region == "wz":
     hsum.Add(www)
     hsum.Add(wwz)
     #hsum.Add(wpwpjjewk)
+
+if region == "reweighted":
+    hsum.Add(fake)
+    hsum.Add(wz)
+    hsum.Add(wg)
+    hsum.Add(reweighted)
     
 ymax = max(get_max_bin_content_plus_bin_error(hsum),get_max_bin_content_plus_bin_error(data))
 
@@ -381,6 +429,16 @@ if region == "wz":
     draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wwz,"WWW","f")
     j=j+1
     draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,www,"WWZ","f")    
+
+if region == "reweighted":
+    j=0
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,fake,"fake","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wz,"WZ+jets","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wg,"WG+jets","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,reweighted,options.reweighted_label,"f")
 
 
 j=j+1

@@ -1,7 +1,11 @@
 from ROOT import *
 
-def write_reweighted_mode_v1(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,fake_muons,fake_electrons,sm_lhe_weight,backgrounds_info,fake):
+def write_reweighted_mode_v1(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,fake_muons,fake_electrons,sm_lhe_weight,backgrounds_info,fake,data,plots):
     #signal["hist_central"].Write()
+
+    #outfile=TFile(cfg["outfile"],"recreate")
+
+    #outfile.cd()
 
     hist_sum_background = hist.Clone()
 
@@ -48,7 +52,7 @@ def write_reweighted_mode_v1(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,
         print >> dcard, "imax 1 number of channels"
         print >> dcard, "jmax * number of background"
         print >> dcard, "kmax * number of nuisance parameters"
-        print >> dcard, "Observation 0"
+        print >> dcard, "Observation "+str(data["hist_central"].GetBinContent(i))
         dcard.write("bin")
         dcard.write(" bin1")
         
@@ -134,13 +138,14 @@ def write_reweighted_mode_v1(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,
 
     outfile.cd()
 
-    fake["hist_central"].Clone("fake").Write()
+    #fake["hist_central"].Clone("fake").Write()
 
-    for i in range(0,len(backgrounds)):
-        backgrounds[i]["hist_central"].Write(backgrounds_info[i][1])
+    #for i in range(0,len(backgrounds)):
+    #    backgrounds[i]["hist_central"].Write(backgrounds_info[i][1])
 
-    for i in range(0,len(aqgc_histos)):
-        aqgc_histos[i].Write()
+    for process in plots.keys():
+        for variable in plots[process].keys():
+            plots[process][variable].Clone(str(process)+"_"+str(variable)).Write()
 
 
 def write_reweighted_mode_v2(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,fake_muons,fake_electrons,sm_lhe_weight,backgrounds_info,fake):

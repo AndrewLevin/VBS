@@ -39,94 +39,116 @@ gROOT.cd()
 
 assert(cfg["which_selection"] == "relaxed" or cfg["which_selection"] == "full" or cfg["which_selection"] == "full_novbs" or cfg["which_selection"] == "relaxed_btagged" or cfg["which_selection"] == "full_btagged" or cfg["which_selection"] == "full_lowmjj1" or cfg["which_selection"] == "full_lowmjj2")
 
-if cfg["significance_variable"] == "mllmjj":
-    binningmjj=array('f',[500,800,1100,1500,2000])
-    binningmll=array('f',[20,100,180,300,400])
-    hist = TH2F('mllmjj_for_significance', 'mllmjj_for_significance',len(binningmjj)-1, binningmjj,len(binningmll)-1, binningmll )
-
-elif cfg["significance_variable"] == "mjj":
-    binningmjj=array('f',[500,800,1100,1500,2000])
-    hist = TH1F('mjj_for_significance', 'mjj_for_significance',len(binningmjj) - 1, binningmjj )        
-else:
-    assert(0)
-
-plots_templates = {}
-if cfg["plot_variable"] == "all":
-
-    if cfg["mode"] == "sm_mc_fake_wz":
-        charge_flavor_permuations = ["mmm","eee","eem","emm"]
-    else:
-        assert(cfg["mode"] == "sm_mc_fake")
-        charge_flavor_permuations = ["mm_plus","mm_minus","em_plus","em_minus","ee_plus","ee_minus","mm_both","em_both","ee_both"]
-
-
-    if cfg["which_selection"] == "full" or cfg["which_selection"] == "full_btagged":
-        binningmjj=array('f',[500,800,1100,1500,2000])
-        histmjj = TH1F('mjj', 'mjj',4, binningmjj )        
-    elif cfg["which_selection"] == "full_lowmjj1" or cfg["which_selection"] == "full_lowmjj2":
-        histmjj = TH1F('mjj', 'mjj', 4, 100., 500 )
-    elif cfg["which_selection"] == "full_novbs":
-        binningmjj=array('f',[100,200,300,400,500,800,1100,1500,2000])
-        histmjj = TH1F('mjj', 'mjj',8, binningmjj )                
+if cfg["mode"] == "reweighted_v1":
+    if cfg["significance_or_limit_variable"] == "mll":
+        binningmll=array('f',[20,100,200,300,400,500])
+        hist = TH1F('mll_for_limit', 'mll_for_limit',len(binningmll) - 1, binningmll )        
     else:
         assert(0)
 
-    binningmll = array('f',[50,100,200,300,500])
-    histmll = TH1F('mll', 'mll',4, binningmll )    
-    histmet = TH1F('met', 'met', 18 , 20., 200 )
-    histmlljj = TH1F('mlljj', 'mlljj', 15 , 500., 2000 )    
-    histdetajj = TH1F('detajj', 'detajj', 10, 2.5, 7.5 )
-    histlep1pt = TH1F('lep1pt', 'lep1pt', 20, 0., 100 )
-    histlep2pt = TH1F('lep2pt', 'lep2pt', 20, 0., 100 )
-    histjet1pt = TH1F('jet1pt', 'jet1pt', 20, 0., 100 )
-    histjet2pt = TH1F('jet2pt', 'jet2pt', 20, 0., 100 )
-    histlep1eta = TH1F('lep1eta', 'lep1eta', 10, -2.5, 2.5 )
-    histlep2eta = TH1F('lep2eta', 'lep2eta', 10, -2.5, 2.5 )
-    histjet1eta = TH1F('jet1eta', 'jet1eta', 10, -5., 5 )
-    histjet2eta = TH1F('jet2eta', 'jet1eta', 10, -5., 5 )
 
-    histmll.Sumw2()
-    histmet.Sumw2()
-    histmlljj.Sumw2()
-    histdetajj.Sumw2()
-    histlep1pt.Sumw2()
-    histlep2pt.Sumw2()
-    histjet1pt.Sumw2()
-    histjet2pt.Sumw2()
-    histlep1eta.Sumw2()
-    histlep2eta.Sumw2()
-    histjet1eta.Sumw2()
-    histjet2eta.Sumw2()
+if cfg["mode"] == "sm_mc_fake":
+    if cfg["significance_or_limit_variable"] == "mllmjj":
+        binningmjj=array('f',[500,800,1100,1500,2000])
+        binningmll=array('f',[20,100,180,300,400])
+        hist = TH2F('mllmjj_for_significance', 'mllmjj_for_significance',len(binningmjj)-1, binningmjj,len(binningmll)-1, binningmll )
+    elif cfg["significance_or_limit_variable"] == "mjj":
+        binningmjj=array('f',[500,800,1100,1500,2000])
+        hist = TH1F('mjj_for_significance', 'mjj_for_significance',len(binningmjj) - 1, binningmjj )        
+    else:
+        assert(0)
+elif cfg["mode"] == "produce_histograms":
+    if cfg["significance_or_limit_variable"] == "mjj":
+        binningmjj=array('f',[500,800,1100,1500,2000])
+        hist = TH1F('mjj_for_significance', 'mjj_for_significance',len(binningmjj) - 1, binningmjj )        
 
-    plots_templates["mjj"] = histmjj
-    plots_templates["mll"] = histmll
-    plots_templates["mlljj"] = histmlljj    
-    plots_templates["met"] = histmet
-    plots_templates["detajj"] = histdetajj
-    plots_templates["lep1pt"] = histlep1pt
-    plots_templates["lep2pt"] = histlep2pt
-    plots_templates["lep1eta"] = histlep1eta
-    plots_templates["lep2eta"] = histlep2eta    
-    plots_templates["jet1pt"] = histjet1pt
-    plots_templates["jet2pt"] = histjet2pt
-    plots_templates["jet1eta"] = histjet1eta
-    plots_templates["jet2eta"] = histjet2eta
+if cfg["mode"] == "sm_mc_fake" or cfg["mode"] == "produce_histograms":
+    plots_templates = {}
+    if cfg["plot_variable"] == "all":
 
-    for charge_flavor_permutation in charge_flavor_permuations:
+        if cfg["mode"] == "sm_mc_fake_wz":
+            charge_flavor_permutations = ["mmm","eee","eem","emm"]
+        elif cfg["mode"] == "produce_histograms":    
+            charge_flavor_permutations = []
+        else:
+            assert(cfg["mode"] == "sm_mc_fake")
+            charge_flavor_permutations = ["mm_plus","mm_minus","em_plus","em_minus","ee_plus","ee_minus","mm_both","em_both","ee_both"]
+
+
         if cfg["which_selection"] == "full" or cfg["which_selection"] == "full_btagged":
-            histmjjchargeflavorpermutation = TH1F('mjj_'+charge_flavor_permutation, 'mjj_'+charge_flavor_permutation,len(binningmjj) - 1, binningmjj )
+            binningmjj=array('f',[500,800,1100,1500,2000])
+            histmjj = TH1F('mjj', 'mjj',4, binningmjj )        
         elif cfg["which_selection"] == "full_lowmjj1" or cfg["which_selection"] == "full_lowmjj2":
-            histmjjchargeflavorpermutation = TH1F('mjj_'+charge_flavor_permutation, 'mjj_'+charge_flavor_permutation, 4, 100., 500 )
+            histmjj = TH1F('mjj', 'mjj', 4, 100., 500 )
         elif cfg["which_selection"] == "full_novbs":
-            histmjjchargeflavorpermutation = TH1F('mjj_'+charge_flavor_permutation, 'mjj_'+charge_flavor_permutation,len(binningmjj) -1 , binningmjj )            
+            binningmjj=array('f',[100,200,300,400,500,800,1100,1500,2000])
+            histmjj = TH1F('mjj', 'mjj',8, binningmjj )                
         else:
             assert(0)
 
-        histmjjchargeflavorpermutation.Sumw2()
-        plots_templates["mjj_"+charge_flavor_permutation] = histmjjchargeflavorpermutation
+        binningmll = array('f',[50,100,200,300,500])
+        histmll = TH1F('mll', 'mll',4, binningmll )    
+        histmet = TH1F('met', 'met', 13 , 40., 300 )
+        histmlljj = TH1F('mlljj', 'mlljj', 12 , 500., 2900 )    
+        histdetajj = TH1F('detajj', 'detajj', 10, 2.5, 7.5 )
+        histlep1pt = TH1F('lep1pt', 'lep1pt', 8, 20., 180 )
+        histlep2pt = TH1F('lep2pt', 'lep2pt', 8, 20., 180 )
+        histjet1pt = TH1F('jet1pt', 'jet1pt', 10, 30., 230 )
+        histjet2pt = TH1F('jet2pt', 'jet2pt', 10, 30., 230 )
+        histlep1eta = TH1F('lep1eta', 'lep1eta', 10, -2.5, 2.5 )
+        histlep2eta = TH1F('lep2eta', 'lep2eta', 10, -2.5, 2.5 )
+        histjet1eta = TH1F('jet1eta', 'jet1eta', 10, -5., 5 )
+        histjet2eta = TH1F('jet2eta', 'jet1eta', 10, -5., 5 )
+
+        histmll.Sumw2()
+        histmet.Sumw2()
+        histmlljj.Sumw2()
+        histdetajj.Sumw2()
+        histlep1pt.Sumw2()
+        histlep2pt.Sumw2()
+        histjet1pt.Sumw2()
+        histjet2pt.Sumw2()
+        histlep1eta.Sumw2()
+        histlep2eta.Sumw2()
+        histjet1eta.Sumw2()
+        histjet2eta.Sumw2()
+
+        plots_templates["mjj"] = histmjj
+        plots_templates["mll"] = histmll
+        plots_templates["mlljj"] = histmlljj    
+        plots_templates["met"] = histmet
+        plots_templates["detajj"] = histdetajj
+        plots_templates["lep1pt"] = histlep1pt
+        plots_templates["lep2pt"] = histlep2pt
+        plots_templates["lep1eta"] = histlep1eta
+        plots_templates["lep2eta"] = histlep2eta    
+        plots_templates["jet1pt"] = histjet1pt
+        plots_templates["jet2pt"] = histjet2pt
+        plots_templates["jet1eta"] = histjet1eta
+        plots_templates["jet2eta"] = histjet2eta
+
+        for charge_flavor_permutation in charge_flavor_permutations:
+            if cfg["which_selection"] == "full" or cfg["which_selection"] == "full_btagged":
+                histmjjchargeflavorpermutation = TH1F('mjj_'+charge_flavor_permutation, 'mjj_'+charge_flavor_permutation,len(binningmjj) - 1, binningmjj )
+            elif cfg["which_selection"] == "full_lowmjj1" or cfg["which_selection"] == "full_lowmjj2":
+                histmjjchargeflavorpermutation = TH1F('mjj_'+charge_flavor_permutation, 'mjj_'+charge_flavor_permutation, 4, 100., 500 )
+            elif cfg["which_selection"] == "full_novbs":
+                histmjjchargeflavorpermutation = TH1F('mjj_'+charge_flavor_permutation, 'mjj_'+charge_flavor_permutation,len(binningmjj) -1 , binningmjj )            
+            else:
+                assert(0)
+
+            histmjjchargeflavorpermutation.Sumw2()
+            plots_templates["mjj_"+charge_flavor_permutation] = histmjjchargeflavorpermutation
     
-else:
-    assert(0)
+    else:
+        assert(0)
+elif cfg["mode"] == "reweighted_v1":
+    plots_templates = {}
+    histmll = TH1F('mll', 'mll',len(binningmll) - 1, binningmll )        
+
+    plots_templates["mll"] = histmll
+
+
     
 backgrounds = []
 
@@ -191,6 +213,10 @@ if cfg["mode"] == "reweighted_v1":
 
 if cfg["mode"] == "reweighted_v1" or cfg["mode"] == "reweighted_v2":
 
+    plots = {}
+
+    hist_data=hist.Clone()
+
     hist_fake=hist.Clone()
 
     fake_muons = hist.Clone()
@@ -240,31 +266,62 @@ if cfg["mode"] == "reweighted_v1" or cfg["mode"] == "reweighted_v2":
     f_reweighted=TFile(cfg["reweighted_file"])
     tree_reweighted=f_reweighted.Get("events")
     backgrounds_info=cfg["background_file"]
+
+    plots_reweighted = {}
+
+    for plots_template_key in plots_templates.keys():
+        for index in mgreweight_weight_index:
+            plots_reweighted[plots_template_key+"_mgreweightedindex"+str(index)] = plots_templates[plots_template_key].Clone()
+
+    plots_data = {}
+
+    for plots_template_key in plots_templates.keys():
+        plots_data[plots_template_key] = plots_templates[plots_template_key].Clone()
+
+    plots_fake = {}
+
+    for plots_template_key in plots_templates.keys():
+        plots_fake[plots_template_key] = plots_templates[plots_template_key].Clone()
+
+    histogram_fillers.fillHistogramsWithReweight(cfg,tree_reweighted,aqgc_histos,mgreweight_weight_index,plots_reweighted)
+
+    mc_trees_for_fake_histogram_filler = []
+    
     for background_info in backgrounds_info:
         f_background=TFile(background_info[0])
         gROOT.cd() #without this, hist_background gets written into a file that goes out of scope
-        tree_background=f_background.Get("events")
+        tree_background=f_background.Get("events").CloneTree()
         hist_background=hist.Clone()
 
+        mc_trees_for_fake_histogram_filler.append(tree_background)
+
+        plots_background = {}
+
+        for plots_template_key in plots_templates.keys():
+            plots_background[plots_template_key] = plots_templates[plots_template_key].Clone()                
+
         if background_info[2] == "syscalc":
-            return_hists = histogram_fillers.fillHistogram(cfg,tree_background,hist_background,syscalc=True)
+            return_hists = histogram_fillers.fillHistogram(cfg,tree_background,hist_background,plots_background,syscalc=True)
             backgrounds.append(return_hists)
         else:
             assert(background_info[2] == "none")
-            return_hists = histogram_fillers.fillHistogram(cfg,tree_background,hist_background)
+            return_hists = histogram_fillers.fillHistogram(cfg,tree_background,hist_background,plots_background)
             backgrounds.append(return_hists)
+
+        plots[background_info[1]] = plots_background
 
     print aqgc_histos
 
-    
+    fake=histogram_fillers.fillHistogramFake(cfg,tree_data,mc_trees_for_fake_histogram_filler,hist_fake,plots_fake,fake_muons,fake_electrons)
 
+    data=histogram_fillers.fillHistogram(cfg,tree_data,hist_data,plots_data,is_data=True,debug=False)
 
-    histogram_fillers.fillHistogramsWithReweight(cfg,tree_reweighted,aqgc_histos,mgreweight_weight_index)
-
-    fake=histogram_fillers.fillHistogramFake(cfg,tree_data,hist_fake,fake_muons,fake_electrons)
+    plots["fake"] = plots_fake
+    plots["data"] = plots_data        
+    plots["reweighted"] = plots_reweighted
 
     if cfg["mode"] == "reweighted_v1":
-        write_results.write_reweighted_mode_v1(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,fake_muons,fake_electrons,sm_lhe_weight,backgrounds_info,fake)
+        write_results.write_reweighted_mode_v1(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,fake_muons,fake_electrons,sm_lhe_weight,backgrounds_info,fake,data,plots)
     elif cfg["mode"] == "reweighted_v2":
         write_results.write_reweighted_mode_v2(cfg,hist,backgrounds, oneD_grid_points,aqgc_histos,fake_muons,fake_electrons,sm_lhe_weight,backgrounds_info,fake)
     else:
@@ -380,8 +437,6 @@ if cfg["mode"] == "sm_mc_fake":
     if not cfg["blind_high_mjj"]:
         data=histogram_fillers.fillHistogram(cfg,tree_data,hist_data,plots_data,is_data=True,debug=True)
 
-
-    
     write_results.write_sm_mc_fake(cfg,hist,hist_signal,hist_background,plots,backgrounds,backgrounds_info,signal,signal_info,fake_muons,fake_electrons,fake,data)
 
 if cfg["mode"] == "sm_mc_fake_wz":
@@ -614,8 +669,6 @@ if cfg["mode"] == "produce_histograms":
     plots = {}
 
     fakeratemc_samples = []
-
-    
 
     i = 0
     for fakeratemc_sample_info in fakeratemc_samples_info:
