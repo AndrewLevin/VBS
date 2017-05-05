@@ -232,7 +232,7 @@ def fillHistogram(cfg,t,hist,plots,use_lhe_weight = False,is_data=False, syscalc
         if entry % 100000 == 0:
             print "entry = " + str(entry)
 
-#        if t.lumi != 2034 or t.event != 2911440572 :
+#        if t.lumi != 542 or t.event != 674001064:
 #            continue
 
 #        print "andrew debug 0"
@@ -618,9 +618,9 @@ def fillHistogramWZ(cfg,t,hist,plots,use_lhe_weight = False,is_data=False, sysca
         if cfg["channel"] != channel and cfg["channel"] !="all":
             continue
 
-        var=getSignificanceVariable(cfg["significance_variable"],t)
+        var=getSignificanceOrLimitVariable(cfg["significance_or_limit_variable"],t)
 
-        if cfg["significance_variable"] == "mllmjj":
+        if cfg["significance_or_limit_variable"] == "mllmjj":
             if var[0] > return_hist.GetXaxis().GetBinLowEdge(return_hist.GetNbinsX()):
                 var[0] = return_hist.GetXaxis().GetBinCenter(return_hist.GetNbinsX())
             if var[1] > return_hist.GetYaxis().GetBinLowEdge(return_hist.GetNbinsY()):
@@ -629,7 +629,7 @@ def fillHistogramWZ(cfg,t,hist,plots,use_lhe_weight = False,is_data=False, sysca
         #if var > 500 and  cfg["blind_high_mjj"] == True:
         #    continue
 
-        if cfg["significance_variable"] == "mllmjj":
+        if cfg["significance_or_limit_variable"] == "mllmjj":
             if p:
                 return_hist.Fill(var[0],var[1],w)
 
@@ -651,7 +651,7 @@ def fillHistogramWZ(cfg,t,hist,plots,use_lhe_weight = False,is_data=False, sysca
 
         if syscalc:
 
-            if cfg["significance_variable"] == "mllmjj":
+            if cfg["significance_or_limit_variable"] == "mllmjj":
                 for i in range(0,100):
                     if p:
                         histos[i].Fill(var[0],var[1],w*t.pdf_weights[i]/t.qcd_pdf_weight_orig)
@@ -686,7 +686,7 @@ def fillHistogramWZ(cfg,t,hist,plots,use_lhe_weight = False,is_data=False, sysca
 
     if syscalc:
         
-        if cfg["significance_variable"] == "mllmjj":
+        if cfg["significance_or_limit_variable"] == "mllmjj":
 
             for i in range(1,hist.GetNbinsX()+1):
                 for j in range(1,hist.GetNbinsY()+1):
@@ -859,6 +859,9 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,plots,fake_muons,fake_electro
 
         if (not lep2passtightid) and lep2passlooseid:
 
+            #if t.lep2_matching_real_gen_lepton_pdgid != 0:
+            #    continue
+
             #if applying_to_ttbar_mc:
             #    if t.lep2_matching_real_gen_lepton_pdgid != 0:
             #        continue
@@ -1005,6 +1008,9 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,plots,fake_muons,fake_electro
 
             w=-t.xsWeight*float(cfg["lumi"])
 
+            if t.gen_weight < 0:
+                w = -w
+
             if abs(t.lep1id) == 11:
                 w = w*eff_scale_factor.electron_efficiency_scale_factor(t.lep1.pt(),t.lep1.eta())
 
@@ -1032,7 +1038,7 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,plots,fake_muons,fake_electro
         
             loose_but_not_tight=True
         
-            if (not lep1passtightid) and lep1passlooseid:
+            if (not lep1passtightid) and lep1passlooseid and t.lep1_matching_real_gen_lepton_pdgid != 0:
 
                #if applying_to_ttbar_mc:
                #     if t.lep1_matching_real_gen_lepton_pdgid != 0:
@@ -1052,7 +1058,7 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,plots,fake_muons,fake_electro
                     print "unknown lepton flavor"
                     sys.exit(0)
                 
-            if (not lep2passtightid) and lep2passlooseid:
+            if (not lep2passtightid) and lep2passlooseid and t.lep2_matching_real_gen_lepton_pdgid != 0:
 
                 #if applying_to_ttbar_mc:
                 #    if t.lep2_matching_real_gen_lepton_pdgid != 0:
@@ -1075,9 +1081,9 @@ def fillHistogramFake(cfg,t,real_lepton_trees,hist,plots,fake_muons,fake_electro
                 
 
         
-            if ((not lep1passtightid) and lep1passlooseid and lep2passtightid) or ((not lep2passtightid) and lep2passlooseid and lep1passtightid):
+            if ((not lep1passtightid) and lep1passlooseid and lep2passtightid and (t.lep1_matching_real_gen_lepton_pdgid != 0)) or ((not lep2passtightid) and lep2passlooseid and lep1passtightid and (t.lep2_matching_real_gen_lepton_pdgid != 0)):
                 mask = mask | (1 << 0)
-            elif (not lep1passtightid) and lep1passlooseid and (not lep2passtightid) and lep2passlooseid:
+            elif (not lep1passtightid) and lep1passlooseid and (not lep2passtightid) and lep2passlooseid and (t.lep1_matching_real_gen_lepton_pdgid != 0) and (t.lep2_matching_real_gen_lepton_pdgid != 0):
                 mask = mask | (1 << 0)
                 w = -w
             else:
@@ -1251,12 +1257,12 @@ def fillHistogramFakeWZ(cfg,t,real_lepton_trees,hist,plots,fake_muons,fake_elect
         else:
             w= 1
 
-        var=getSignificanceVariable(cfg["significance_variable"],t)
+        var=getSignificanceOrLimitVariable(cfg["significance_or_limit_variable"],t)
 
         #if cfg["variable"] == "mjj" and  var > 500 and cfg["blind_high_mjj"] == True:
         #    continue
 
-        if cfg["significance_variable"] == "mllmjj":
+        if cfg["significance_or_limit_variable"] == "mllmjj":
             if var[0] > return_hist.GetXaxis().GetBinLowEdge(return_hist.GetNbinsX()):
                 var[0] = return_hist.GetXaxis().GetBinCenter(return_hist.GetNbinsX())
             if var[1] > return_hist.GetYaxis().GetBinLowEdge(return_hist.GetNbinsY()):
@@ -1374,7 +1380,7 @@ def fillHistogramFakeWZ(cfg,t,real_lepton_trees,hist,plots,fake_muons,fake_elect
         if cfg["channel"] != channel and cfg["channel"] !="all":
             continue
 
-        if cfg["significance_variable"] == "mllmjj":
+        if cfg["significance_or_limit_variable"] == "mllmjj":
             if p:
                 return_hist.Fill(var[0],var[1],w)
         elif cfg["mode"] == "non-sm" and use_lhe_weight == True:
@@ -1470,12 +1476,12 @@ def fillHistogramFakeWZ(cfg,t,real_lepton_trees,hist,plots,fake_muons,fake_elect
             if abs(t.lep3id) == 13:
                 w = w*eff_scale_factor.muon_efficiency_scale_factor(t.lep3.pt(),t.lep3.eta())                
 
-            var=getSignificanceVariable(cfg["significance_variable"],t)
+            var=getSignificanceOrLimitVariable(cfg["significance_or_limit_variable"],t)
 
             #if cfg["variable"] == "mjj" and  var > 500 and cfg["blind_high_mjj"] == True:
             #    continue
 
-            if cfg["significance_variable"] == "mllmjj":
+            if cfg["significance_or_limit_variable"] == "mllmjj":
                 if var[0] > return_hist.GetXaxis().GetBinLowEdge(return_hist.GetNbinsX()):
                     var[0] = return_hist.GetXaxis().GetBinCenter(return_hist.GetNbinsX())
                 if var[1] > return_hist.GetYaxis().GetBinLowEdge(return_hist.GetNbinsY()):
@@ -1592,7 +1598,7 @@ def fillHistogramFakeWZ(cfg,t,real_lepton_trees,hist,plots,fake_muons,fake_elect
             if cfg["channel"] != channel and cfg["channel"] !="all":
                 continue
 
-            if cfg["significance_variable"] == "mllmjj":
+            if cfg["significance_or_limit_variable"] == "mllmjj":
                 if p:
                     return_hist.Fill(var[0],var[1],w)
             elif cfg["mode"] == "non-sm" and use_lhe_weight == True:
