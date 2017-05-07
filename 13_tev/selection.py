@@ -93,8 +93,13 @@ def passSelectionExceptLeptonIDs(t,cfg):
         mask = mask | (1 << 5)
 
     #additional loose muon veto    
+#    if cfg["which_selection"] == "full_btagged" and (t.flags & VetoV5):
+#        #if we are selecting b-tagged events, and there is a soft muon, then is is also likely a loose muon, so we don't want to apply this cut
+#        #we should really redefine VetoV4 such that it does not include soft muons
+#        pass
+#    else:
     if (t.flags & VetoV4):
-    #if False:        
+        #if False:        
         p=False
     else:
         mask = mask | (1 << 6)
@@ -132,7 +137,9 @@ def passSelectionExceptLeptonIDs(t,cfg):
         mask = mask | (1 << 11)
 
     if  cfg["which_selection"] == "full_btagged":
-        if not (t.maxbtagevent > 0.8484 or (t.flags & VetoV5)):
+#        if not (t.maxbtagevent > 0.8484 or (t.flags & VetoV5)):
+        if not (t.maxbtagevent > 0.8484) or (t.flags & VetoV5):            
+#        if not (t.maxbtagevent > 0.8484) or (t.maxbtagevent > 0.99) or (t.flags & VetoV5):            
             p=False
         else:
             mask = mask | (1 << 12)
@@ -182,9 +189,11 @@ def passSelectionExceptLeptonIDs(t,cfg):
             else:
                 mask = mask | (1 << 14)
 
+            if abs(t.jet1.Eta() - t. jet2.Eta()) == 0:
+                print "warning, abs(t.jet1.Eta() - t. jet2.Eta()) = 0 in event " + str(t.run)+ ":"+ str(t.lumi)+ ":" + str(t.event)
 
             #zeppenfeld-like variable cut    
-            if max(abs(t.lep1.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta()),abs(t.lep2.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta())) > 0.75:
+            if (abs(t.jet1.Eta() - t. jet2.Eta()) == 0) or (max(abs(t.lep1.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta()),abs(t.lep2.Eta() - (t.jet1.Eta() + t. jet2.Eta())/2)/abs(t.jet1.Eta() - t. jet2.Eta())) > 0.75):
                 p=False
             else:
                 mask = mask | (1 << 15)
@@ -292,8 +301,8 @@ def passWZSelectionExceptLeptonIDs(t,cfg):
 
 
     #third electron z veto
-    if (t.flags & WLLJJVetoV9):
-    #if False:        
+    #if (t.flags & WLLJJVetoV9):
+    if False:        
         p=False
     else:
         mask = mask | (1 << 12)

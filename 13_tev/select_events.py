@@ -47,7 +47,7 @@ if cfg["mode"] == "reweighted_v1":
         assert(0)
 
 
-if cfg["mode"] == "sm_mc_fake":
+if cfg["mode"] == "sm_mc_fake" or cfg["mode"] == "sm_mc_fake_wz":
     if cfg["significance_or_limit_variable"] == "mllmjj":
         binningmjj=array('f',[500,800,1100,1500,2000])
         binningmll=array('f',[20,100,180,300,400])
@@ -62,7 +62,7 @@ elif cfg["mode"] == "produce_histograms":
         binningmjj=array('f',[500,800,1100,1500,2000])
         hist = TH1F('mjj_for_significance', 'mjj_for_significance',len(binningmjj) - 1, binningmjj )        
 
-if cfg["mode"] == "sm_mc_fake" or cfg["mode"] == "produce_histograms":
+if cfg["mode"] == "sm_mc_fake" or cfg["mode"] == "produce_histograms" or cfg["mode"] == "sm_mc_fake_wz":
     plots_templates = {}
     if cfg["plot_variable"] == "all":
 
@@ -635,8 +635,6 @@ if cfg["mode"] == "produce_histograms":
 
     assert(cfg["channel"] == "all" or cfg["channel"] == "ee" or cfg["channel"] == "em" or cfg["channel"] == "mm")
 
-    print "andrew debug 1"
-    
     if "mc_sample_file" in cfg:
         mc_samples_info=cfg["mc_sample_file"]
     else:
@@ -711,6 +709,9 @@ if cfg["mode"] == "produce_histograms":
 
         for plots_template_key in plots_templates.keys():
             plots_fake[plots_template_key] = plots_templates[plots_template_key].Clone()                
+
+        #do not do real lepton subtraction for the produce_histograms mode    
+        mc_trees_for_fake_histogram_filler = []
 
         return_hists=histogram_fillers.fillHistogramFake(cfg,tree_fake_sample,mc_trees_for_fake_histogram_filler,hist_fake_sample,plots_fake,fake_muons,fake_electrons)
 
