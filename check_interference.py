@@ -26,7 +26,7 @@ label_combined=sys.argv[14]
 label_ewk_plus_qcd=sys.argv[15]
 outputfilename=sys.argv[16]
 
-lumi=19.365*1000
+lumi=35.9*1000
 
 f_ewk=TFile(inputfilename_ewk,"r")
 f_qcd=TFile(inputfilename_qcd,"r")
@@ -73,8 +73,8 @@ hist_ewk_plus_qcd.GetXaxis().SetTitle(xlabel)
 hist_combined.GetXaxis().SetTitleSize(0.055)
 hist_ewk_plus_qcd.GetXaxis().SetTitleSize(0.055)
 
-hist_combined.GetXaxis().SetTitleOffset(0.7);
-hist_ewk_plus_qcd.GetXaxis().SetTitleOffset(0.7);
+hist_combined.GetXaxis().SetTitleOffset(0.75);
+hist_ewk_plus_qcd.GetXaxis().SetTitleOffset(0.75);
 
 hist_combined.GetXaxis().CenterTitle()
 hist_ewk_plus_qcd.GetXaxis().CenterTitle()
