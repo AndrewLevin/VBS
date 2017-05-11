@@ -30,7 +30,8 @@ outputfilename=sys.argv[13]
 logscale=bool(int(sys.argv[14]))
 
 #lumi=19.365
-lumi=3000.
+lumi=35.9
+#lumi=3000
 
 f1=TFile(inputfilename1,"r")
 f2=TFile(inputfilename2,"r")
@@ -64,14 +65,14 @@ hist_2.GetXaxis().SetTitle(xlabel)
 hist_1.GetXaxis().SetTitleSize(0.055)
 hist_2.GetXaxis().SetTitleSize(0.055)
 
-hist_1.GetXaxis().SetTitleOffset(0.7);
-hist_2.GetXaxis().SetTitleOffset(0.7);
+hist_1.GetXaxis().SetTitleOffset(0.75);
+hist_2.GetXaxis().SetTitleOffset(0.75);
 
 hist_1.GetXaxis().CenterTitle()
 hist_2.GetXaxis().CenterTitle()
 
-hist_1.SetMaximum(1.15 * hist_1.GetMaximum());
-hist_2.SetMaximum(1.15 * hist_1.GetMaximum());
+hist_1.SetMaximum(1.25 * hist_1.GetMaximum());
+hist_2.SetMaximum(1.25 * hist_1.GetMaximum());
 
 hist_1.SetStats(0)
 hist_2.SetStats(0)
