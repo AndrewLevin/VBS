@@ -31,7 +31,7 @@ from array import array
 
 gStyle.SetOptStat(0)
 
-gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_8_0_20/src/ntuple_maker/ntuple_maker/interface/fr_enum_definition.h"')
+gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_8_0_26_patch1/src/ntuple_maker/ntuple_maker/interface/fr_enum_definition.h"')
 
 foutname=options.foutname
 
@@ -162,6 +162,9 @@ if options.finelectrondataname != None:
         if entry % int(options.mod) != 0:
             continue
 
+        if not (electron_tree.flags & PassTriggerV1):
+            continue
+
         #if not pass_json(electron_tree.run,electron_tree.lumi):
         #    continue
 
@@ -186,8 +189,8 @@ if options.finelectrondataname != None:
 
 if options.finelectronmcname != None:
 
-    #ele12_lumi = 35.9
-    ele12_lumi = 35.9 * 0.0005
+    ele12_lumi = 35.9
+    #ele12_lumi = 35.9 * 0.0005
     #ele12_lumi = 5/1000.0
     #ele33_lumi = 4.98/1000.0
     
@@ -207,6 +210,9 @@ if options.finelectronmcname != None:
 
         #if electron_mc_tree.metpt < 30:
         #    continue
+
+        if not (electron_mc_tree.flags & PassTriggerV1):
+            continue
 
         if electron_mc_tree.electron_4mom.pt() < 40:
             continue

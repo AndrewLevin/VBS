@@ -1,10 +1,13 @@
-
 from ROOT import *
 
-fin = TFile("distributions_electrons_v8.root","read")
+fin = TFile("distributions_electrons_v50.root","read")
 
-mc_met = fin.Get("electron_mc_mt")
-data_met = fin.Get("electron_data_mt")
+muon_or_electron="electron"
+
+prescale_rate = 0.0005
+
+mc_met = fin.Get(muon_or_electron+"_mc_met")
+data_met = fin.Get(muon_or_electron+"_data_met")
 
 c = TCanvas()
 
@@ -14,11 +17,22 @@ data_met.SetTitle("")
 mc_met.GetXaxis().SetTitle("MET (GeV)")
 data_met.GetXaxis().SetTitle("MET (GeV)")
 
-mc_met.SetLineColor(kRed)
-data_met.SetLineColor(kBlue)
 
 mc_met.SetLineWidth(2)
 data_met.SetLineWidth(2)
+
+data_met.Draw()
+
+c.SaveAs("/afs/cern.ch/user/a/anlevin/www/tmp/wjets_normalization_check_"+muon_or_electron+"s_data.png")
+
+mc_met.Draw()
+
+c.SaveAs("/afs/cern.ch/user/a/anlevin/www/tmp/wjets_normalization_check_"+muon_or_electron+"s_mc.png")
+
+mc_met.Scale(prescale_rate)
+
+mc_met.SetLineColor(kRed)
+data_met.SetLineColor(kBlue)
 
 data_met.Draw()
 mc_met.Draw("same")
@@ -29,5 +43,4 @@ leg.AddEntry(data_met,"data","l")
 
 leg.Draw("same")
 
-
-c.SaveAs("/afs/cern.ch/user/a/anlevin/www/tmp/wjets_normalization_check_electrons.png")
+c.SaveAs("/afs/cern.ch/user/a/anlevin/www/tmp/wjets_normalization_check_"+muon_or_electron+"s.png")
