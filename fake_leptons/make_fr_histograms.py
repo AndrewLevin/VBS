@@ -34,7 +34,7 @@ from array import array
 
 gStyle.SetOptStat(0)
 
-gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_8_0_20/src/ntuple_maker/ntuple_maker/interface/fr_enum_definition.h"')
+gROOT.ProcessLine('#include "/afs/cern.ch/work/a/anlevin/cmssw/CMSSW_8_0_26_patch1/src/ntuple_maker/ntuple_maker/interface/fr_enum_definition.h"')
 
 foutname=options.foutname
 
@@ -66,8 +66,8 @@ run2016H = [281207,284035]
 
 if options.finmuondataname != None:
 
-    muon_ptbins=array('d', [20,25,30,35])
-    #muon_ptbins=array('d', [20,30,40,50,70])
+    #muon_ptbins=array('d', [10,15,20,25,30,40,50])
+    muon_ptbins=array('d', [20,25,30,40,50])    
     #muon_etabins=array('d', [0,1,1.479,2.0,2.5])
     muon_etabins=array('d', [0,0.5,1.0,1.479,2.0,2.5])
 
@@ -103,8 +103,14 @@ if options.finmuondataname != None:
         if entry % int(options.mod) != 0:
             continue
 
+        if not (muon_tree.flags & PassTriggerV4):
+            continue
+
         if muon_tree.muon_4mom.Pt() < 20:
             continue
+
+#        if muon_tree.muon_4mom.Pt() < 10:
+#            continue        
 
         if muon_tree.metpt > 30:
             continue
@@ -171,7 +177,9 @@ if options.finmuonmcname != None:
 
     #mu17_lumi = 100.00/1000.0
     #mu17_lumi = 70.00/1000.0
-    mu17_lumi = 35.9*0.007
+
+    #mu17_lumi = 35.9*0.007
+    mu17_lumi = 35.9*0.0065    
 
     finmuonmcname=options.finmuonmcname
 
@@ -190,7 +198,13 @@ if options.finmuonmcname != None:
         if entry % int(options.mod) != 0:
             continue
 
+#        if muon_mc_tree.muon_4mom.Pt() < 10:
+#            continue
+
         if muon_mc_tree.muon_4mom.Pt() < 20:
+            continue        
+
+        if not (muon_mc_tree.flags & PassTriggerV4):
             continue
 
         if muon_mc_tree.metpt > 30:
@@ -249,7 +263,7 @@ if options.finelectrondataname != None:
 
     electron_tree=finelectron.Get("loose_electrons")
 
-    electron_ptbins=array('d', [20,25,30,35])
+    electron_ptbins=array('d', [20,25,30,40,50])
     electron_etabins=array('d', [0,0.5,1,1.479,2.0,2.5])
 
     loose_electron_th2d=TH2F("loose_electron_hist","loose_electron_hist",len(electron_etabins)-1,electron_etabins,len(electron_ptbins)-1,electron_ptbins)
@@ -269,6 +283,12 @@ if options.finelectrondataname != None:
 
         if entry % int(options.mod) != 0:
             continue
+
+        if not (electron_tree.flags & PassTriggerV1):
+            continue
+
+        if electron_tree.electron_4mom.Pt() < 20:
+            continue        
 
         #if electron_tree.run > run2016B[1] or electron_tree.run < run2016B[0]:
         #    continue
@@ -310,8 +330,6 @@ if options.finelectrondataname != None:
         else:
             weight = 1
 
-        if not (electron_tree.flags & PassTriggerV1):
-            continue
 
         if options.debug:
             #print "andrew debug "+str(electron_tree.run)+" "+str(electron_tree.lumi)+" "+str(electron_tree.event)+" "+str(bool(electron_tree.flags & LepTightSelectionV5))
@@ -321,7 +339,7 @@ if options.finelectrondataname != None:
         if type(electron_tree.GetListOfBranches().FindObject("xsWeight")) == TBranch:
             weight = electron_tree.xsWeight
 
-        if (electron_tree.flags & LepTightSelectionV5):
+        if (electron_tree.flags & LepTightSelectionV4):
 
             if electron_tree.electron_4mom.Pt() > tight_electron_th2d.GetYaxis().GetBinUpEdge(tight_electron_th2d.GetYaxis().GetNbins()):
                 tight_electron_th2d.Fill(abs(electron_tree.electron_4mom.Eta()),tight_electron_th2d.GetYaxis().GetBinCenter(tight_electron_th2d.GetYaxis().GetNbins()),weight)
@@ -359,6 +377,12 @@ if options.finelectronmcname != None:
         if entry % int(options.mod) != 0:
             continue
 
+        if not (electron_mc_tree.flags & PassTriggerV1):
+            continue
+
+        if electron_mc_tree.electron_4mom.Pt() < 20:
+            continue        
+
         if electron_mc_tree.metpt > 30:
             continue
 
@@ -384,10 +408,7 @@ if options.finelectronmcname != None:
         if electron_mc_tree.gen_weight < 0:
             weight = -weight         
 
-        if not (electron_mc_tree.flags & PassTriggerV1):
-            continue
-
-        if (electron_mc_tree.flags & LepTightSelectionV5):
+        if (electron_mc_tree.flags & LepTightSelectionV4):
 
             if electron_mc_tree.electron_4mom.Pt() > tight_electron_th2d.GetYaxis().GetBinUpEdge(tight_electron_th2d.GetYaxis().GetNbins()):
                 tight_electron_th2d.Fill(abs(electron_mc_tree.electron_4mom.Eta()),tight_electron_th2d.GetYaxis().GetBinCenter(tight_electron_th2d.GetYaxis().GetNbins()),-weight)

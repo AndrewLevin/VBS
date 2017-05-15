@@ -18,7 +18,7 @@ hist.SetTitle("")
 
 gStyle.SetPaintTextFormat("4.2f")
 
-hist.GetYaxis().SetTitle("p_{T}")
+hist.GetYaxis().SetTitle("p_{T} (GeV)")
 hist.GetXaxis().SetTitle("|\eta|")
 
 #hist.Draw("colz")
@@ -33,4 +33,4 @@ hist.Draw("texte colz")
 
 c1.SaveAs(output_file_name)
 
-raw_input()
+#raw_input()
