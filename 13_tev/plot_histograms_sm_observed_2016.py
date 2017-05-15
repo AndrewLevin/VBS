@@ -22,16 +22,16 @@ yoffsetstart = 0.0;
 xoffset = 0.20;
 yoffset = 0.05;
 
-#region = "btagged"
+region = "btagged"
 #region = "signal"
-region = "reweighted"
+#region = "reweighted"
 #region = "wz"
 
 if region == "reweighted":
-    xpositions = [0.40,0.40,0.40,0.40,0.40,0.40,0.40,0.40,0.40]
+    xpositions = [0.38,0.38,0.38,0.38,0.38,0.38,0.38,0.38,0.38]
     ypositions = [0,1,2,3,4,5,6,7,8]
 
-if region == "signal" or region == "wz" or region == "b-tagged":
+if region == "signal" or region == "wz" or region == "btagged":
     xpositions = [0.60,0.60,0.60,0.60,0.60,0.60,0.40,0.40,0.40,0.40,0.40,0.40,0.20,0.20,0.20,0.20,0.20,0.20]
     ypositions = [0,1,2,3,4,5,0,1,2,3,4,5,0,1,2,3,4,5]
 
@@ -362,8 +362,8 @@ lumilabel.SetTextSize (0.040)
 
 hstack.Draw("hist")
 
-#cmslabel = TLatex (0.18, 0.93, "#bf{CMS} (Unpublished)")
-cmslabel = TLatex (0.18, 0.93, "")
+cmslabel = TLatex (0.18, 0.93, "#bf{CMS} Preliminary")
+#cmslabel = TLatex (0.18, 0.93, "")
 cmslabel.SetNDC ()
 cmslabel.SetTextAlign (10)
 cmslabel.SetTextFont (42)
@@ -379,13 +379,17 @@ if region == "btagged":
     j=0
     draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,fake,"fake","f")
     j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjewk,"W^{#pm}W^{#pm}JJ EWK","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjqcd,"W^{#pm}W^{#pm}JJ QCD","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,ttbar,"t#bar{t} fully leptonic","f")
+    j=j+1
     draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,zjets,"Z+jets","f")
     j=j+1
     draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wzjjewk,"WZ+jets","f")
     j=j+1
-    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjqcd,"WWJJ QCD","f")
-    j=j+1
-    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wgjets,"WGJJ","f")
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wgjets,"WG+jets","f")
     j=j+1
     draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,ttw,"TTW","f")
     j=j+1
@@ -394,25 +398,23 @@ if region == "btagged":
     draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,ttg,"TTG","f")
     j=j+1
     draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,tzq,"TZQ","f")
-    j=j+1
-    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,ttbar,"ttbar fl","f")
-    j=j+1
-    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjewk,"WWJJ","f")
 
 
 if region == "signal":
     j=0
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjewk,"W^{#pm}W^{#pm}JJ EWK","f")
+    j=j+1
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjqcd,"W^{#pm}W^{#pm}JJ QCD","f")
+    j=j+1
     draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,fake,"fake","f")
     j=j+1
     draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,zjets,"Z+jets","f")
     j=j+1
     draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wzjjewk,"WZ+jets","f")
     j=j+1
-    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjqcd,"WWJJ QCD","f")
-    j=j+1
-    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wgjets,"WGJJ","f")
-    j=j+1
-    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wpwpjjewk,"WWJJ","f")
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wgjets,"WG+jets","f")
+
+
 
 if region == "wz":
     j=0
@@ -432,13 +434,14 @@ if region == "wz":
 
 if region == "reweighted":
     j=0
+    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,reweighted,options.reweighted_label,"f")
+    j=j+1
     draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,fake,"fake","f")
     j=j+1
     draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wz,"WZ+jets","f")
     j=j+1
     draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,wg,"WG+jets","f")
-    j=j+1
-    draw_legend(xpositions[j],0.84 - ypositions[j]*yoffset,reweighted,options.reweighted_label,"f")
+
 
 
 j=j+1
